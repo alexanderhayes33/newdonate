@@ -1,0 +1,34 @@
+{
+  "username": "alex",
+  "createdAt": 1751400514828,
+  "lastActiveAt": 1751400514828,
+  "config": {
+    "truewalletPhone": "0928707912",
+    "streamTitle": "alex's Stream",
+    "alertDuration": 5000,
+    "enableTTS": true,
+    "enableSound": true,
+    "alertPosition": "top",
+    "customCSS": "",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ alex!"
+  },
+  "donations": [],
+  "stats": {
+    "totalDonations": 0,
+    "totalAmount": 0,
+    "averageAmount": 0,
+    "highestDonation": 0,
+    "uniqueDonors": 0,
+    "thisMonthAmount": 0,
+    "lastDonationAt": null
+  },
+  "advanced": {
+    "webhookUrl": "",
+    "discordWebhook": "",
+    "customAlerts": {
+      "milestone100": true,
+      "milestone500": true,
+      "milestone1000": true
+    }
+  }
+}

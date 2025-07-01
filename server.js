@@ -1,40 +1,52 @@
+// server.js - Multi-User Alert System with Separate Files
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
-const https = require('https');
-const truewallet = require('./apis/truewallet');
 
-// ⚙️ การตั้งค่าระบบ
-const TRUEWALLET_PHONE = process.env.TRUEWALLET_PHONE || '0801544992';
-const DOMAIN = process.env.DOMAIN || 'chatmateth.chat';
+// Import custom modules
+const UserManager = require('./utils/UserManager');
+const TemplateEngine = require('./utils/TemplateEngine');
+
+// Import TrueWallet API (optional)
+let truewallet;
+try {
+    truewallet = require('./apis/truewallet');
+    console.log('✅ TrueWallet API loaded');
+} catch (error) {
+    console.error('❌ TrueWallet API not found:', error.message);
+    console.log('ℹ️ TrueWallet features will be disabled');
+}
+
+// ⚙️ Configuration
 const PORT = process.env.PORT || 3000;
-const USE_HTTPS = process.env.USE_HTTPS === 'true'; // เปิด/ปิด HTTPS
+const DOMAIN = process.env.DOMAIN || 'localhost';
+const USE_HTTPS = process.env.USE_HTTPS === 'true';
 
+// สร้าง Express app
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: [
-            `http://${DOMAIN}`,
-            `https://${DOMAIN}`,
-            `http://localhost:${PORT}`,
-            `http://127.0.0.1:${PORT}`,
-            `http://154.215.14.36:${PORT}`,
-            "*"
-        ],
+        origin: "*",
         methods: ["GET", "POST"],
         credentials: true
-    },
-    allowEIO3: true
+    }
 });
 
-// เส้นทางไฟล์ logs
-const LOGS_FILE = path.join(__dirname, 'donation_logs.json');
+// สร้าง instances
+const userManager = new UserManager();
+const templateEngine = new TemplateEngine();
 
-// ฟังก์ชันสำหรับ Bangkok timezone
+// แสดง debug info
+console.log('🔍 System Debug Info:');
+templateEngine.debugInfo();
+
+// ===============================
+// Utility Functions
+// ===============================
 function getBangkokTime() {
     return new Date().toLocaleString('th-TH', {
         timeZone: 'Asia/Bangkok',
@@ -47,248 +59,432 @@ function getBangkokTime() {
     });
 }
 
-// ฟังก์ชันโหลด logs จากไฟล์
-function loadLogs() {
-    try {
-        if (fs.existsSync(LOGS_FILE)) {
-            const data = fs.readFileSync(LOGS_FILE, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('Error loading logs:', error);
-    }
-    return [];
+function isUserActive(lastActiveAt) {
+    return Date.now() - lastActiveAt < 7 * 24 * 60 * 60 * 1000;
 }
 
-// ฟังก์ชันบันทึก logs ลงไฟล์
-function saveLogs(logs) {
-    try {
-        fs.writeFileSync(LOGS_FILE, JSON.stringify(logs, null, 2), 'utf8');
-        console.log('✅ Logs saved successfully');
-    } catch (error) {
-        console.error('❌ Error saving logs:', error);
-    }
-}
-
-// ฟังก์ชันเพิ่ม log ใหม่
-function addDonationLog(alertData) {
-    const logs = loadLogs();
-    
-    const logEntry = {
-        id: Date.now(),
-        timestamp: alertData.timestamp,
-        bangkokTime: getBangkokTime(),
-        name: alertData.name,
-        amount: alertData.amount,
-        message: alertData.message || '',
-        paymentMethod: alertData.paymentMethod || 'manual',
-        voucherCode: alertData.voucherCode || '',
-        phoneNumber: alertData.phoneNumber || '',
-        status: 'completed',
-        ip: alertData.ip || 'unknown',
-        userAgent: alertData.userAgent || 'unknown'
-    };
-    
-    logs.unshift(logEntry);
-    
-    if (logs.length > 1000) {
-        logs.splice(1000);
-    }
-    
-    saveLogs(logs);
-    
-    console.log('📝 New donation logged:', logEntry);
-    return logEntry;
-}
-
-// Store active alerts และ queue
-let activeAlerts = [];
-let alertHistory = [];
-let alertQueue = [];
-let isProcessingQueue = false;
-
-// ฟังก์ชันจัดการ Alert Queue
-async function processAlertQueue() {
-    if (isProcessingQueue || alertQueue.length === 0) {
-        return;
-    }
-    
-    isProcessingQueue = true;
-    console.log(`🎯 Processing alert queue: ${alertQueue.length} items`);
-    
-    while (alertQueue.length > 0) {
-        const alertData = alertQueue.shift();
-        
-        try {
-            alertHistory.unshift(alertData);
-            if (alertHistory.length > 100) {
-                alertHistory.pop();
-            }
-            
-            addDonationLog(alertData);
-            
-            io.emit('new-alert', alertData);
-            
-            console.log(`✅ Alert processed: ${alertData.name} - ฿${alertData.amount}`);
-            
-            await new Promise(resolve => setTimeout(resolve, 6000));
-            
-        } catch (error) {
-            console.error('❌ Error processing alert:', error);
-        }
-    }
-    
-    isProcessingQueue = false;
-    console.log('🏁 Alert queue processing completed');
-}
-
-// ฟังก์ชันเพิ่ม alert เข้า queue
-function addToAlertQueue(alertData) {
-    alertData.queueId = Date.now() + Math.random();
-    alertData.queuedAt = Date.now();
-    
-    alertQueue.push(alertData);
-    
-    console.log(`📋 Alert added to queue: ${alertData.name} (Queue: ${alertQueue.length})`);
-    
-    processAlertQueue();
-    
-    return { success: true };
-}
-
-// Middleware สำหรับ HTTPS Redirect
-app.use((req, res, next) => {
-    // ถ้าใช้ Cloudflare และต้องการ Force HTTPS
-    if (req.headers['x-forwarded-proto'] === 'http' && USE_HTTPS) {
-        return res.redirect(`https://${req.headers.host}${req.url}`);
-    }
-    next();
-});
-
-// Trust proxy headers (สำคัญสำหรับ Cloudflare)
+// ===============================
+// Express Configuration
+// ===============================
 app.set('trust proxy', true);
 
-// CORS Configuration
 app.use(cors({
-    origin: [
-        `http://${DOMAIN}`,
-        `https://${DOMAIN}`,
-        `http://localhost:${PORT}`,
-        `http://127.0.0.1:${PORT}`,
-        `http://154.215.14.36:${PORT}`,
-        "*"
-    ],
+    origin: "*",
     credentials: true
 }));
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
 
-// Security Headers สำหรับ HTTPS
+// Logging middleware
 app.use((req, res, next) => {
-    if (USE_HTTPS) {
-        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-Frame-Options', 'DENY');
-        res.setHeader('X-XSS-Protection', '1; mode=block');
+    console.log(`📝 ${req.method} ${req.url}`);
+    if (Object.keys(req.body).length > 0) {
+        console.log(`📋 Body:`, req.body);
     }
     next();
 });
 
-// Socket.io connection handling
-io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+// ===============================
+// Username Parameter Middleware
+// ===============================
+app.param('username', (req, res, next, username) => {
+    const validation = userManager.validateUsername(username);
     
-    socket.on('send-alert', (data) => {
-        const alertData = {
-            id: Date.now(),
-            name: data.name,
-            amount: data.amount,
-            message: data.message || '',
-            paymentMethod: data.paymentMethod || 'manual',
-            timestamp: Date.now(),
-            socketId: socket.id,
-            ip: socket.handshake.address,
-            userAgent: socket.handshake.headers['user-agent']
-        };
-        
-        addToAlertQueue(alertData);
-        
-        console.log('Alert queued:', alertData);
-        
-        socket.emit('alert-sent', { 
-            success: true, 
-            alert: alertData
-        });
-    });
-    
-    socket.on('request-recent-alerts', () => {
-        socket.emit('recent-alerts', alertHistory.slice(0, 10));
-    });
-    
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-    });
-});
-
-// REST API Routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/widget', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'alert-widget.html'));
-});
-
-app.get('/control', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'control-panel.html'));
-});
-
-app.get('/donate', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'donate.html'));
-});
-
-app.get('/history', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'history.html'));
-});
-
-// API สำหรับส่ง alert ผ่าน HTTP
-app.post('/api/alert', (req, res) => {
-    const { name, amount, message, paymentMethod } = req.body;
-    
-    if (!name || !amount) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Name and amount are required' 
+    if (!validation.isValid) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid username: ${validation.errors.join(', ')}`
         });
     }
     
-    const alertData = {
-        id: Date.now(),
-        name: name,
-        amount: parseInt(amount),
-        message: message || '',
-        paymentMethod: paymentMethod || 'api',
-        timestamp: Date.now(),
-        ip: req.ip || req.connection.remoteAddress,
-        userAgent: req.get('User-Agent') || 'unknown'
-    };
+    req.username = username;
+    req.userData = userManager.loadUserData(username);
+    next();
+});
+
+// ===============================
+// Socket.io Connection Handling
+// ===============================
+io.on('connection', (socket) => {
+    console.log(`🔌 Client connected: ${socket.id}`);
     
-    addToAlertQueue(alertData);
+    socket.on('join-user-room', (username) => {
+        if (userManager.validateUsername(username).isValid) {
+            socket.join(`user-${username}`);
+            console.log(`👤 Socket ${socket.id} joined room: user-${username}`);
+        }
+    });
     
-    console.log('Alert queued via API:', alertData);
+    socket.on('send-alert', (data) => {
+        if (!data.username || !data.name || !data.amount) {
+            socket.emit('alert-error', { message: 'Missing required data' });
+            return;
+        }
+        
+        try {
+            const donationData = {
+                name: data.name,
+                amount: parseInt(data.amount),
+                message: data.message || '',
+                paymentMethod: 'manual',
+                ip: socket.handshake.address,
+                userAgent: socket.handshake.headers['user-agent']
+            };
+            
+            const donation = userManager.addDonation(data.username, donationData);
+            
+            io.to(`user-${data.username}`).emit('new-alert', {
+                id: donation.id,
+                name: donation.name,
+                amount: donation.amount,
+                message: donation.message,
+                timestamp: donation.timestamp
+            });
+            
+            socket.emit('alert-sent', { 
+                success: true, 
+                donation: donation 
+            });
+            
+            console.log(`📢 Manual alert sent for ${data.username}: ${donation.name} - ฿${donation.amount}`);
+            
+        } catch (error) {
+            console.error('Error sending manual alert:', error);
+            socket.emit('alert-error', { message: error.message });
+        }
+    });
     
-    res.json({ 
-        success: true, 
-        message: 'Alert sent successfully',
-        alert: alertData
+    socket.on('disconnect', () => {
+        console.log(`🔌 Client disconnected: ${socket.id}`);
     });
 });
 
-// API สำหรับเติมเงิน TrueWallet
-app.post('/api/redeem-voucher', async (req, res) => {
+// ===============================
+// Routes
+// ===============================
+
+// 🏠 หน้าแรก
+app.get('/', (req, res) => {
+    try {
+        console.log('📄 Rendering homepage...');
+        
+        const users = userManager.getAllUsers();
+        const globalStats = userManager.getGlobalStats();
+        
+        let usersList = '';
+        
+        if (users.length === 0) {
+            usersList = `
+                <div class="empty-state">
+                    <div class="icon">👥</div>
+                    <h3>ยังไม่มี Streamers</h3>
+                    <p>เริ่มต้นด้วยการสร้าง User แรกของคุณด้านบน</p>
+                </div>
+            `;
+        } else {
+            usersList = '<div class="users-grid">';
+            
+            users.forEach(user => {
+                const isActive = isUserActive(user.lastActiveAt);
+                const statusClass = isActive ? 'status-active' : 'status-inactive';
+                const statusText = isActive ? 'Active' : 'Inactive';
+                
+                usersList += `
+                    <div class="user-card">
+                        <div class="user-header">
+                            <h3>👤 ${user.username}</h3>
+                            <span class="user-status ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="user-info">
+                            <p><strong>Stream Title:</strong> ${user.streamTitle}</p>
+                            <p><strong>Created:</strong> ${new Date(user.createdAt).toLocaleDateString('th-TH')}</p>
+                            <p><strong>Last Active:</strong> ${new Date(user.lastActiveAt).toLocaleDateString('th-TH')}</p>
+                        </div>
+                        
+                        <div class="user-stats">
+                            <div class="mini-stat">
+                                <div class="value">${user.totalDonations}</div>
+                                <div class="label">Donations</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="value">฿${user.totalAmount.toLocaleString()}</div>
+                                <div class="label">Total</div>
+                            </div>
+                        </div>
+                        
+                        <div class="user-links">
+                            <a href="/user/${user.username}/donate" class="user-link primary">💝 Donate</a>
+                            <a href="/user/${user.username}/widget" class="user-link" target="_blank">📺 Widget</a>
+                            <a href="/user/${user.username}/control" class="user-link">🎮 Control</a>
+                            <a href="/user/${user.username}/history" class="user-link">📊 History</a>
+                            <a href="/user/${user.username}/config" class="user-link">⚙️ Settings</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            usersList += '</div>';
+        }
+        
+        const html = templateEngine.render('homepage', {
+            totalUsers: globalStats.totalUsers,
+            totalAmount: globalStats.totalAmount.toLocaleString(),
+            totalDonations: globalStats.totalDonations,
+            activeUsers: globalStats.activeUsers,
+            usersList: usersList
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error('Error rendering homepage:', error);
+        res.status(500).send(`
+            <h1>Error</h1>
+            <p>เกิดข้อผิดพลาด: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/homepage.html มีอยู่หรือไม่</p>
+            <button onclick="history.back()">← กลับไป</button>
+        `);
+    }
+});
+
+// 🆕 สร้าง user ใหม่
+app.post('/user/create', (req, res) => {
+    try {
+        console.log('📝 Create user request:', req.body);
+        
+        const { username, phone } = req.body;
+        
+        if (!username || !phone) {
+            console.log('❌ Missing data:', { username, phone });
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html><head><meta charset="UTF-8"><title>Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ ข้อมูลไม่ครบถ้วน</h1>
+                    <p>กรุณากรอก Username และเบอร์โทรศัพท์</p>
+                    <button onclick="history.back()">← กลับไป</button>
+                </body></html>
+            `);
+        }
+        
+        const usernameValidation = userManager.validateUsername(username);
+        if (!usernameValidation.isValid) {
+            console.log('❌ Invalid username:', username, usernameValidation.errors);
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html><head><meta charset="UTF-8"><title>Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ Username ไม่ถูกต้อง</h1>
+                    <p>${usernameValidation.errors.join('<br>')}</p>
+                    <button onclick="history.back()">← กลับไป</button>
+                </body></html>
+            `);
+        }
+        
+        if (!/^[0-9]{10}$/.test(phone)) {
+            console.log('❌ Invalid phone:', phone);
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html><head><meta charset="UTF-8"><title>Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ เบอร์โทรศัพท์ไม่ถูกต้อง</h1>
+                    <p>เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก</p>
+                    <button onclick="history.back()">← กลับไป</button>
+                </body></html>
+            `);
+        }
+        
+        if (userManager.userExists(username)) {
+            console.log('❌ User already exists:', username);
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html><head><meta charset="UTF-8"><title>Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ Username นี้มีอยู่แล้ว</h1>
+                    <p>กรุณาเลือก Username อื่น</p>
+                    <button onclick="history.back()">← กลับไป</button>
+                </body></html>
+            `);
+        }
+        
+        const userData = userManager.createUser(username, {
+            truewalletPhone: phone,
+            streamTitle: `${username}'s Stream`
+        });
+        
+        console.log(`✅ New user created: ${username} with phone: ${phone.substring(0, 3)}***${phone.substring(7)}`);
+        
+        res.redirect(`/user/${username}/config?created=true`);
+        
+    } catch (error) {
+        console.error('❌ Error creating user:', error);
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html><head><meta charset="UTF-8"><title>Error</title></head>
+            <body style="font-family: Arial; text-align: center; padding: 50px;">
+                <h1>❌ เกิดข้อผิดพลาดในระบบ</h1>
+                <p>${error.message}</p>
+                <button onclick="history.back()">← กลับไป</button>
+            </body></html>
+        `);
+    }
+});
+
+// 💝 หน้าโดเนท
+app.get('/user/:username/donate', (req, res) => {
+    try {
+        console.log(`📄 Rendering donate page for: ${req.username}`);
+        
+        const html = templateEngine.render('donate', {
+            username: req.username,
+            streamTitle: req.userData.config.streamTitle,
+            totalDonations: req.userData.stats.totalDonations,
+            totalAmount: req.userData.stats.totalAmount.toLocaleString()
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error('Error rendering donate page:', error);
+        res.status(500).send(`
+            <h1>Error</h1>
+            <p>ไม่สามารถแสดงหน้าโดเนทได้: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/donate.html มีอยู่หรือไม่</p>
+            <button onclick="history.back()">← กลับไป</button>
+        `);
+    }
+});
+
+// 📺 Alert Widget
+app.get('/user/:username/widget', (req, res) => {
+    try {
+        console.log(`📄 Rendering widget for: ${req.username}`);
+        
+        const html = templateEngine.render('widget', {
+            username: req.username,
+            streamTitle: req.userData.config.streamTitle,
+            alertDuration: req.userData.config.alertDuration,
+            enableTTS: req.userData.config.enableTTS,
+            enableSound: req.userData.config.enableSound
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error('Error rendering widget:', error);
+        res.status(500).send(`
+            <h1>Widget Error</h1>
+            <p>ไม่สามารถแสดง Widget ได้: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/widget.html มีอยู่หรือไม่</p>
+        `);
+    }
+});
+
+// ⚙️ Config/Settings
+app.get('/user/:username/config', (req, res) => {
+    try {
+        console.log(`📄 Loading config page for: ${req.username}`);
+        
+        const isNewUser = req.query.created === 'true';
+        const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+        
+        const widgetUrl = `${protocol}://${req.get('host')}/user/${req.username}/widget`;
+        const donateUrl = `${protocol}://${req.get('host')}/user/${req.username}/donate`;
+        
+        console.log(`🔗 URLs:`, { widgetUrl, donateUrl });
+        
+        const html = templateEngine.render('config', {
+            username: req.username,
+            config: JSON.stringify(req.userData.config),
+            isNewUser: isNewUser ? 'block' : 'none',
+            widgetUrl: widgetUrl,
+            donateUrl: donateUrl
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error(`❌ Error rendering config page for ${req.username}:`, error);
+        res.status(500).send(`
+            <h1>Config Error</h1>
+            <p>ไม่สามารถแสดงหน้า Settings ได้: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/config.html มีอยู่หรือไม่</p>
+            <button onclick="history.back()">← กลับไป</button>
+        `);
+    }
+});
+
+// 🎮 Control Panel
+app.get('/user/:username/control', (req, res) => {
+    try {
+        console.log(`📄 Rendering control panel for: ${req.username}`);
+        
+        const html = templateEngine.render('control', {
+            username: req.username,
+            streamTitle: req.userData.config.streamTitle,
+            totalDonations: req.userData.stats.totalDonations,
+            totalAmount: req.userData.stats.totalAmount.toLocaleString(),
+            recentDonations: JSON.stringify(req.userData.donations.slice(0, 10))
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error('Error rendering control panel:', error);
+        res.status(500).send(`
+            <h1>Control Panel Error</h1>
+            <p>ไม่สามารถแสดง Control Panel ได้: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/control.html มีอยู่หรือไม่</p>
+            <button onclick="history.back()">← กลับไป</button>
+        `);
+    }
+});
+
+// 📊 History Dashboard
+app.get('/user/:username/history', (req, res) => {
+    try {
+        console.log(`📄 Rendering history for: ${req.username}`);
+        
+        const html = templateEngine.render('history', {
+            username: req.username,
+            streamTitle: req.userData.config.streamTitle,
+            totalDonations: req.userData.stats.totalDonations,
+            totalAmount: req.userData.stats.totalAmount.toLocaleString(),
+            averageAmount: req.userData.stats.averageAmount,
+            uniqueDonors: req.userData.stats.uniqueDonors
+        });
+        
+        res.send(html);
+        
+    } catch (error) {
+        console.error('Error rendering history:', error);
+        res.status(500).send(`
+            <h1>History Error</h1>
+            <p>ไม่สามารถแสดงหน้า History ได้: ${error.message}</p>
+            <p>กรุณาตรวจสอบว่าไฟล์ templates/history.html มีอยู่หรือไม่</p>
+            <button onclick="history.back()">← กลับไป</button>
+        `);
+    }
+});
+
+// ===============================
+// API Routes
+// ===============================
+
+// 💰 API เติมเงิน TrueWallet
+app.post('/user/:username/api/redeem-voucher', async (req, res) => {
     try {
         const { voucher_code, donor_name, donor_message } = req.body;
+        const phoneNumber = req.userData.config.truewalletPhone;
+        
+        if (!phoneNumber) {
+            return res.status(400).json({
+                status: 'FAIL',
+                reason: 'ยังไม่ได้ตั้งค่าเบอร์ TrueWallet กรุณาไปที่หน้า Settings'
+            });
+        }
         
         if (!voucher_code) {
             return res.status(400).json({
@@ -297,42 +493,52 @@ app.post('/api/redeem-voucher', async (req, res) => {
             });
         }
         
-        const phoneNumber = TRUEWALLET_PHONE;
+        console.log(`🔄 [${req.username}] กำลังเติมเงินด้วย voucher: ${voucher_code.substring(0, 10)}...`);
         
-        console.log(`🔄 กำลังเติมเงินให้เบอร์: ${phoneNumber} ด้วย voucher: ${voucher_code.substring(0, 10)}...`);
+        if (!truewallet) {
+            return res.status(500).json({
+                status: 'ERROR',
+                reason: 'TrueWallet API ไม่พร้อมใช้งาน'
+            });
+        }
         
         const result = await truewallet.redeemvouchers(phoneNumber, voucher_code);
         
         if (result.status === 'SUCCESS') {
-            console.log(`✅ เติมเงินสำเร็จ: ${result.amount} บาท`);
+            console.log(`✅ [${req.username}] เติมเงินสำเร็จ: ${result.amount} บาท`);
             
             if (donor_name) {
-                const alertData = {
-                    id: Date.now(),
+                const donationData = {
                     name: donor_name,
                     amount: parseInt(result.amount),
                     message: donor_message || '',
                     paymentMethod: 'truewallet',
                     voucherCode: voucher_code,
                     phoneNumber: phoneNumber,
-                    timestamp: Date.now(),
-                    ip: req.ip || req.connection.remoteAddress,
-                    userAgent: req.get('User-Agent') || 'unknown'
+                    ip: req.ip,
+                    userAgent: req.get('User-Agent')
                 };
                 
-                addToAlertQueue(alertData);
+                const donation = userManager.addDonation(req.username, donationData);
                 
-                console.log('✅ Donation alert created:', alertData);
+                io.to(`user-${req.username}`).emit('new-alert', {
+                    id: donation.id,
+                    name: donation.name,
+                    amount: donation.amount,
+                    message: donation.message,
+                    timestamp: donation.timestamp
+                });
+                
+                console.log(`🎉 [${req.username}] Donation alert sent:`, donation);
             }
-            
         } else {
-            console.log(`❌ เติมเงินไม่สำเร็จ: ${result.reason}`);
+            console.log(`❌ [${req.username}] เติมเงินไม่สำเร็จ: ${result.reason}`);
         }
         
         res.json(result);
         
     } catch (error) {
-        console.error('❌ เกิดข้อผิดพลาดใน API:', error);
+        console.error(`❌ [${req.username}] Error in voucher redemption:`, error);
         res.status(500).json({
             status: 'ERROR',
             reason: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'
@@ -340,139 +546,107 @@ app.post('/api/redeem-voucher', async (req, res) => {
     }
 });
 
-// API สำหรับดู donation logs (from version 2)
-app.get('/api/logs', (req, res) => {
-    const { page = 1, limit = 50, search = '', dateFrom, dateTo } = req.query;
-    
+// ⚙️ API อัพเดท config
+app.post('/user/:username/api/config', (req, res) => {
     try {
-        let logs = loadLogs();
+        const updatedConfig = userManager.updateConfig(req.username, req.body);
+        res.json({ 
+            success: true, 
+            message: 'Configuration updated successfully',
+            config: updatedConfig 
+        });
+    } catch (error) {
+        console.error(`Error updating config for ${req.username}:`, error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+});
+
+// 📊 API ดู donation logs
+app.get('/user/:username/api/donations', (req, res) => {
+    try {
+        const { page = 1, limit = 50, search = '', dateFrom, dateTo } = req.query;
         
-        // กรองตามคำค้นหา
+        let donations = [...req.userData.donations];
+        
         if (search) {
             const searchLower = search.toLowerCase();
-            logs = logs.filter(log => 
-                log.name.toLowerCase().includes(searchLower) ||
-                (log.message && log.message.toLowerCase().includes(searchLower))
+            donations = donations.filter(donation => 
+                donation.name.toLowerCase().includes(searchLower) ||
+                (donation.message && donation.message.toLowerCase().includes(searchLower))
             );
         }
         
-        // กรองตามวันที่
         if (dateFrom || dateTo) {
-            logs = logs.filter(log => {
-                const logDate = new Date(log.timestamp);
-                if (dateFrom && logDate < new Date(dateFrom)) return false;
-                if (dateTo && logDate > new Date(dateTo + ' 23:59:59')) return false;
+            donations = donations.filter(donation => {
+                const donationDate = new Date(donation.timestamp);
+                if (dateFrom && donationDate < new Date(dateFrom)) return false;
+                if (dateTo && donationDate > new Date(dateTo + ' 23:59:59')) return false;
                 return true;
             });
         }
         
-        // คำนวณ pagination
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + parseInt(limit);
-        const paginatedLogs = logs.slice(startIndex, endIndex);
+        const paginatedDonations = donations.slice(startIndex, endIndex);
         
-        // สถิติ
-        const stats = {
-            totalDonations: logs.length,
-            totalAmount: logs.reduce((sum, log) => sum + log.amount, 0),
-            averageAmount: logs.length > 0 ? logs.reduce((sum, log) => sum + log.amount, 0) / logs.length : 0,
-            todayDonations: logs.filter(log => {
-                const today = new Date().toDateString();
-                const logDate = new Date(log.timestamp).toDateString();
-                return today === logDate;
-            }).length,
-            truewalletDonations: logs.filter(log => log.paymentMethod === 'truewallet').length,
-            manualDonations: logs.filter(log => log.paymentMethod === 'manual').length
+        const searchStats = {
+            totalDonations: donations.length,
+            totalAmount: donations.reduce((sum, d) => sum + d.amount, 0),
+            averageAmount: donations.length > 0 ? 
+                Math.round(donations.reduce((sum, d) => sum + d.amount, 0) / donations.length) : 0
         };
         
         res.json({
             success: true,
-            data: paginatedLogs,
+            data: paginatedDonations,
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
-                total: logs.length,
-                pages: Math.ceil(logs.length / limit)
+                total: donations.length,
+                pages: Math.ceil(donations.length / limit)
             },
-            stats: stats
+            stats: searchStats,
+            userStats: req.userData.stats
         });
         
     } catch (error) {
-        console.error('Error fetching logs:', error);
+        console.error(`Error fetching donations for ${req.username}:`, error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch logs',
+            message: 'Failed to fetch donations',
             error: error.message
         });
     }
 });
 
-// API สำหรับลบ log (from version 2)
-app.delete('/api/logs/:id', (req, res) => {
+// 📥 API export donations
+app.get('/user/:username/api/donations/export', (req, res) => {
     try {
-        const { id } = req.params;
-        let logs = loadLogs();
-        
-        const initialLength = logs.length;
-        logs = logs.filter(log => log.id != id);
-        
-        if (logs.length < initialLength) {
-            saveLogs(logs);
-            res.json({ success: true, message: 'Log deleted successfully' });
-        } else {
-            res.status(404).json({ success: false, message: 'Log not found' });
-        }
-        
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// API สำหรับ export logs (from version 2)
-app.get('/api/logs/export', (req, res) => {
-    try {
-        const logs = loadLogs();
-        const filename = `donation_logs_${new Date().toISOString().split('T')[0]}.json`;
+        const donations = req.userData.donations;
+        const filename = `${req.username}_donations_${new Date().toISOString().split('T')[0]}.json`;
         
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(logs, null, 2));
+        res.send(JSON.stringify({
+            username: req.username,
+            exportDate: new Date().toISOString(),
+            stats: req.userData.stats,
+            donations: donations
+        }, null, 2));
         
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// API สำหรับดู alert history (from version 2)
-app.get('/api/alerts', (req, res) => {
-    res.json({
-        success: true,
-        alerts: alertHistory,
-        total: alertHistory.length
-    });
-});
-
-// API สำหรับ alert.json (legacy support) (from version 2)
-app.get('/alert.json', (req, res) => {
-    if (alertHistory.length > 0) {
-        const latestAlert = alertHistory[0];
-        res.json({
-            name: latestAlert.name,
-            amount: latestAlert.amount,
-            message: latestAlert.message || '',
-            timestamp: latestAlert.timestamp
-        });
-    } else {
-        res.json({
-            name: '',
-            amount: 0,
-            message: '',
-            timestamp: 0
+        console.error(`Error exporting donations for ${req.username}:`, error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
         });
     }
 });
 
-// API สำหรับ Google TTS Proxy (from version 2)
+// 🔊 API TTS
 app.get('/api/tts', async (req, res) => {
     const { text, lang = 'th' } = req.query;
     
@@ -484,8 +658,9 @@ app.get('/api/tts', async (req, res) => {
     }
     
     try {
-        console.log('🔊 TTS Request:', text);
+        console.log('🔊 TTS Request:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
         
+        const https = require('https');
         const encodedText = encodeURIComponent(text);
         const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodedText}`;
         
@@ -502,8 +677,7 @@ app.get('/api/tts', async (req, res) => {
             console.error('❌ Google TTS Error:', error);
             res.status(500).json({ 
                 success: false, 
-                message: 'Failed to fetch TTS audio',
-                error: error.message 
+                message: 'Failed to fetch TTS audio' 
             });
         });
         
@@ -519,118 +693,98 @@ app.get('/api/tts', async (req, res) => {
         console.error('❌ TTS API Error:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Internal server error',
-            error: error.message 
+            message: 'Internal server error' 
         });
     }
 });
 
-// API สำหรับดู queue status (from version 2)
-app.get('/api/queue', (req, res) => {
-    res.json({
-        success: true,
-        queue: {
-            length: alertQueue.length,
-            isProcessing: isProcessingQueue,
-            estimatedWaitTime: alertQueue.length * 6,
-            items: alertQueue.map(item => ({
-                id: item.id,
-                name: item.name,
-                amount: item.amount,
-                queuedAt: item.queuedAt,
-                position: alertQueue.indexOf(item) + 1
-            }))
-        }
-    });
-});
-
-// API สำหรับล้าง queue (ฉุกเฉิน) (from version 2)
-app.post('/api/queue/clear', (req, res) => {
-    const clearedCount = alertQueue.length;
-    alertQueue = [];
-    isProcessingQueue = false;
-    
-    console.log(`🗑️ Queue cleared: ${clearedCount} items removed`);
-    
-    res.json({
-        success: true,
-        message: `Queue cleared successfully. ${clearedCount} items removed.`,
-        clearedCount: clearedCount
-    });
-});
-
-// API สำหรับตรวจสอบสถานะ server
-app.get('/api/health', (req, res) => {
-    const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    
-    res.json({
-        status: 'OK',
-        message: 'OBS Alert Server with TrueWallet is running',
-        timestamp: new Date().toISOString(),
-        domain: DOMAIN,
-        protocol: protocol,
-        httpsEnabled: USE_HTTPS,
-        truewalletPhone: TRUEWALLET_PHONE.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')
-    });
-});
-
-// API สำหรับดู server status
+// 📊 API สถานะ server
 app.get('/api/status', (req, res) => {
+    const globalStats = userManager.getGlobalStats();
     const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     
     res.json({
         success: true,
-        server: 'OBS Alert Server',
-        version: '1.0.0',
+        server: 'Multi-User Alert System',
+        version: '2.0.0',
         domain: DOMAIN,
         protocol: protocol,
-        httpsEnabled: USE_HTTPS,
         uptime: process.uptime(),
         connections: io.engine.clientsCount,
-        totalAlerts: alertHistory.length,
-        totalLogs: loadLogs().length,
-        queue: {
-            length: alertQueue.length,
-            isProcessing: isProcessingQueue
-        },
-        truewalletPhone: TRUEWALLET_PHONE.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')
+        ...globalStats,
+        timestamp: new Date().toISOString()
     });
 });
 
-// Error handling
+// 🏥 Health check
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'Multi-User Alert System is running',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// ===============================
+// Error Handling
+// ===============================
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Unhandled error:', err.stack);
     res.status(500).json({ 
         success: false, 
         message: 'Something went wrong!' 
     });
 });
 
-// 404 handler
+// 404 Handler
 app.use((req, res) => {
-    res.status(404).json({ 
-        success: false, 
-        message: 'Page not found' 
-    });
+    res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>404 - Page Not Found</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>404 - Page Not Found</h1>
+            <p>หน้าที่คุณกำลังมองหาไม่พบ</p>
+            <a href="/" style="color: #667eea; text-decoration: none;">← กลับหน้าแรก</a>
+        </body>
+        </html>
+    `);
 });
 
-// Start server
+// ===============================
+// Start Server
+// ===============================
 server.listen(PORT, '0.0.0.0', () => {
     const protocol = USE_HTTPS ? 'https' : 'http';
     
-    console.log(`🚀 OBS Alert Server with TrueWallet running on port ${PORT}`);
-    console.log(`🌐 Domain: ${protocol}://${DOMAIN}`);
-    console.log(`🔒 HTTPS Enabled: ${USE_HTTPS}`);
-    console.log(`📱 TrueWallet Phone: ${TRUEWALLET_PHONE.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')}`);
-    console.log(`📱 Widget: ${protocol}://${DOMAIN}/widget`);
-    console.log(`💝 Donate: ${protocol}://${DOMAIN}/donate`);
-    console.log(`🎛️ Control: ${protocol}://${DOMAIN}/control`);
-    console.log(`📊 History: ${protocol}://${DOMAIN}/history`);
-    console.log(`📊 API Status: ${protocol}://${DOMAIN}/api/status`);
-    console.log('---------------------------------------------------');
+    console.log('🎉 =====================================');
+    console.log('🚀 Multi-User Alert System Started!');
+    console.log('🎉 =====================================');
+    console.log(`🌐 Server: ${protocol}://${DOMAIN}:${PORT}`);
+    console.log(`🏠 Homepage: ${protocol}://${DOMAIN}:${PORT}/`);
+    console.log(`📊 API Status: ${protocol}://${DOMAIN}:${PORT}/api/status`);
+    console.log(`💾 Users Directory: ${userManager.USER_DATA_DIR}`);
+    console.log('🎉 =====================================');
+    
+    // แสดงรายชื่อ users ที่มีอยู่
+    const existingUsers = userManager.getAllUsers();
+    if (existingUsers.length > 0) {
+        console.log(`👥 Existing Users (${existingUsers.length}):`);
+        existingUsers.forEach(user => {
+            console.log(`   📺 ${user.username} - ${user.streamTitle}`);
+            console.log(`      💝 Donate: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/donate`);
+            console.log(`      📺 Widget: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/widget`);
+        });
+        console.log('🎉 =====================================');
+    }
+    
+    // แสดง debug information
+    console.log('🔍 Debug Information:');
+    templateEngine.debugInfo();
 });
 
-// Graceful shutdown
+// Graceful Shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
     server.close(() => {
@@ -638,3 +792,13 @@ process.on('SIGTERM', () => {
         process.exit(0);
     });
 });
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+module.exports = { app, userManager, templateEngine };

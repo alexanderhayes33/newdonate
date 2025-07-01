@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Panel - {{ username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ใส่ CSS สำหรับ Control Panel */
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Control Panel</h1>
+            <h2>{{ username }}</h2>
+            <p>{{ streamTitle }}</p>
+        </div>
+
+        <!-- สถิติ -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Donations</h3>
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;">{{ totalDonations }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Amount</h3>
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;">฿{{ totalAmount }}</div>
+            </div>
+        </div>
+
+        <!-- ฟอร์มส่ง Alert -->
+        <form id="alertForm">
+            <div class="form-group">
+                <label>ชื่อผู้โดเนท</label>
+                <input type="text" id="donorName" required>
+            </div>
+            <div class="form-group">
+                <label>จำนวนเงิน</label>
+                <input type="number" id="amount" min="1" required>
+            </div>
+            <div class="form-group">
+                <label>ข้อความ (ไม่บังคับ)</label>
+                <input type="text" id="message">
+            </div>
+            <button type="submit" class="btn">ส่ง Alert</button>
+        </form>
+
+        <!-- ลิงก์อื่นๆ -->
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/user/{{ username }}/donate" style="margin: 0 10px;">💝 Donate Page</a>
+            <a href="/user/{{ username }}/widget" style="margin: 0 10px;">📺 Widget</a>
+            <a href="/user/{{ username }}/history" style="margin: 0 10px;">📊 History</a>
+            <a href="/user/{{ username }}/config" style="margin: 0 10px;">⚙️ Settings</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const username = '{{ username }}';
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            socket.emit('join-user-room', username);
+        });
+
+        document.getElementById('alertForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('donorName').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const message = document.getElementById('message').value;
+
+            socket.emit('send-alert', {
+                username: username,
+                name: name,
+                amount: amount,
+                message: message
+            });
+
+            // Reset form
+            document.getElementById('alertForm').reset();
+            alert('Alert ส่งแล้ว!');
+        });
+
+        socket.on('alert-sent', (data) => {
+            console.log('Alert sent successfully:', data);
+        });
+
+        socket.on('alert-error', (error) => {
+            console.error('Alert error:', error);
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+        });
+    </script>
+</body>
+
+</html>

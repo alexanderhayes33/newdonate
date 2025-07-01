@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - {{ username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header .username {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 1px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        .form-container {
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Kanit', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1f2937;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .links-section {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1px solid #93c5fd;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .links-section h3 {
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .link-card {
+            background: white;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .link-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .link-card a {
+            color: #1e40af;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .link-card .desc {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .url-section {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 1px solid #16a34a;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .url-section h4 {
+            color: #166534;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .url-display {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            margin-bottom: 15px;
+        }
+
+        .copy-btn {
+            padding: 10px 20px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+        }
+
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-message.success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .status-message.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 1px solid #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Settings</h1>
+            <div class="username">{{ username }}</div>
+            <p>จัดการการตั้งค่าของคุณ</p>
+        </div>
+
+        <!-- Success message for new users -->
+        <div class="success-message" style="display: {{ isNewUser ? 'block' : 'none' }};">
+            🎉 สร้าง User สำเร็จแล้ว! กรุณาตรวจสอบและปรับแต่งการตั้งค่าด้านล่าง
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="form-container">
+            <h3 style="margin-bottom: 25px; color: #374151;">การตั้งค่าหลัก</h3>
+
+            <form id="configForm">
+                <div class="form-group">
+                    <label for="truewalletPhone">📱 เบอร์ TrueWallet</label>
+                    <input type="tel" id="truewalletPhone" placeholder="0801234567" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="streamTitle">📺 ชื่อสตรีม</label>
+                    <input type="text" id="streamTitle" placeholder="ชื่อสตรีมของคุณ" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="alertDuration">⏱️ ระยะเวลาแสดง Alert (มิลลิวินาที)</label>
+                    <input type="number" id="alertDuration" min="3000" max="15000" step="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="enableTTS">🔊 เปิดใช้งาน TTS (อ่านข้อความ)</label>
+                    <select id="enableTTS">
+                        <option value="true">เปิดใช้งาน</option>
+                        <option value="false">ปิดใช้งาน</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="enableSound">🎵 เปิดใช้งานเสียงแจ้งเตือน</label>
+                    <select id="enableSound">
+                        <option value="true">เปิดใช้งาน</option>
+                        <option value="false">ปิดใช้งาน</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="save-btn">💾 บันทึกการตั้งค่า</button>
+            </form>
+        </div>
+
+        <!-- Links Section -->
+        <div class="links-section">
+            <h3>🔗 ลิงก์สำหรับ {{ username }}</h3>
+            <div class="links-grid">
+                <div class="link-card">
+                    <a href="/user/{{ username }}/donate" target="_blank">💝 Donate Page</a>
+                    <div class="desc">สำหรับผู้ชม</div>
+                </div>
+                <div class="link-card">
+                    <a href="/user/{{ username }}/widget" target="_blank">📺 Alert Widget</a>
+                    <div class="desc">สำหรับ OBS</div>
+                </div>
+                <div class="link-card">
+                    <a href="/user/{{ username }}/control" target="_blank">🎮 Control Panel</a>
+                    <div class="desc">ควบคุม Alert</div>
+                </div>
+                <div class="link-card">
+                    <a href="/user/{{ username }}/history" target="_blank">📊 History</a>
+                    <div class="desc">ประวัติการสนับสนุน</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OBS Widget URL -->
+        <div class="url-section">
+            <h4>📋 URL สำหรับ OBS Browser Source:</h4>
+            <div class="url-display" id="widgetUrl">{{ widgetUrl }}</div>
+            <button class="copy-btn" onclick="copyUrl('widgetUrl')">📋 คัดลอก Widget URL</button>
+        </div>
+
+        <!-- Donate URL -->
+        <div class="url-section">
+            <h4>💝 URL สำหรับการโดเนท:</h4>
+            <div class="url-display" id="donateUrl">{{ donateUrl }}</div>
+            <button class="copy-btn" onclick="copyUrl('donateUrl')">📋 คัดลอก Donate URL</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" style="color: #667eea; text-decoration: none; font-weight: 600;">← กลับหน้าแรก</a>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        // Load current config
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Parse config from template (if available)
+                const configStr = '{{ config }}';
+                let config = {};
+
+                try {
+                    config = JSON.parse(configStr);
+                } catch (e) {
+                    console.log('Using default config');
+                    config = {
+                        truewalletPhone: '',
+                        streamTitle: '{{ username }}\'s Stream',
+                        alertDuration: 5000,
+                        enableTTS: true,
+                        enableSound: true
+                    };
+                }
+
+                // Populate form
+                document.getElementById('truewalletPhone').value = config.truewalletPhone || '';
+                document.getElementById('streamTitle').value = config.streamTitle || '{{ username }}\'s Stream';
+                document.getElementById('alertDuration').value = config.alertDuration || 5000;
+                document.getElementById('enableTTS').value = config.enableTTS ? 'true' : 'false';
+                document.getElementById('enableSound').value = config.enableSound ? 'true' : 'false';
+
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('configForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const config = {
+                truewalletPhone: document.getElementById('truewalletPhone').value,
+                streamTitle: document.getElementById('streamTitle').value,
+                alertDuration: parseInt(document.getElementById('alertDuration').value),
+                enableTTS: document.getElementById('enableTTS').value === 'true',
+                enableSound: document.getElementById('enableSound').value === 'true'
+            };
+
+            try {
+                const response = await fetch('/user/{{ username }}/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showStatus('✅ บันทึกการตั้งค่าสำเร็จ!', 'success');
+                } else {
+                    showStatus('❌ เกิดข้อผิดพลาด: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving config:', error);
+                showStatus('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+            }
+        });
+
+        function copyUrl(elementId) {
+            const urlElement = document.getElementById(elementId);
+            const url = urlElement.textContent;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showStatus('📋 คัดลอก URL สำเร็จ!', 'success');
+                }).catch(err => {
+                    console.error('Error copying URL:', err);
+                    fallbackCopy(url);
+                });
+            } else {
+                fallbackCopy(url);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                showStatus('📋 คัดลอก URL สำเร็จ!', 'success');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showStatus('❌ ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง', 'error');
+            }
+
+            document.body.removeChild(textarea);
+        }
+
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type} show`;
+
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 4000);
+        }
+
+        // Phone number validation
+        document.getElementById('truewalletPhone').addEventListener('input', function (e) {
+            const phone = e.target.value;
+            const isValid = /^[0-9]{10}$/.test(phone);
+
+            if (phone.length > 0 && !isValid) {
+                e.target.style.borderColor = '#ef4444';
+                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+            } else {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
