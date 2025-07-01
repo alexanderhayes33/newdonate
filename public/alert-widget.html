@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Widget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: 'Kanit', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150px) scale(0.7);
+            width: auto;
+            max-width: 800px;
+            min-width: 400px;
+            text-align: center;
+            opacity: 0;
+            z-index: 1000;
+            transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .alert-container.show {
+            transform: translateX(-50%) translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .alert-gif {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+            background: url('https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif') center/cover;
+            border-radius: 50%;
+            animation: gifBounce 1.2s ease-out;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+        }
+
+        @keyframes gifBounce {
+            0% { 
+                transform: scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            50% { 
+                transform: scale(1.2) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .donation-text {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 
+                0 0 20px rgba(255, 255, 255, 0.8),
+                0 0 40px rgba(255, 255, 255, 0.6),
+                0 4px 8px rgba(0, 0, 0, 0.5),
+                2px 2px 4px rgba(0, 0, 0, 0.7);
+            letter-spacing: -1px;
+            animation: textGlow 2s ease-in-out infinite alternate, textSlide 1.2s ease-out;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.7));
+        }
+
+        @keyframes textGlow {
+            0% { 
+                text-shadow: 
+                    0 0 20px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    0 4px 8px rgba(0, 0, 0, 0.5),
+                    2px 2px 4px rgba(0, 0, 0, 0.7);
+            }
+            100% { 
+                text-shadow: 
+                    0 0 30px rgba(255, 255, 255, 1),
+                    0 0 60px rgba(255, 255, 255, 0.8),
+                    0 4px 8px rgba(0, 0, 0, 0.5),
+                    2px 2px 4px rgba(0, 0, 0, 0.7);
+            }
+        }
+
+        @keyframes textSlide {
+            0% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .donation-amount {
+            background: linear-gradient(135deg, #ffd700, #ffed4a, #fff59d, #fef08a);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.8),
+                0 0 60px rgba(255, 215, 0, 0.6);
+            animation: 
+                amountPulse 1.5s ease-in-out infinite,
+                amountGradient 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes amountPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        @keyframes amountGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .donation-message {
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 25px auto;
+            font-style: italic;
+            line-height: 1.5;
+            max-width: 600px;
+            text-shadow: 
+                0 0 15px rgba(255, 255, 255, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.5),
+                1px 1px 2px rgba(0, 0, 0, 0.7);
+            display: none;
+            animation: messageSlide 1.6s ease-out;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+        }
+
+        @keyframes messageSlide {
+            0% {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .sparkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .sparkle {
+            position: absolute;
+            color: #ffffff;
+            font-size: 24px;
+            opacity: 0;
+            animation: sparkleFloat 3s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+        }
+
+        .sparkle:nth-child(2n) {
+            color: #10b981;
+            animation-delay: 0.5s;
+        }
+
+        .sparkle:nth-child(3n) {
+            color: #ffd700;
+            animation-delay: 1s;
+        }
+
+        .sparkle:nth-child(4n) {
+            color: #ff6b6b;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0) rotate(0deg);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(0px) scale(1) rotate(180deg);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(-20px) scale(1) rotate(300deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-70px) scale(0) rotate(360deg);
+            }
+        }
+
+        .connection-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+        }
+
+        .connection-indicator.connected {
+            background: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+            animation: ping 2s infinite;
+        }
+
+        @keyframes ping {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .slide-in {
+            animation: slideInMain 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInMain {
+            0% {
+                transform: translateX(-50%) translateY(-150px) scale(0.7);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(-50%) translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .alert-container {
+                min-width: 320px;
+                max-width: 95vw;
+            }
+
+            .alert-gif {
+                width: 120px;
+                height: 120px;
+            }
+
+            .donation-text {
+                font-size: 36px;
+            }
+
+            .donation-message {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="connection-indicator" id="connectionIndicator"></div>
+    
+    <div class="alert-container" id="alertContainer">
+        <div class="sparkles" id="sparkles"></div>
+        
+        <div class="alert-gif"></div>
+        
+        <div class="donation-text" id="donationText">
+            <span id="donorName">ชื่อผู้โดเนท</span> โดเนท <span class="donation-amount" id="donationAmount">฿0</span>
+        </div>
+        
+        <div class="donation-message" id="donationMessage"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class AlertWidget {
+            constructor() {
+                this.alertContainer = document.getElementById('alertContainer');
+                this.donorName = document.getElementById('donorName');
+                this.donationAmount = document.getElementById('donationAmount');
+                this.donationMessage = document.getElementById('donationMessage');
+                this.sparkles = document.getElementById('sparkles');
+                this.connectionIndicator = document.getElementById('connectionIndicator');
+                this.currentAlert = null;
+                this.isTTSPlaying = false; // ป้องกันการเล่น TTS ซ้ำ
+
+                this.setupSocket();
+                this.setupFallbacks();
+            }
+
+            setupSocket() {
+                this.socket = io();
+
+                this.socket.on('connect', () => {
+                    this.updateConnectionStatus(true);
+                    this.socket.emit('request-recent-alerts');
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.updateConnectionStatus(false);
+                });
+
+                this.socket.on('new-alert', (alertData) => {
+                    this.showAlert(alertData.name, alertData.amount, alertData.message);
+                });
+
+                this.socket.on('recent-alerts', (alerts) => {
+                    if (alerts.length > 0) {
+                        const latestAlert = alerts[0];
+                        const now = Date.now();
+                        if (now - latestAlert.timestamp < 30000) {
+                            this.showAlert(latestAlert.name, latestAlert.amount, latestAlert.message);
+                        }
+                    }
+                });
+            }
+
+            setupFallbacks() {
+                this.startPolling();
+                this.checkUrlParams();
+            }
+
+            updateConnectionStatus(connected) {
+                if (connected) {
+                    this.connectionIndicator.classList.add('connected');
+                } else {
+                    this.connectionIndicator.classList.remove('connected');
+                }
+            }
+
+            checkUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const name = urlParams.get('name');
+                const amount = urlParams.get('amount');
+                const timestamp = urlParams.get('t');
+
+                if (name && amount && timestamp) {
+                    if (!this.lastUrlTimestamp || timestamp > this.lastUrlTimestamp) {
+                        this.showAlert(
+                            decodeURIComponent(name), 
+                            parseInt(amount), 
+                            urlParams.get('message') ? decodeURIComponent(urlParams.get('message')) : ''
+                        );
+                        this.lastUrlTimestamp = timestamp;
+
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                    }
+                }
+            }
+
+            startPolling() {
+                setInterval(() => {
+                    const alertData = localStorage.getItem('obsAlert');
+                    if (alertData) {
+                        try {
+                            const data = JSON.parse(alertData);
+                            if (data.timestamp && (!this.lastTimestamp || data.timestamp > this.lastTimestamp)) {
+                                this.showAlert(data.name, data.amount, data.message || '');
+                                this.lastTimestamp = data.timestamp;
+                            }
+                        } catch (e) {
+                            // Silent error handling
+                        }
+                    }
+                }, 2000);
+            }
+
+            showAlert(name, amount, message = '') {
+                if (this.currentAlert) {
+                    clearTimeout(this.currentAlert);
+                    this.hideAlert();
+                }
+
+                this.donorName.textContent = name;
+                this.donationAmount.textContent = `${amount.toLocaleString()}฿`;
+                
+                if (message && message.trim()) {
+                    this.donationMessage.textContent = message;
+                    this.donationMessage.style.display = 'block';
+                } else {
+                    this.donationMessage.style.display = 'none';
+                }
+
+                this.alertContainer.classList.add('show', 'slide-in');
+                this.createSparkles();
+                this.playSound();
+                
+                if (message && message.trim()) {
+                    setTimeout(() => {
+                        this.playTTS(message);
+                    }, 1000);
+                }
+
+                const displayTime = message && message.trim() ? 7000 : 5000;
+                this.currentAlert = setTimeout(() => {
+                    this.hideAlert();
+                }, displayTime);
+
+                setTimeout(() => {
+                    this.alertContainer.classList.remove('slide-in');
+                }, 1000);
+            }
+
+            hideAlert() {
+                this.alertContainer.classList.remove('show');
+                this.clearSparkles();
+                this.currentAlert = null;
+                this.isTTSPlaying = false; // รีเซ็ต TTS flag
+            }
+
+            createSparkles() {
+                this.clearSparkles();
+
+                const sparkleEmojis = ['✨', '⭐', '💫', '🌟', '💖', '💚'];
+
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        const sparkle = document.createElement('div');
+                        sparkle.className = 'sparkle';
+                        sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+                        sparkle.style.left = Math.random() * 100 + '%';
+                        sparkle.style.top = Math.random() * 100 + '%';
+                        sparkle.style.animationDelay = Math.random() * 2 + 's';
+                        sparkle.style.animationDuration = (Math.random() * 1 + 2.5) + 's';
+                        this.sparkles.appendChild(sparkle);
+
+                        setTimeout(() => {
+                            if (sparkle.parentNode) {
+                                sparkle.parentNode.removeChild(sparkle);
+                            }
+                        }, 4000);
+                    }, i * 80);
+                }
+            }
+
+            clearSparkles() {
+                this.sparkles.innerHTML = '';
+            }
+
+            playSound() {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const frequencies = [523.25, 659.25, 783.99, 1046.50];
+                    
+                    frequencies.forEach((freq, index) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+
+                        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime + index * 0.15);
+                        oscillator.type = 'sine';
+
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime + index * 0.15);
+                        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + index * 0.15 + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.15 + 0.3);
+
+                        oscillator.start(audioContext.currentTime + index * 0.15);
+                        oscillator.stop(audioContext.currentTime + index * 0.15 + 0.3);
+                    });
+                } catch (e) {
+                    // Silent error handling
+                }
+            }
+
+            playTTS(message) {
+                if (this.isTTSPlaying) return; // ป้องกันการเล่นซ้ำ
+                
+                this.isTTSPlaying = true;
+                const apiUrl = `/api/tts?text=${encodeURIComponent(message)}&lang=th`;
+                const audio = new Audio();
+                
+                audio.crossOrigin = 'anonymous';
+                audio.preload = 'auto';
+                audio.volume = 0.8;
+                audio.src = apiUrl;
+                
+                audio.onended = () => {
+                    this.isTTSPlaying = false;
+                    audio.remove();
+                };
+                
+                audio.onerror = () => {
+                    this.isTTSPlaying = false;
+                };
+                
+                audio.addEventListener('canplaythrough', () => {
+                    audio.play().catch(() => {
+                        this.isTTSPlaying = false;
+                    });
+                });
+                
+                audio.load();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.alertWidget = new AlertWidget();
+        });
+
+        window.testAlert = function (name = 'ผู้ทดสอบ', amount = 100, message = 'ขอบคุณสำหรับการสนับสนุน') {
+            if (window.alertWidget) {
+                window.alertWidget.showAlert(name, amount, message);
+            }
+        };
+    </script>
+</body>
+
+</html>

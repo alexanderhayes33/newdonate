@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Alert Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .info-section p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .info-section code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .url-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            border: 1px solid #bbdefb;
+        }
+
+        .url-section h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .url-display {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            border: 1px solid #90caf9;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .copy-btn:hover {
+            background: #1565c0;
+        }
+
+        .stats-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border: 1px solid #b6d7ff;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .stats-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stats-value {
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 OBS Alert Control</h1>
+            <p>ระบบควบคุม Alert สำหรับการสตรีม</p>
+        </div>
+
+        <div class="connection-status" id="connectionStatus">กำลังเชื่อมต่อ...</div>
+
+        <form id="alertForm">
+            <div class="form-group">
+                <label for="donorName">ชื่อผู้โดเนท:</label>
+                <input type="text" id="donorName" name="donorName" placeholder="กรอกชื่อผู้โดเนท" required>
+            </div>
+
+            <div class="form-group">
+                <label for="donationAmount">จำนวนเงิน (บาท):</label>
+                <input type="number" id="donationAmount" name="donationAmount" placeholder="กรอกจำนวนเงิน" min="1" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary" id="sendBtn">🚀 ส่ง Alert</button>
+                <button type="button" class="btn btn-secondary" id="testBtn">🧪 ทดสอบ</button>
+            </div>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div class="stats-section">
+            <h4>📊 สถิติ Server:</h4>
+            <div class="stats-row">
+                <span class="stats-label">Queue Length:</span>
+                <span class="stats-value" id="queueLength">-</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Server Uptime:</span>
+                <span class="stats-value" id="serverUptime">-</span>
+            </div>
+        </div>
+
+        <div class="url-section">
+            <h4>📋 URL สำหรับ OBS Browser Source:</h4>
+            <div class="url-display" id="widgetUrl">
+                กำลังสร้าง URL...
+            </div>
+            <button class="copy-btn" onclick="copyUrl()">📋 คัดลอก URL</button>
+        </div>
+
+        <div class="info-section">
+            <h3>📖 วิธีการใช้งาน:</h3>
+            <p><strong>1.</strong> คัดลอก URL ด้านบนไปใส่ใน OBS Studio</p>
+            <p><strong>2.</strong> เพิ่ม Browser Source ใหม่ใน OBS</p>
+            <p><strong>3.</strong> วาง URL ที่คัดลอกมาในช่อง URL</p>
+            <p><strong>4.</strong> ตั้งค่าขนาด: <code>Width: 1920, Height: 1080</code></p>
+            <p><strong>5.</strong> กลับมาที่หน้านี้เพื่อส่ง Alert</p>
+            <p><strong>เพิ่มเติม:</strong> ระบบใช้ Socket.io สำหรับการส่งข้อมูลแบบ Real-time</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class AlertControl {
+            constructor() {
+                this.form = document.getElementById('alertForm');
+                this.status = document.getElementById('status');
+                this.widgetUrl = document.getElementById('widgetUrl');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.sendBtn = document.getElementById('sendBtn');
+                this.testBtn = document.getElementById('testBtn');
+
+                this.setupForm();
+                this.setupWidgetUrl();
+                this.setupSocket();
+                this.startStatsUpdate();
+            }
+
+            setupSocket() {
+                this.socket = io();
+
+                this.socket.on('connect', () => {
+                    console.log('Connected to server');
+                    this.updateConnectionStatus('connected');
+                    this.enableButtons();
+                    this.updateServerStats();
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('Disconnected from server');
+                    this.updateConnectionStatus('disconnected');
+                    this.disableButtons();
+                });
+
+                this.socket.on('connecting', () => {
+                    this.updateConnectionStatus('connecting');
+                });
+
+                this.socket.on('alert-sent', (response) => {
+                    if (response.success) {
+                        this.showStatus(`ส่ง Alert สำเร็จ! ${response.alert.name} โดเนท ฿${response.alert.amount.toLocaleString()}`, 'success');
+                        this.form.reset();
+                        this.updateServerStats();
+                    } else {
+                        this.showStatus('เกิดข้อผิดพลาดในการส่ง Alert', 'error');
+                    }
+                });
+            }
+
+            updateConnectionStatus(status) {
+                const statusText = {
+                    connected: '🟢 เชื่อมต่อแล้ว',
+                    disconnected: '🔴 ขาดการเชื่อมต่อ',
+                    connecting: '🟡 กำลังเชื่อมต่อ...'
+                };
+
+                this.connectionStatus.textContent = statusText[status] || status;
+                this.connectionStatus.className = `connection-status ${status}`;
+            }
+
+            enableButtons() {
+                this.sendBtn.disabled = false;
+                this.testBtn.disabled = false;
+            }
+
+            disableButtons() {
+                this.sendBtn.disabled = true;
+                this.testBtn.disabled = true;
+            }
+
+            setupForm() {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendAlert();
+                });
+
+                this.testBtn.addEventListener('click', () => {
+                    this.testAlert();
+                });
+            }
+
+            setupWidgetUrl() {
+                const protocol = window.location.protocol;
+                const host = window.location.host;
+                const widgetUrl = `${protocol}//${host}/widget`;
+                this.widgetUrl.textContent = widgetUrl;
+            }
+
+            sendAlert() {
+                if (!this.socket || !this.socket.connected) {
+                    this.showStatus('ไม่ได้เชื่อมต่อกับ Server', 'error');
+                    return;
+                }
+
+                const formData = new FormData(this.form);
+                const name = formData.get('donorName').trim();
+                const amount = parseInt(formData.get('donationAmount'));
+
+                if (!name || !amount || amount <= 0) {
+                    this.showStatus('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                    return;
+                }
+
+                this.socket.emit('send-alert', {
+                    name: name,
+                    amount: amount
+                });
+
+                this.showStatus('กำลังส่ง Alert...', 'success');
+            }
+
+            testAlert() {
+                const names = ['ทดสอบ', 'Test User', 'นาย ก', 'คุณ ข', 'Miss C'];
+                const amounts = [50, 100, 200, 500, 1000];
+
+                const randomName = names[Math.floor(Math.random() * names.length)];
+                const randomAmount = amounts[Math.floor(Math.random() * amounts.length)];
+
+                document.getElementById('donorName').value = randomName;
+                document.getElementById('donationAmount').value = randomAmount;
+
+                this.sendAlert();
+            }
+
+            async updateServerStats() {
+                try {
+                    const response = await fetch('/api/status');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            document.getElementById('connectionsCount').textContent = data.connections || 0;
+                            document.getElementById('totalAlerts').textContent = data.totalAlerts || 0;
+                            document.getElementById('queueLength').textContent = data.queue ? data.queue.length : 0;
+                            
+                            const uptime = Math.floor(data.uptime || 0);
+                            const hours = Math.floor(uptime / 3600);
+                            const minutes = Math.floor((uptime % 3600) / 60);
+                            document.getElementById('serverUptime').textContent = `${hours}ช ${minutes}น`;
+                            
+                            // แสดงสถานะ queue
+                            const queueElement = document.getElementById('queueLength');
+                            if (data.queue && data.queue.length > 0) {
+                                queueElement.style.color = '#ff9800';
+                                queueElement.textContent = `${data.queue.length} (กำลังประมวลผล)`;
+                            } else {
+                                queueElement.style.color = '#4caf50';
+                                queueElement.textContent = '0 (ว่าง)';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching server stats:', error);
+                }
+            }
+
+            startStatsUpdate() {
+                // อัพเดทสถิติทุก 10 วินาที
+                setInterval(() => {
+                    if (this.socket && this.socket.connected) {
+                        this.updateServerStats();
+                    }
+                }, 10000);
+
+                // อัพเดททันทีเมื่อเริ่มต้น
+                setTimeout(() => this.updateServerStats(), 1000);
+            }
+
+            showStatus(message, type) {
+                this.status.textContent = message;
+                this.status.className = `status ${type} show`;
+
+                setTimeout(() => {
+                    this.status.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        function copyUrl() {
+            const urlText = document.getElementById('widgetUrl').textContent;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(urlText).then(() => {
+                    alert('คัดลอก URL สำเร็จ!');
+                }).catch(err => {
+                    console.error('Error copying URL:', err);
+                    fallbackCopy(urlText);
+                });
+            } else {
+                fallbackCopy(urlText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                alert('คัดลอก URL สำเร็จ!');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง');
+            }
+
+            document.body.removeChild(textarea);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.alertControl = new AlertControl();
+        });
+    </script>
+</body>
+

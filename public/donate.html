@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Stream - TrueWallet Donation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.connected {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .connection-status.disconnected {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 1px solid #ef4444;
+        }
+
+        .connection-status.connecting {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .truewallet-info {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1px solid #93c5fd;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .truewallet-info .icon {
+            font-size: 18px;
+            margin-top: 1px;
+        }
+
+        .truewallet-info .content {
+            flex: 1;
+        }
+
+        .truewallet-info .title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+
+        .truewallet-info .desc {
+            color: #3730a3;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .form-container {
+            background: #fafafa;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            color: #1f2937;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            padding: 16px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 14px;
+            margin-top: 16px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .status-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-message.success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border-color: #10b981;
+        }
+
+        .status-message.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border-color: #ef4444;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                max-width: 100%;
+            }
+
+            .form-container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header .icon {
+                width: 55px;
+                height: 55px;
+                font-size: 26px;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .container {
+                margin: 10px 0;
+            }
+            
+            .header {
+                margin-bottom: 16px;
+            }
+            
+            .form-group {
+                margin-bottom: 14px;
+            }
+            
+            textarea {
+                min-height: 70px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">💰</div>
+            <h1>โดเนทสตรีม</h1>
+            <p>ส่งกำลังใจผ่านซองอั่งเปา TrueWallet</p>
+        </div>
+
+        <div class="connection-status" id="connectionStatus">กำลังเชื่อมต่อ...</div>
+
+        <div class="truewallet-info">
+            <div class="icon">💡</div>
+            <div class="content">
+                <div class="title">วิธีการใช้งาน</div>
+                <div class="desc">วางลิงก์ซองอั่งเปา TrueWallet ลงในช่องด้านล่าง ระบบจะตรวจสอบยอดเงินและส่งแจ้งเตือนอัตโนมัติ</div>
+            </div>
+        </div>
+
+        <form id="donateForm" class="form-container">
+            <div class="form-group">
+                <label for="donorName">ชื่อของคุณ</label>
+                <input type="text" id="donorName" name="donorName" placeholder="ใส่ชื่อหรือ Nickname" required maxlength="30">
+            </div>
+
+            <div class="form-group">
+                <label for="donationMessage">ข้อความ (ไม่บังคับ)</label>
+                <textarea id="donationMessage" name="donationMessage" placeholder="ฝากข้อความถึงสตรีมเมอร์..." maxlength="200"></textarea>
+                <div class="char-count">เหลือ <span id="charCount">200</span> ตัวอักษร</div>
+            </div>
+
+            <div class="form-group">
+                <label for="voucherLink">ลิงก์ซองอั่งเปา TrueWallet</label>
+                <input type="text" id="voucherLink" placeholder="https://gift.truemoney.com/campaign/?v=..." required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <div class="loading-spinner" id="loadingSpinner"></div>
+                <span id="btnText">ส่งการโดเนท</span>
+            </button>
+        </form>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class TrueWalletDonate {
+            constructor() {
+                this.form = document.getElementById('donateForm');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.btnText = document.getElementById('btnText');
+                this.loadingSpinner = document.getElementById('loadingSpinner');
+                this.charCount = document.getElementById('charCount');
+
+                this.setupForm();
+                this.setupSocket();
+                this.setupCharacterCounter();
+            }
+
+            setupSocket() {
+                this.socket = io();
+
+                this.socket.on('connect', () => {
+                    this.updateConnectionStatus('connected');
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.updateConnectionStatus('disconnected');
+                });
+
+                this.socket.on('connecting', () => {
+                    this.updateConnectionStatus('connecting');
+                });
+            }
+
+            setupForm() {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitDonation();
+                });
+            }
+
+            setupCharacterCounter() {
+                const messageInput = document.getElementById('donationMessage');
+                messageInput.addEventListener('input', () => {
+                    this.updateCharCount();
+                });
+            }
+
+            updateCharCount() {
+                const messageInput = document.getElementById('donationMessage');
+                const remaining = 200 - messageInput.value.length;
+                this.charCount.textContent = remaining;
+                this.charCount.style.color = remaining < 20 ? '#dc2626' : '#9ca3af';
+            }
+
+            updateConnectionStatus(status) {
+                const statusText = {
+                    connected: '🟢 เชื่อมต่อสำเร็จ - พร้อมรับการโดเนท',
+                    disconnected: '🔴 ขาดการเชื่อมต่อ - ไม่สามารถส่งได้ขณะนี้',
+                    connecting: '🟡 กำลังเชื่อมต่อ...'
+                };
+
+                this.connectionStatus.textContent = statusText[status] || status;
+                this.connectionStatus.className = `connection-status ${status}`;
+            }
+
+            showLoading() {
+                this.submitBtn.disabled = true;
+                this.loadingSpinner.style.display = 'inline-block';
+                this.btnText.textContent = 'กำลังประมวลผล...';
+            }
+
+            hideLoading() {
+                this.submitBtn.disabled = false;
+                this.loadingSpinner.style.display = 'none';
+                this.btnText.textContent = 'ส่งการโดเนท';
+            }
+
+            async submitDonation() {
+                const formData = new FormData(this.form);
+                const name = formData.get('donorName').trim();
+                const message = formData.get('donationMessage').trim();
+                const voucherLink = document.getElementById('voucherLink').value.trim();
+
+                if (!name) {
+                    this.showError('กรุณากรอกชื่อของคุณ');
+                    return;
+                }
+
+                if (!voucherLink) {
+                    this.showError('กรุณากรอกลิงก์ซองอั่งเปา TrueWallet');
+                    return;
+                }
+
+                this.showLoading();
+
+                try {
+                    // แยกรหัส voucher จากลิงก์
+                    let voucherCode = voucherLink.replace('https://gift.truemoney.com/campaign/?v=', '');
+                    
+                    const response = await fetch('/api/redeem-voucher', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            voucher_code: voucherCode,
+                            donor_name: name,
+                            donor_message: message
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.reason || 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                    }
+
+                    const apiResponse = await response.json();
+                    
+                    this.hideLoading();
+                    
+                    if (apiResponse.status === 'SUCCESS') {
+                        this.showSuccess({
+                            name: name,
+                            amount: parseInt(apiResponse.amount),
+                            message: message,
+                            paymentMethod: 'truewallet'
+                        }, `ยอดเงินจากซองอั่งเปา: ฿${apiResponse.amount.toLocaleString()}`);
+                        
+                        this.resetForm();
+                        
+                    } else {
+                        this.showError(apiResponse.reason || 'ไม่สามารถตรวจสอบซองอั่งเปาได้');
+                    }
+                    
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(error.message || 'เกิดข้อผิดพลาดในการเติมเงิน');
+                }
+            }
+
+            showSuccess(alertData, customMessage = '') {
+                let message = customMessage;
+                if (!message) {
+                    message = `🎉 ขอบคุณ ${alertData.name} สำหรับการโดเนท ฿${alertData.amount.toLocaleString()}!`;
+                }
+                this.showStatus(message, 'success');
+            }
+
+            showError(message) {
+                this.showStatus(`❌ ${message}`, 'error');
+            }
+
+            showStatus(message, type) {
+                this.statusMessage.textContent = message;
+                this.statusMessage.className = `status-message ${type} show`;
+
+                setTimeout(() => {
+                    this.statusMessage.classList.remove('show');
+                }, 5000);
+            }
+
+            resetForm() {
+                this.form.reset();
+                this.updateCharCount();
+                
+                setTimeout(() => {
+                    this.statusMessage.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new TrueWalletDonate();
+        });
+    </script>
+</body>
+
+</html>
