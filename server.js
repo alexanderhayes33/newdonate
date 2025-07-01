@@ -177,49 +177,63 @@ app.get('/', (req, res) => {
         if (users.length === 0) {
             usersList = `
                 <div class="empty-state">
-                    <div class="icon">👥</div>
+                    <div class="icon">🎮</div>
                     <h3>ยังไม่มี Streamers</h3>
-                    <p>เริ่มต้นด้วยการสร้าง User แรกของคุณด้านบน</p>
+                    <p>เป็นคนแรกที่เริ่มใช้ระบบ Alert ของเรา!</p>
                 </div>
             `;
         } else {
-            usersList = '<div class="users-grid">';
+            usersList = '<div class="streamers-grid">';
             
             users.forEach(user => {
                 const isActive = isUserActive(user.lastActiveAt);
                 const statusClass = isActive ? 'status-active' : 'status-inactive';
-                const statusText = isActive ? 'Active' : 'Inactive';
+                const statusText = isActive ? 'Online' : 'Offline';
+                const avatarLetter = user.username.charAt(0).toUpperCase();
                 
                 usersList += `
-                    <div class="user-card">
-                        <div class="user-header">
-                            <h3>👤 ${user.username}</h3>
-                            <span class="user-status ${statusClass}">${statusText}</span>
-                        </div>
-                        
-                        <div class="user-info">
-                            <p><strong>Stream Title:</strong> ${user.streamTitle}</p>
-                            <p><strong>Created:</strong> ${new Date(user.createdAt).toLocaleDateString('th-TH')}</p>
-                            <p><strong>Last Active:</strong> ${new Date(user.lastActiveAt).toLocaleDateString('th-TH')}</p>
-                        </div>
-                        
-                        <div class="user-stats">
-                            <div class="mini-stat">
-                                <div class="value">${user.totalDonations}</div>
-                                <div class="label">Donations</div>
+                    <div class="streamer-card">
+                        <div class="card-header">
+                            <div class="streamer-info">
+                                <div class="avatar">${avatarLetter}</div>
+                                <div class="streamer-details">
+                                    <h3>${user.username}</h3>
+                                    <div class="stream-title">${user.streamTitle}</div>
+                                </div>
                             </div>
-                            <div class="mini-stat">
-                                <div class="value">฿${user.totalAmount.toLocaleString()}</div>
-                                <div class="label">Total</div>
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                        </div>
+                        
+                        <div class="card-stats">
+                            <div class="stat-box">
+                                <div class="stat-value">${user.totalDonations}</div>
+                                <div class="stat-label">Donations</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">฿${user.totalAmount.toLocaleString()}</div>
+                                <div class="stat-label">Total</div>
                             </div>
                         </div>
                         
-                        <div class="user-links">
-                            <a href="/user/${user.username}/donate" class="user-link primary">💝 Donate</a>
-                            <a href="/user/${user.username}/widget" class="user-link" target="_blank">📺 Widget</a>
-                            <a href="/user/${user.username}/control" class="user-link">🎮 Control</a>
-                            <a href="/user/${user.username}/history" class="user-link">📊 History</a>
-                            <a href="/user/${user.username}/config" class="user-link">⚙️ Settings</a>
+                        <div class="card-actions">
+                            <a href="/user/${user.username}/donate" class="action-btn primary">
+                                 Donate Page
+                            </a>
+                            <a href="/user/${user.username}/widget" class="action-btn" target="_blank">
+                                📺 Widget
+                            </a>
+                            
+                            <div class="more-actions">
+                                <a href="/user/${user.username}/control" class="action-btn" target="_blank">
+                                     Alert Test
+                                </a>
+                                <a href="/user/${user.username}/history" class="action-btn" target="_blank">
+                                     History
+                                </a>
+                                <a href="/user/${user.username}/config" class="action-btn">
+                                     Settings
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -227,6 +241,9 @@ app.get('/', (req, res) => {
             
             usersList += '</div>';
         }
+        
+        console.log('📋 Users HTML length:', usersList.length);
+        console.log('📋 First 200 chars:', usersList.substring(0, 200));
         
         const html = templateEngine.render('homepage', {
             totalUsers: globalStats.totalUsers,
@@ -362,12 +379,30 @@ app.get('/user/:username/widget', (req, res) => {
     try {
         console.log(`📄 Rendering widget for: ${req.username}`);
         
+        const config = req.userData.config;
+        
         const html = templateEngine.render('widget', {
             username: req.username,
-            streamTitle: req.userData.config.streamTitle,
-            alertDuration: req.userData.config.alertDuration,
-            enableTTS: req.userData.config.enableTTS,
-            enableSound: req.userData.config.enableSound
+            streamTitle: config.streamTitle || `${req.username}'s Stream`,
+            alertDuration: config.alertDuration || 5000,
+            enableTTS: config.enableTTS ? 'true' : 'false',
+            enableSound: config.enableSound ? 'true' : 'false',
+            minTTSAmount: config.minTTSAmount || 50,
+            alertFormat: (config.alertFormat || '{{user}} โดเนท {{amount}}').replace(/"/g, '\\"'),
+            showBackground: (config.showBackground === true) ? 'true' : 'false', // เปลี่ยนเป็นตรวจสอบแบบชัดเจน
+            showIcon: (config.showIcon !== false) ? 'true' : 'false',
+            showSparkles: (config.showSparkles !== false) ? 'true' : 'false',
+            useCustomGif: config.useCustomGif ? 'true' : 'false',
+            customGifUrl: config.customGifUrl || '',
+            backgroundColor: config.backgroundColor || 'rgba(255, 255, 255, 0.95)',
+            textColor: config.textColor || '#1f2937',
+            amountColor: config.amountColor || '#f59e0b',
+            donorColor: config.donorColor || '#667eea',
+            fontSize: config.fontSize || 42,
+            amountSize: config.amountSize || 56,
+            borderRadius: config.borderRadius || 25,
+            animationSpeed: config.animationSpeed || 1.2,
+            customCSS: config.customCSS || ''
         });
         
         res.send(html);
@@ -377,10 +412,15 @@ app.get('/user/:username/widget', (req, res) => {
         res.status(500).send(`
             <h1>Widget Error</h1>
             <p>ไม่สามารถแสดง Widget ได้: ${error.message}</p>
-            <p>กรุณาตรวจสอบว่าไฟล์ templates/widget.html มีอยู่หรือไม่</p>
+            <p>Debug info: ${JSON.stringify({
+                username: req.username,
+                configExists: !!req.userData,
+                configKeys: req.userData ? Object.keys(req.userData.config) : 'none'
+            })}</p>
         `);
     }
 });
+
 
 // ⚙️ Config/Settings
 app.get('/user/:username/config', (req, res) => {
@@ -394,10 +434,14 @@ app.get('/user/:username/config', (req, res) => {
         const donateUrl = `${protocol}://${req.get('host')}/user/${req.username}/donate`;
         
         console.log(`🔗 URLs:`, { widgetUrl, donateUrl });
+        console.log(`⚙️ Current config:`, req.userData.config);
+        
+        // ส่ง config ที่ escape quotes ให้ถูกต้อง
+        const configForTemplate = JSON.stringify(req.userData.config).replace(/"/g, '&quot;');
         
         const html = templateEngine.render('config', {
             username: req.username,
-            config: JSON.stringify(req.userData.config),
+            config: configForTemplate,
             isNewUser: isNewUser ? 'block' : 'none',
             widgetUrl: widgetUrl,
             donateUrl: donateUrl
@@ -592,11 +636,22 @@ app.get('/user/:username/api/donations', (req, res) => {
         const endIndex = startIndex + parseInt(limit);
         const paginatedDonations = donations.slice(startIndex, endIndex);
         
+        // คำนวณสถิติสำหรับ search results
         const searchStats = {
             totalDonations: donations.length,
             totalAmount: donations.reduce((sum, d) => sum + d.amount, 0),
             averageAmount: donations.length > 0 ? 
                 Math.round(donations.reduce((sum, d) => sum + d.amount, 0) / donations.length) : 0
+        };
+        
+        // คำนวณสถิติวันนี้
+        const today = new Date();
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayDonations = req.userData.donations.filter(d => new Date(d.timestamp) >= startOfDay);
+        
+        const userStats = {
+            ...req.userData.stats,
+            todayDonations: todayDonations.length
         };
         
         res.json({
@@ -609,7 +664,7 @@ app.get('/user/:username/api/donations', (req, res) => {
                 pages: Math.ceil(donations.length / limit)
             },
             stats: searchStats,
-            userStats: req.userData.stats
+            userStats: userStats
         });
         
     } catch (error) {

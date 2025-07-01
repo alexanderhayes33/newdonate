@@ -101,24 +101,22 @@ class TemplateEngine {
         let rendered = template;
         
         try {
-            // แทนที่ {{ variable }} (escaped HTML)
+            // แทนที่ {{{ variable }}} (raw HTML - ไม่ escape) ก่อน
             for (const [key, value] of Object.entries(variables)) {
-                const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-                const escapedValue = this.escapeHtml(value);
-                rendered = rendered.replace(regex, escapedValue);
-                
-                if (regex.test(template)) {
-                    console.log(`✅ Replaced {{ ${key} }} with: ${String(value).substring(0, 50)}${String(value).length > 50 ? '...' : ''}`);
+                const rawRegex = new RegExp(`{{{\\s*${key}\\s*}}}`, 'g');
+                if (rawRegex.test(rendered)) {
+                    rendered = rendered.replace(rawRegex, String(value));
+                    console.log(`✅ Replaced {{{ ${key} }}} with raw HTML (${String(value).length} chars)`);
                 }
             }
 
-            // แทนที่ {{{ variable }}} (raw HTML - ไม่ escape)
+            // แทนที่ {{ variable }} (escaped HTML) หลัง
             for (const [key, value] of Object.entries(variables)) {
-                const regex = new RegExp(`{{{\\s*${key}\\s*}}}`, 'g');
-                rendered = rendered.replace(regex, String(value));
-                
-                if (regex.test(template)) {
-                    console.log(`✅ Replaced {{{ ${key} }}} with raw HTML`);
+                const escapedRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+                if (escapedRegex.test(rendered)) {
+                    const escapedValue = this.escapeHtml(value);
+                    rendered = rendered.replace(escapedRegex, escapedValue);
+                    console.log(`✅ Replaced {{ ${key} }} with: ${String(value).substring(0, 50)}${String(value).length > 50 ? '...' : ''}`);
                 }
             }
 

@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -62,12 +62,65 @@
             font-weight: 600;
         }
 
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            padding: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #6b7280;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .form-container {
             background: #fafafa;
             border-radius: 16px;
             padding: 30px;
             margin-bottom: 30px;
             border: 1px solid #f0f0f0;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #374151;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
 
         .form-group {
@@ -83,7 +136,8 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 14px 18px;
             border: 2px solid #e5e7eb;
@@ -96,10 +150,90 @@
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group .description {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .color-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input input[type="color"] {
+            width: 60px;
+            height: 40px;
+            padding: 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .range-input {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .range-input input[type="range"] {
+            flex: 1;
+        }
+
+        .range-input .value {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #374151;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .preview-section {
+            background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+            border: 1px solid #d1d5db;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .preview-section h4 {
+            color: #374151;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .preview-widget {
+            background: #000;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-alert {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            transform: scale(0.8);
         }
 
         .save-btn {
@@ -250,8 +384,16 @@
                 font-size: 2em;
             }
 
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
             .links-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
             }
         }
     </style>
@@ -270,82 +412,274 @@
             🎉 สร้าง User สำเร็จแล้ว! กรุณาตรวจสอบและปรับแต่งการตั้งค่าด้านล่าง
         </div>
 
-        <!-- Configuration Form -->
-        <div class="form-container">
-            <h3 style="margin-bottom: 25px; color: #374151;">การตั้งค่าหลัก</h3>
-
-            <form id="configForm">
-                <div class="form-group">
-                    <label for="truewalletPhone">📱 เบอร์ TrueWallet</label>
-                    <input type="tel" id="truewalletPhone" placeholder="0801234567" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="streamTitle">📺 ชื่อสตรีม</label>
-                    <input type="text" id="streamTitle" placeholder="ชื่อสตรีมของคุณ" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="alertDuration">⏱️ ระยะเวลาแสดง Alert (มิลลิวินาที)</label>
-                    <input type="number" id="alertDuration" min="3000" max="15000" step="1000">
-                </div>
-
-                <div class="form-group">
-                    <label for="enableTTS">🔊 เปิดใช้งาน TTS (อ่านข้อความ)</label>
-                    <select id="enableTTS">
-                        <option value="true">เปิดใช้งาน</option>
-                        <option value="false">ปิดใช้งาน</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="enableSound">🎵 เปิดใช้งานเสียงแจ้งเตือน</label>
-                    <select id="enableSound">
-                        <option value="true">เปิดใช้งาน</option>
-                        <option value="false">ปิดใช้งาน</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="save-btn">💾 บันทึกการตั้งค่า</button>
-            </form>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('basic')">📱 การตั้งค่าพื้นฐาน</button>
+            <button class="tab-btn" onclick="switchTab('widget')">🎨 ปรับแต่ง Widget</button>
+            <button class="tab-btn" onclick="switchTab('advanced')">🔧 ขั้นสูง</button>
+            <button class="tab-btn" onclick="switchTab('links')">🔗 ลิงก์</button>
         </div>
 
-        <!-- Links Section -->
-        <div class="links-section">
-            <h3>🔗 ลิงก์สำหรับ {{ username }}</h3>
-            <div class="links-grid">
-                <div class="link-card">
-                    <a href="/user/{{ username }}/donate" target="_blank">💝 Donate Page</a>
-                    <div class="desc">สำหรับผู้ชม</div>
-                </div>
-                <div class="link-card">
-                    <a href="/user/{{ username }}/widget" target="_blank">📺 Alert Widget</a>
-                    <div class="desc">สำหรับ OBS</div>
-                </div>
-                <div class="link-card">
-                    <a href="/user/{{ username }}/control" target="_blank">🎮 Control Panel</a>
-                    <div class="desc">ควบคุม Alert</div>
-                </div>
-                <div class="link-card">
-                    <a href="/user/{{ username }}/history" target="_blank">📊 History</a>
-                    <div class="desc">ประวัติการสนับสนุน</div>
+        <!-- Basic Settings Tab -->
+        <div id="basic-tab" class="tab-content active">
+            <div class="form-container">
+                <div class="form-section">
+                    <h3>การตั้งค่าหลัก</h3>
+                    <form id="configForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="truewalletPhone">📱 เบอร์ TrueWallet</label>
+                                <input type="tel" id="truewalletPhone" placeholder="0801234567" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="streamTitle">📺 ชื่อสตรีม</label>
+                                <input type="text" id="streamTitle" placeholder="ชื่อสตรีมของคุณ" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="alertDuration">⏱️ ระยะเวลาแสดง Alert (มิลลิวินาที)</label>
+                                <input type="number" id="alertDuration" min="3000" max="15000" step="1000">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="minTTSAmount">🗣️ ยอดขั้นต่ำสำหรับ TTS (บาท)</label>
+                                <input type="number" id="minTTSAmount" min="0" step="1">
+                                <div class="description">จำนวนเงินขั้นต่ำที่จะให้ระบบอ่านข้อความออกเสียง</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="enableTTS">🔊 เปิดใช้งาน TTS (อ่านข้อความ)</label>
+                                <select id="enableTTS">
+                                    <option value="true">เปิดใช้งาน</option>
+                                    <option value="false">ปิดใช้งาน</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="enableSound">🎵 เปิดใช้งานเสียงแจ้งเตือน</label>
+                                <select id="enableSound">
+                                    <option value="true">เปิดใช้งาน</option>
+                                    <option value="false">ปิดใช้งาน</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- OBS Widget URL -->
-        <div class="url-section">
-            <h4>📋 URL สำหรับ OBS Browser Source:</h4>
-            <div class="url-display" id="widgetUrl">{{ widgetUrl }}</div>
-            <button class="copy-btn" onclick="copyUrl('widgetUrl')">📋 คัดลอก Widget URL</button>
+        <!-- Widget Customization Tab -->
+        <div id="widget-tab" class="tab-content">
+            <div class="form-container">
+                <div class="form-section">
+                    <h3>รูปแบบการแสดงผล</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="alertFormat">📝 รูปแบบข้อความ Alert</label>
+                            <input type="text" id="alertFormat" placeholder="{{user}} โดเนท {{amount}}">
+                            <div class="description">ใช้ {{user}} สำหรับชื่อผู้โดเนท และ {{amount}} สำหรับจำนวนเงิน
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="showBackground">🎨 แสดงพื้นหลัง</label>
+                            <select id="showBackground">
+                                <option value="true">แสดงพื้นหลัง</option>
+                                <option value="false">ไม่แสดงพื้นหลัง (โปร่งใส)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="showIcon">🎉 แสดงไอคอน</label>
+                            <select id="showIcon">
+                                <option value="true">แสดงไอคอน</option>
+                                <option value="false">ไม่แสดงไอคอน</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="showSparkles">✨ แสดงเอฟเฟกต์ Sparkles</label>
+                            <select id="showSparkles">
+                                <option value="true">แสดงเอฟเฟกต์</option>
+                                <option value="false">ไม่แสดงเอฟเฟกต์</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="useCustomGif">🎬 ใช้ GIF แทนไอคอน</label>
+                            <select id="useCustomGif">
+                                <option value="false">ใช้ไอคอนอีโมจิ</option>
+                                <option value="true">ใช้ GIF ที่กำหนด</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customGifUrl">🔗 URL ของ GIF</label>
+                            <input type="url" id="customGifUrl" placeholder="https://img2.pic.in.th/pic/example.gif">
+                            <div class="description">ใส่ลิงก์ GIF ที่ต้องการแสดงแทนไอคอน (ขนาดจะถูก resize อัตโนมัติ)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>สีและขนาด</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="backgroundColor">🎨 สีพื้นหลัง</label>
+                            <div class="color-input">
+                                <input type="color" id="backgroundColorPicker" value="#ffffff">
+                                <input type="text" id="backgroundColor" placeholder="rgba(255, 255, 255, 0.95)">
+                            </div>
+                            <div class="description">สามารถใช้ rgba() สำหรับความโปร่งใส</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="textColor">📝 สีข้อความ</label>
+                            <div class="color-input">
+                                <input type="color" id="textColorPicker" value="#1f2937">
+                                <input type="text" id="textColor" placeholder="#1f2937">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="donorColor">👤 สีชื่อผู้โดเนท</label>
+                            <div class="color-input">
+                                <input type="color" id="donorColorPicker" value="#667eea">
+                                <input type="text" id="donorColor" placeholder="#667eea">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amountColor">💰 สีจำนวนเงิน</label>
+                            <div class="color-input">
+                                <input type="color" id="amountColorPicker" value="#f59e0b">
+                                <input type="text" id="amountColor" placeholder="#f59e0b">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fontSize">📏 ขนาดตัวอักษร: <span id="fontSizeValue">42</span>px</label>
+                            <div class="range-input">
+                                <input type="range" id="fontSize" min="12" max="100" value="42"
+                                    oninput="updateRangeValue('fontSize', 'fontSizeValue')">
+                                <div class="value" id="fontSizeDisplay">42px</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amountSize">💰 ขนาดตัวเลขเงิน: <span id="amountSizeValue">56</span>px</label>
+                            <div class="range-input">
+                                <input type="range" id="amountSize" min="12" max="120" value="56"
+                                    oninput="updateRangeValue('amountSize', 'amountSizeValue')">
+                                <div class="value" id="amountSizeDisplay">56px</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="borderRadius">🔲 ความโค้งมุม: <span id="borderRadiusValue">25</span>px</label>
+                            <div class="range-input">
+                                <input type="range" id="borderRadius" min="0" max="50" value="25"
+                                    oninput="updateRangeValue('borderRadius', 'borderRadiusValue')">
+                                <div class="value" id="borderRadiusDisplay">25px</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="animationSpeed">🎬 ความเร็ว Animation: <span
+                                    id="animationSpeedValue">1.2</span>x</label>
+                            <div class="range-input">
+                                <input type="range" id="animationSpeed" min="0.1" max="5" step="0.1" value="1.2"
+                                    oninput="updateRangeValue('animationSpeed', 'animationSpeedValue')">
+                                <div class="value" id="animationSpeedDisplay">1.2x</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="preview-section">
+                    <h4>🔍 ตัวอย่าง Widget</h4>
+                    <div class="preview-widget" id="previewWidget">
+                        <div class="preview-alert" id="previewAlert">
+                            <div style="font-size: 42px; margin-bottom: 10px;">
+                                <span style="color: #667eea; font-weight: 900;">ผู้ทดสอบ</span> โดเนท
+                                <span
+                                    style="color: #f59e0b; font-size: 56px; font-weight: 900; display: block;">฿500</span>
+                            </div>
+                            <div style="font-style: italic; color: #6b7280;">ข้อความทดสอบ</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="button" onclick="updatePreview()"
+                            style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄
+                            อัปเดตตัวอย่าง</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Donate URL -->
-        <div class="url-section">
-            <h4>💝 URL สำหรับการโดเนท:</h4>
-            <div class="url-display" id="donateUrl">{{ donateUrl }}</div>
-            <button class="copy-btn" onclick="copyUrl('donateUrl')">📋 คัดลอก Donate URL</button>
+        <!-- Advanced Settings Tab -->
+        <div id="advanced-tab" class="tab-content">
+            <div class="form-container">
+                <div class="form-section">
+                    <h3>การตั้งค่าขั้นสูง</h3>
+                    <div class="form-group">
+                        <label for="customCSS">🎨 Custom CSS</label>
+                        <textarea id="customCSS" placeholder="/* ใส่ CSS เพิ่มเติมที่นี่ */"></textarea>
+                        <div class="description">CSS สำหรับปรับแต่ง Widget เพิ่มเติม</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="welcomeMessage">💬 ข้อความต้อนรับ</label>
+                        <textarea id="welcomeMessage" placeholder="ยินดีต้อนรับสู่สตรีมของฉัน!"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Links Tab -->
+        <div id="links-tab" class="tab-content">
+            <div class="links-section">
+                <h3>🔗 ลิงก์สำหรับ {{ username }}</h3>
+                <div class="links-grid">
+                    <div class="link-card">
+                        <a href="/user/{{ username }}/donate" target="_blank">💝 Donate Page</a>
+                        <div class="desc">สำหรับผู้ชม</div>
+                    </div>
+                    <div class="link-card">
+                        <a href="/user/{{ username }}/widget" target="_blank">📺 Alert Widget</a>
+                        <div class="desc">สำหรับ OBS</div>
+                    </div>
+                    <div class="link-card">
+                        <a href="/user/{{ username }}/control" target="_blank">🎮 Control Panel</a>
+                        <div class="desc">ควบคุม Alert</div>
+                    </div>
+                    <div class="link-card">
+                        <a href="/user/{{ username }}/history" target="_blank">📊 History</a>
+                        <div class="desc">ประวัติการสนับสนุน</div>
+                    </div>
+                </div>
+
+                <!-- OBS Widget URL -->
+                <div class="url-section">
+                    <h4>📋 URL สำหรับ OBS Browser Source:</h4>
+                    <div class="url-display" id="widgetUrl">{{ widgetUrl }}</div>
+                    <button class="copy-btn" onclick="copyUrl('widgetUrl')">📋 คัดลอก Widget URL</button>
+                </div>
+
+                <!-- Donate URL -->
+                <div class="url-section">
+                    <h4>💝 URL สำหรับการโดเนท:</h4>
+                    <div class="url-display" id="donateUrl">{{ donateUrl }}</div>
+                    <button class="copy-btn" onclick="copyUrl('donateUrl')">📋 คัดลอก Donate URL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <button type="submit" class="save-btn" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
 
         <div style="text-align: center; margin-top: 30px;">
             <a href="/" style="color: #667eea; text-decoration: none; font-weight: 600;">← กลับหน้าแรก</a>
@@ -355,48 +689,237 @@
     </div>
 
     <script>
+        let currentConfig = {};
+
         // Load current config
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Parse config from template (if available)
                 const configStr = '{{ config }}';
-                let config = {};
-
                 try {
-                    config = JSON.parse(configStr);
+                    currentConfig = JSON.parse(configStr);
                 } catch (e) {
-                    console.log('Using default config');
-                    config = {
-                        truewalletPhone: '',
-                        streamTitle: '{{ username }}\'s Stream',
-                        alertDuration: 5000,
-                        enableTTS: true,
-                        enableSound: true
-                    };
+                    currentConfig = getDefaultConfig();
                 }
 
-                // Populate form
-                document.getElementById('truewalletPhone').value = config.truewalletPhone || '';
-                document.getElementById('streamTitle').value = config.streamTitle || '{{ username }}\'s Stream';
-                document.getElementById('alertDuration').value = config.alertDuration || 5000;
-                document.getElementById('enableTTS').value = config.enableTTS ? 'true' : 'false';
-                document.getElementById('enableSound').value = config.enableSound ? 'true' : 'false';
-
+                populateForm(currentConfig);
+                setupColorPickers();
+                updatePreview();
             } catch (error) {
                 console.error('Error loading config:', error);
+                currentConfig = getDefaultConfig();
+                populateForm(currentConfig);
             }
         });
 
-        // Handle form submission
-        document.getElementById('configForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function getDefaultConfig() {
+            return {
+                truewalletPhone: '',
+                streamTitle: '{{ username }}\'s Stream',
+                alertDuration: 5000,
+                enableTTS: true,
+                enableSound: true,
+                alertFormat: '{{user}} โดเนท {{amount}}',
+                minTTSAmount: 50,
+                showBackground: false, // เปลี่ยนเป็น false
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                textColor: '#1f2937',
+                amountColor: '#f59e0b',
+                donorColor: '#667eea',
+                fontSize: 42,
+                amountSize: 56,
+                borderRadius: 25,
+                showIcon: true,
+                showSparkles: true,
+                animationSpeed: 1.2,
+                customCSS: '',
+                welcomeMessage: 'ยินดีต้อนรับสู่สตรีมของ {{ username }}!'
+            };
+        }
 
+        function populateForm(config) {
+            // Basic settings
+            document.getElementById('truewalletPhone').value = config.truewalletPhone || '';
+            document.getElementById('streamTitle').value = config.streamTitle || '';
+            document.getElementById('alertDuration').value = config.alertDuration || 5000;
+            document.getElementById('minTTSAmount').value = config.minTTSAmount || 50;
+            document.getElementById('enableTTS').value = config.enableTTS ? 'true' : 'false';
+            document.getElementById('enableSound').value = config.enableSound ? 'true' : 'false';
+
+            // Widget customization
+            document.getElementById('alertFormat').value = config.alertFormat || '{{user}} โดเนท {{amount}}';
+            document.getElementById('showBackground').value = config.showBackground === true ? 'true' : 'false'; // แก้ไขการตรวจสอบ
+            document.getElementById('showIcon').value = config.showIcon !== false ? 'true' : 'false';
+            document.getElementById('showSparkles').value = config.showSparkles !== false ? 'true' : 'false';
+            document.getElementById('useCustomGif').value = config.useCustomGif === true ? 'true' : 'false';
+            document.getElementById('customGifUrl').value = config.customGifUrl || '';
+            document.getElementById('backgroundColor').value = config.backgroundColor || 'rgba(255, 255, 255, 0.95)';
+            document.getElementById('textColor').value = config.textColor || '#1f2937';
+            document.getElementById('amountColor').value = config.amountColor || '#f59e0b';
+            document.getElementById('donorColor').value = config.donorColor || '#667eea';
+            document.getElementById('fontSize').value = config.fontSize || 42;
+            document.getElementById('amountSize').value = config.amountSize || 56;
+            document.getElementById('borderRadius').value = config.borderRadius || 25;
+            document.getElementById('animationSpeed').value = config.animationSpeed || 1.2;
+
+            // Advanced
+            document.getElementById('customCSS').value = config.customCSS || '';
+            document.getElementById('welcomeMessage').value = config.welcomeMessage || '';
+
+            // Update range displays
+            updateRangeValue('fontSize', 'fontSizeValue');
+            updateRangeValue('amountSize', 'amountSizeValue');
+            updateRangeValue('borderRadius', 'borderRadiusValue');
+            updateRangeValue('animationSpeed', 'animationSpeedValue');
+        }
+
+        function setupColorPickers() {
+            // Setup color picker synchronization
+            const colorInputs = [
+                { picker: 'backgroundColorPicker', text: 'backgroundColor' },
+                { picker: 'textColorPicker', text: 'textColor' },
+                { picker: 'amountColorPicker', text: 'amountColor' },
+                { picker: 'donorColorPicker', text: 'donorColor' }
+            ];
+
+            colorInputs.forEach(({ picker, text }) => {
+                const pickerEl = document.getElementById(picker);
+                const textEl = document.getElementById(text);
+
+                if (!pickerEl || !textEl) return;
+
+                pickerEl.addEventListener('change', () => {
+                    textEl.value = pickerEl.value;
+                    updatePreview();
+                    console.log(`Color picker ${picker} changed to:`, pickerEl.value);
+                });
+
+                textEl.addEventListener('input', () => {
+                    // ถ้าเป็นสี hex ให้ sync ไป color picker
+                    if (textEl.value.startsWith('#') && textEl.value.length === 7) {
+                        pickerEl.value = textEl.value;
+                    }
+                    updatePreview();
+                    console.log(`Text input ${text} changed to:`, textEl.value);
+                });
+            });
+
+            // ซิงค์ค่าเริ่มต้นหลังจาก setup event listeners
+            setTimeout(() => {
+                syncColorPickers();
+            }, 100);
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function updateRangeValue(rangeId, valueId) {
+            const range = document.getElementById(rangeId);
+            const value = document.getElementById(valueId);
+            const display = document.getElementById(rangeId + 'Display');
+
+            value.textContent = range.value;
+            if (display) {
+                display.textContent = range.value + (rangeId === 'animationSpeed' ? 'x' : 'px');
+            }
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('previewAlert');
+            const widget = document.getElementById('previewWidget');
+
+            const showBackground = document.getElementById('showBackground').value === 'true';
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const amountColor = document.getElementById('amountColor').value;
+            const donorColor = document.getElementById('donorColor').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const amountSize = document.getElementById('amountSize').value;
+            const borderRadius = document.getElementById('borderRadius').value;
+            const alertFormat = document.getElementById('alertFormat').value;
+            const useCustomGif = document.getElementById('useCustomGif').value === 'true';
+            const customGifUrl = document.getElementById('customGifUrl').value;
+            const showIcon = document.getElementById('showIcon').value === 'true';
+
+            // Update preview styles
+            if (showBackground) {
+                preview.style.background = backgroundColor;
+                preview.style.border = '1px solid rgba(255,255,255,0.3)';
+            } else {
+                preview.style.background = 'transparent';
+                preview.style.border = 'none';
+            }
+
+            preview.style.borderRadius = borderRadius + 'px';
+            preview.style.color = textColor;
+
+            // Update text content based on format
+            let formattedText = alertFormat
+                .replace('{{user}}', `<span style="color: ${donorColor}; font-weight: 900;">ผู้ทดสอบ</span>`)
+                .replace('{{amount}}', `<span style="color: ${amountColor}; font-size: ${amountSize}px; font-weight: 900; display: block;">฿500</span>`);
+
+            // Add icon/gif preview
+            let iconHtml = '';
+            if (showIcon) {
+                if (useCustomGif && customGifUrl) {
+                    iconHtml = `<div style="width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                        <img src="${customGifUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'">
+                    </div>`;
+                } else {
+                    iconHtml = `<div style="width: 80px; height: 80px; margin: 0 auto 15px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">🎉</div>`;
+                }
+            }
+
+            preview.innerHTML = `
+                ${iconHtml}
+                <div style="font-size: ${fontSize}px; margin-bottom: 10px;">
+                    ${formattedText}
+                </div>
+                <div style="font-style: italic; color: #6b7280; margin-top: 10px;">ข้อความทดสอบ</div>
+            `;
+        }
+
+        async function saveConfig() {
             const config = {
+                // Basic settings
                 truewalletPhone: document.getElementById('truewalletPhone').value,
                 streamTitle: document.getElementById('streamTitle').value,
                 alertDuration: parseInt(document.getElementById('alertDuration').value),
                 enableTTS: document.getElementById('enableTTS').value === 'true',
-                enableSound: document.getElementById('enableSound').value === 'true'
+                enableSound: document.getElementById('enableSound').value === 'true',
+                minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
+
+                // Widget customization
+                alertFormat: document.getElementById('alertFormat').value,
+                showBackground: document.getElementById('showBackground').value === 'true',
+                showIcon: document.getElementById('showIcon').value === 'true',
+                showSparkles: document.getElementById('showSparkles').value === 'true',
+                useCustomGif: document.getElementById('useCustomGif').value === 'true',
+                customGifUrl: document.getElementById('customGifUrl').value,
+                backgroundColor: document.getElementById('backgroundColor').value,
+                textColor: document.getElementById('textColor').value,
+                amountColor: document.getElementById('amountColor').value,
+                donorColor: document.getElementById('donorColor').value,
+                fontSize: parseInt(document.getElementById('fontSize').value),
+                amountSize: parseInt(document.getElementById('amountSize').value),
+                borderRadius: parseInt(document.getElementById('borderRadius').value),
+                animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
+
+                // Advanced
+                customCSS: document.getElementById('customCSS').value,
+                welcomeMessage: document.getElementById('welcomeMessage').value
             };
 
             try {
@@ -412,6 +935,7 @@
 
                 if (result.success) {
                     showStatus('✅ บันทึกการตั้งค่าสำเร็จ!', 'success');
+                    currentConfig = config;
                 } else {
                     showStatus('❌ เกิดข้อผิดพลาด: ' + result.message, 'error');
                 }
@@ -419,7 +943,7 @@
                 console.error('Error saving config:', error);
                 showStatus('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
             }
-        });
+        }
 
         function copyUrl(elementId) {
             const urlElement = document.getElementById(elementId);
@@ -475,6 +999,13 @@
             } else {
                 e.target.style.borderColor = '#e5e7eb';
                 e.target.style.boxShadow = 'none';
+            }
+        });
+
+        // Auto-update preview when inputs change
+        document.addEventListener('input', (e) => {
+            if (e.target.closest('#widget-tab')) {
+                updatePreview();
             }
         });
     </script>

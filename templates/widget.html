@@ -38,21 +38,21 @@
         }
 
         .alert-background {
-            background: linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.95) 0%,
-                    rgba(248, 250, 252, 0.98) 100%);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
             padding: 40px;
-            box-shadow:
-                0 25px 50px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
             position: relative;
             overflow: hidden;
         }
 
-        .alert-background::before {
+        .alert-background.with-background {
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .alert-background.with-background::before {
             content: '';
             position: absolute;
             top: 0;
@@ -90,6 +90,23 @@
             box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
             animation: iconBounce 1.5s ease-out;
             position: relative;
+            overflow: hidden;
+        }
+
+        .alert-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .alert-icon.gif-mode {
+            background: transparent;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert-icon.hidden {
+            display: none;
         }
 
         .alert-icon::after {
@@ -134,10 +151,8 @@
         }
 
         .donation-text {
-            font-size: 42px;
             font-weight: 800;
             margin-bottom: 20px;
-            color: #1f2937;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             letter-spacing: -1px;
             animation: textSlide 1.5s ease-out;
@@ -157,20 +172,10 @@
         }
 
         .donor-name {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
             font-weight: 900;
         }
 
         .donation-amount {
-            background: linear-gradient(135deg, #f59e0b, #d97706, #f59e0b);
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 56px;
             font-weight: 900;
             margin: 15px 0;
             animation:
@@ -196,18 +201,17 @@
 
             0%,
             100% {
-                background-position: 0% 50%;
+                filter: hue-rotate(0deg);
             }
 
             50% {
-                background-position: 100% 50%;
+                filter: hue-rotate(30deg);
             }
         }
 
         .donation-message {
             font-size: 24px;
             font-weight: 500;
-            color: #4b5563;
             margin: 20px auto 0;
             font-style: italic;
             line-height: 1.5;
@@ -215,9 +219,7 @@
             display: none;
             animation: messageSlide 2s ease-out;
             padding: 15px 25px;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
+            /* ไม่ให้มีพื้นหลังเลย */
         }
 
         @keyframes messageSlide {
@@ -240,6 +242,10 @@
             height: 100%;
             pointer-events: none;
             overflow: hidden;
+        }
+
+        .sparkles.hidden {
+            display: none;
         }
 
         .sparkle {
@@ -360,14 +366,6 @@
                 font-size: 40px;
             }
 
-            .donation-text {
-                font-size: 28px;
-            }
-
-            .donation-amount {
-                font-size: 36px;
-            }
-
             .donation-message {
                 font-size: 18px;
             }
@@ -382,10 +380,10 @@
     <div class="alert-container" id="alertContainer">
         <div class="sparkles" id="sparkles"></div>
 
-        <div class="alert-background">
+        <div class="alert-background" id="alertBackground">
             <div class="alert-icon" id="alertIcon">🎉</div>
 
-            <div class="donation-text">
+            <div class="donation-text" id="donationText">
                 <span class="donor-name" id="donorName">ชื่อผู้โดเนท</span> โดเนท
                 <span class="donation-amount" id="donationAmount">฿0</span>
             </div>
@@ -394,30 +392,83 @@
         </div>
     </div>
 
-    <!-- สร้าง config object ที่ปลอดภัย -->
-    <script>
-        window.WIDGET_CONFIG = {
-            username: '{{ username }}',
-            alertDuration: {{ alertDuration }},
-        enableTTS: { { enableTTS } },
-        enableSound: { { enableSound } }
-        };
-    </script>
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Widget configuration - ใช้ string literals เพื่อป้องกัน syntax error
+        window.WIDGET_CONFIG = {};
+
+        // Load config from server
+        try {
+            window.WIDGET_CONFIG = {
+                username: "{{ username }}",
+                alertDuration: parseInt("{{ alertDuration }}") || 5000,
+                enableTTS: "{{ enableTTS }}" === "true",
+                enableSound: "{{ enableSound }}" === "true",
+                minTTSAmount: parseInt("{{ minTTSAmount }}") || 50,
+                alertFormat: "{{ alertFormat }}".replace(/\\"/g, '"'),
+                showBackground: "{{ showBackground }}" === "true",
+                showIcon: "{{ showIcon }}" === "true",
+                showSparkles: "{{ showSparkles }}" === "true",
+                useCustomGif: "{{ useCustomGif }}" === "true",
+                customGifUrl: "{{ customGifUrl }}",
+                backgroundColor: "{{ backgroundColor }}",
+                textColor: "{{ textColor }}",
+                amountColor: "{{ amountColor }}",
+                donorColor: "{{ donorColor }}",
+                fontSize: parseInt("{{ fontSize }}") || 42,
+                amountSize: parseInt("{{ amountSize }}") || 56,
+                borderRadius: parseInt("{{ borderRadius }}") || 25,
+                animationSpeed: parseFloat("{{ animationSpeed }}") || 1.2,
+                customCSS: "{{ customCSS }}"
+            };
+        } catch (error) {
+            console.error('Error parsing config:', error);
+            // Default config
+            window.WIDGET_CONFIG = {
+                username: "{{ username }}",
+                alertDuration: 5000,
+                enableTTS: true,
+                enableSound: true,
+                minTTSAmount: 50,
+                alertFormat: "{{user}} โดเนท {{amount}}",
+                showBackground: false, // เปลี่ยนเป็น false
+                showIcon: true,
+                showSparkles: true,
+                useCustomGif: false,
+                customGifUrl: "",
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                textColor: "#1f2937",
+                amountColor: "#f59e0b",
+                donorColor: "#667eea",
+                fontSize: 42,
+                amountSize: 56,
+                borderRadius: 25,
+                animationSpeed: 1.2,
+                customCSS: ""
+            };
+        }
+
         class AlertWidget {
             constructor() {
-                // ใช้ config object แทนการแทนที่โดยตรง
+                // ใช้ config object
                 this.username = window.WIDGET_CONFIG.username;
-                this.alertDuration = window.WIDGET_CONFIG.alertDuration || 5000;
-                this.enableTTS = window.WIDGET_CONFIG.enableTTS !== false;
-                this.enableSound = window.WIDGET_CONFIG.enableSound !== false;
+                this.alertDuration = window.WIDGET_CONFIG.alertDuration;
+                this.enableTTS = window.WIDGET_CONFIG.enableTTS;
+                this.enableSound = window.WIDGET_CONFIG.enableSound;
+                this.minTTSAmount = window.WIDGET_CONFIG.minTTSAmount;
+                this.alertFormat = window.WIDGET_CONFIG.alertFormat;
+                this.showBackground = window.WIDGET_CONFIG.showBackground;
+                this.showIcon = window.WIDGET_CONFIG.showIcon;
+                this.showSparkles = window.WIDGET_CONFIG.showSparkles;
+                this.useCustomGif = window.WIDGET_CONFIG.useCustomGif;
+                this.customGifUrl = window.WIDGET_CONFIG.customGifUrl;
 
                 this.alertContainer = document.getElementById('alertContainer');
+                this.alertBackground = document.getElementById('alertBackground');
                 this.donorName = document.getElementById('donorName');
                 this.donationAmount = document.getElementById('donationAmount');
                 this.donationMessage = document.getElementById('donationMessage');
+                this.donationText = document.getElementById('donationText');
                 this.sparkles = document.getElementById('sparkles');
                 this.connectionIndicator = document.getElementById('connectionIndicator');
                 this.alertIcon = document.getElementById('alertIcon');
@@ -425,14 +476,65 @@
                 this.currentAlert = null;
                 this.isTTSPlaying = false;
 
+                this.setupWidget();
                 this.setupSocket();
 
                 console.log('🎮 Alert Widget initialized for:', this.username);
-                console.log('⚙️ Config:', {
-                    alertDuration: this.alertDuration,
-                    enableTTS: this.enableTTS,
-                    enableSound: this.enableSound
-                });
+                console.log('⚙️ Config:', window.WIDGET_CONFIG);
+            }
+
+            setupWidget() {
+                try {
+                    // Apply styles using JavaScript instead of CSS variables
+                    const config = window.WIDGET_CONFIG;
+
+                    // Apply background settings - ปิดพื้นหลังเป็นค่าเริ่มต้น
+                    if (config.showBackground) {
+                        this.alertBackground.classList.add('with-background');
+                        this.alertBackground.style.background = config.backgroundColor;
+                        this.alertBackground.style.borderRadius = config.borderRadius + 'px';
+                    } else {
+                        // ไม่แสดงพื้นหลัง - โปร่งใสทั้งหมด
+                        this.alertBackground.style.background = 'transparent';
+                        this.alertBackground.style.borderRadius = '0px';
+                    }
+
+                    // Apply icon/gif settings
+                    if (!config.showIcon) {
+                        this.alertIcon.classList.add('hidden');
+                    } else if (config.useCustomGif && config.customGifUrl) {
+                        // ใช้ GIF แทนไอคอน
+                        this.alertIcon.classList.add('gif-mode');
+                        this.alertIcon.innerHTML = `<img src="${config.customGifUrl}" alt="Custom GIF" onerror="this.style.display='none'">`;
+                    }
+
+                    // Apply sparkles settings
+                    if (!config.showSparkles) {
+                        this.sparkles.classList.add('hidden');
+                    }
+
+                    // Apply text styles
+                    this.donationText.style.fontSize = config.fontSize + 'px';
+                    this.donationText.style.color = config.textColor;
+                    this.donationAmount.style.fontSize = config.amountSize + 'px';
+                    this.donationAmount.style.color = config.amountColor;
+                    this.donorName.style.color = config.donorColor;
+                    this.donationMessage.style.color = config.textColor;
+
+                    // Apply animation speed
+                    const animationDuration = config.animationSpeed + 's';
+                    this.alertContainer.style.transitionDuration = animationDuration;
+
+                    // Apply custom CSS if provided
+                    if (config.customCSS && config.customCSS.trim()) {
+                        const style = document.createElement('style');
+                        style.textContent = config.customCSS;
+                        document.head.appendChild(style);
+                    }
+
+                } catch (error) {
+                    console.error('Error setting up widget:', error);
+                }
             }
 
             setupSocket() {
@@ -474,9 +576,29 @@
 
                 console.log(`🎉 Showing alert: ${name} - ฿${amount} - "${message}"`);
 
-                // Update content
-                this.donorName.textContent = name;
-                this.donationAmount.textContent = `฿${amount.toLocaleString()}`;
+                // Format the alert text using the custom format
+                let formattedText = this.alertFormat
+                    .replace(/\{\{user\}\}/g, `<span class="donor-name">${name}</span>`)
+                    .replace(/\{\{amount\}\}/g, `<span class="donation-amount">฿${amount.toLocaleString()}</span>`);
+
+                // Update content based on format
+                if (this.alertFormat.includes('{{user}}') && this.alertFormat.includes('{{amount}}')) {
+                    // Custom format - use the formatted text
+                    this.donationText.innerHTML = formattedText;
+
+                    // Re-apply styles to the new elements
+                    const donorSpan = this.donationText.querySelector('.donor-name');
+                    const amountSpan = this.donationText.querySelector('.donation-amount');
+                    if (donorSpan) donorSpan.style.color = window.WIDGET_CONFIG.donorColor;
+                    if (amountSpan) {
+                        amountSpan.style.color = window.WIDGET_CONFIG.amountColor;
+                        amountSpan.style.fontSize = window.WIDGET_CONFIG.amountSize + 'px';
+                    }
+                } else {
+                    // Fallback to original format
+                    this.donorName.textContent = name;
+                    this.donationAmount.textContent = `฿${amount.toLocaleString()}`;
+                }
 
                 if (message && message.trim()) {
                     this.donationMessage.textContent = message;
@@ -485,21 +607,32 @@
                     this.donationMessage.style.display = 'none';
                 }
 
-                // Choose random celebration icon
-                const celebrationIcons = ['🎉', '🎊', '🥳', '🎈', '✨', '🌟', '💖', '🔥'];
-                this.alertIcon.textContent = celebrationIcons[Math.floor(Math.random() * celebrationIcons.length)];
+                // Choose random celebration icon or use custom GIF
+                if (this.showIcon && this.alertIcon) {
+                    if (this.useCustomGif && this.customGifUrl) {
+                        // ใช้ GIF - ไม่ต้องเปลี่ยนเพราะมันเป็น GIF อยู่แล้ว
+                        console.log('🎬 Using custom GIF:', this.customGifUrl);
+                    } else {
+                        // ใช้ไอคอนอีโมจิแบบสุ่ม
+                        const celebrationIcons = ['🎉', '🎊', '🥳', '🎈', '✨', '🌟', '💖', '🔥'];
+                        this.alertIcon.textContent = celebrationIcons[Math.floor(Math.random() * celebrationIcons.length)];
+                    }
+                }
 
                 // Show alert
                 this.alertContainer.classList.add('show');
 
                 // Create effects
-                this.createSparkles();
+                if (this.showSparkles) {
+                    this.createSparkles();
+                }
 
                 if (this.enableSound) {
                     this.playSound();
                 }
 
-                if (this.enableTTS && message && message.trim()) {
+                // Play TTS only if amount meets minimum requirement
+                if (this.enableTTS && message && message.trim() && amount >= this.minTTSAmount) {
                     setTimeout(() => {
                         this.playTTS(message);
                     }, 1000);
@@ -514,12 +647,16 @@
 
             hideAlert() {
                 this.alertContainer.classList.remove('show');
-                this.clearSparkles();
+                if (this.showSparkles) {
+                    this.clearSparkles();
+                }
                 this.currentAlert = null;
                 this.isTTSPlaying = false;
             }
 
             createSparkles() {
+                if (!this.sparkles || !this.showSparkles) return;
+
                 this.clearSparkles();
 
                 const sparkleEmojis = ['✨', '⭐', '💫', '🌟', '💖', '💚', '💙', '💜', '🧡', '💛'];
@@ -545,7 +682,9 @@
             }
 
             clearSparkles() {
-                this.sparkles.innerHTML = '';
+                if (this.sparkles) {
+                    this.sparkles.innerHTML = '';
+                }
             }
 
             playSound() {

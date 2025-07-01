@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Donation History Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>📊 History - {{ username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -67,6 +69,7 @@
             color: #374151;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .nav-btn::before {
@@ -76,7 +79,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
             transition: left 0.6s;
         }
 
@@ -249,7 +252,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
             transition: left 0.6s;
         }
 
@@ -331,7 +334,8 @@
             border-collapse: collapse;
         }
 
-        th, td {
+        th,
+        td {
             padding: 20px 24px;
             text-align: left;
             border-bottom: 1px solid rgba(243, 244, 246, 0.8);
@@ -436,7 +440,8 @@
             border-color: #10b981;
         }
 
-        .loading, .empty {
+        .loading,
+        .empty {
             text-align: center;
             padding: 60px;
             color: #6b7280;
@@ -453,8 +458,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 768px) {
@@ -510,7 +520,8 @@
                 overflow-x: auto;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 12px 16px;
             }
 
@@ -547,11 +558,11 @@
 <body>
     <div class="header">
         <div class="header-content">
-            <h1>📊 Donation History</h1>
+            <h1>📊 Donation History - {{ username }}</h1>
             <div class="nav-buttons">
                 <a href="/" class="nav-btn">🏠 หน้าแรก</a>
-                <a href="/control" class="nav-btn">🎮 Control Panel</a>
-                <a href="/donate" class="nav-btn">💝 Donate Page</a>
+                <a href="#" onclick="goToControl()" class="nav-btn">🎮 Control Panel</a>
+                <a href="#" onclick="goToDonate()" class="nav-btn">💝 Donate Page</a>
                 <button class="nav-btn primary" onclick="exportLogs()">📥 Export JSON</button>
             </div>
         </div>
@@ -651,7 +662,15 @@
             constructor() {
                 this.currentPage = 1;
                 this.currentFilters = {};
+                this.username = this.getUsername();
                 this.init();
+            }
+
+            getUsername() {
+                // Extract username from URL path
+                const pathParts = window.location.pathname.split('/');
+                const userIndex = pathParts.indexOf('user');
+                return userIndex !== -1 && pathParts[userIndex + 1] ? pathParts[userIndex + 1] : 'unknown';
             }
 
             init() {
@@ -686,19 +705,26 @@
                         ...this.currentFilters
                     });
 
-                    const response = await fetch(`/api/logs?${params}`);
+                    console.log(`Loading data from: /user/${this.username}/api/donations?${params}`);
+                    const response = await fetch(`/user/${this.username}/api/donations?${params}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
                     const data = await response.json();
+                    console.log('Received data:', data);
 
                     if (data.success) {
                         this.renderTable(data.data);
                         this.renderPagination(data.pagination);
-                        this.renderStats(data.stats);
+                        this.renderStats(data.stats || data.userStats);
                     } else {
-                        this.showError('ไม่สามารถโหลดข้อมูลได้');
+                        this.showError('ไม่สามารถโหลดข้อมูลได้: ' + (data.message || 'Unknown error'));
                     }
                 } catch (error) {
                     console.error('Error loading data:', error);
-                    this.showError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                    this.showError('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
                 }
             }
 
@@ -715,10 +741,20 @@
             }
 
             renderStats(stats) {
-                document.getElementById('totalDonations').textContent = stats.totalDonations.toLocaleString();
-                document.getElementById('totalAmount').textContent = stats.totalAmount.toLocaleString();
-                document.getElementById('averageAmount').textContent = Math.round(stats.averageAmount).toLocaleString();
-                document.getElementById('todayDonations').textContent = stats.todayDonations.toLocaleString();
+                // ป้องกัน undefined และใส่ค่าเริ่มต้น
+                const safeStats = {
+                    totalDonations: stats?.totalDonations || 0,
+                    totalAmount: stats?.totalAmount || 0,
+                    averageAmount: stats?.averageAmount || 0,
+                    todayDonations: stats?.todayDonations || 0
+                };
+
+                console.log('Rendering stats:', safeStats);
+
+                document.getElementById('totalDonations').textContent = safeStats.totalDonations.toLocaleString();
+                document.getElementById('totalAmount').textContent = safeStats.totalAmount.toLocaleString();
+                document.getElementById('averageAmount').textContent = Math.round(safeStats.averageAmount).toLocaleString();
+                document.getElementById('todayDonations').textContent = safeStats.todayDonations.toLocaleString();
             }
 
             renderTable(donations) {
@@ -731,14 +767,14 @@
 
                 tbody.innerHTML = donations.map(donation => `
                     <tr>
-                        <td>${donation.bangkokTime}</td>
+                        <td>${donation.bangkokTime || new Date(donation.timestamp).toLocaleString('th-TH')}</td>
                         <td><strong>${this.escapeHtml(donation.name)}</strong></td>
                         <td class="amount">฿${donation.amount.toLocaleString()}</td>
-                        <td class="message" title="${this.escapeHtml(donation.message)}">
+                        <td class="message" title="${this.escapeHtml(donation.message || '')}">
                             ${donation.message ? this.escapeHtml(donation.message) : '-'}
                         </td>
-                        <td><span class="status ${donation.status}">${this.getStatusText(donation.status)}</span></td>
-                        <td><small>${donation.ip}</small></td>
+                        <td><span class="status ${donation.status || 'completed'}">${this.getStatusText(donation.status || 'completed')}</span></td>
+                        <td><small>${donation.ip || 'unknown'}</small></td>
                     </tr>
                 `).join('');
             }
@@ -808,22 +844,28 @@
 
             async exportLogs() {
                 try {
-                    const response = await fetch('/api/logs/export');
+                    console.log(`Exporting from: /user/${this.username}/api/donations/export`);
+                    const response = await fetch(`/user/${this.username}/api/donations/export`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
                     const blob = await response.blob();
-                    
+
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `donation_logs_${new Date().toISOString().split('T')[0]}.json`;
+                    a.download = `${this.username}_donations_${new Date().toISOString().split('T')[0]}.json`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-                    
+
                     alert('✅ ส่งออกข้อมูลสำเร็จ!');
                 } catch (error) {
                     console.error('Export error:', error);
-                    alert('❌ ไม่สามารถส่งออกข้อมูลได้');
+                    alert('❌ ไม่สามารถส่งออกข้อมูลได้: ' + error.message);
                 }
             }
 
@@ -837,6 +879,7 @@
             }
 
             escapeHtml(unsafe) {
+                if (!unsafe) return '';
                 return unsafe
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
@@ -855,6 +898,17 @@
         function clearFilters() { historyManager.clearFilters(); }
         function loadData() { historyManager.loadData(); }
         function exportLogs() { historyManager.exportLogs(); }
+
+        function goToControl() {
+            const username = historyManager.username;
+            window.open(`/user/${username}/control`, '_blank');
+        }
+
+        function goToDonate() {
+            const username = historyManager.username;
+            window.open(`/user/${username}/donate`, '_blank');
+        }
     </script>
 </body>
+
 </html>

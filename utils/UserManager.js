@@ -1,4 +1,4 @@
-// utils/UserManager.js - Class สำหรับจัดการข้อมูล Users
+// utils/UserManager.js - เพิ่ม config ใหม่สำหรับ widget customization
 
 const fs = require('fs');
 const path = require('path');
@@ -79,7 +79,24 @@ class UserManager {
                 enableSound: true,
                 alertPosition: 'top',
                 customCSS: '',
-                welcomeMessage: `ยินดีต้อนรับสู่สตรีมของ ${username}!`
+                welcomeMessage: `ยินดีต้อนรับสู่สตรีมของ ${username}!`,
+                
+                // เพิ่ม config ใหม่สำหรับ widget customization
+                alertFormat: '{{user}} โดเนท {{amount}}',
+                minTTSAmount: 50, // จำนวนขั้นต่ำที่จะอ่าน TTS
+                showBackground: false, // เปลี่ยนเป็น false เป็นค่าเริ่มต้น
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                textColor: '#1f2937',
+                amountColor: '#f59e0b',
+                donorColor: '#667eea',
+                fontSize: 42,
+                amountSize: 56,
+                borderRadius: 25,
+                showIcon: true,
+                showSparkles: true,
+                animationSpeed: 1.2, // ความเร็วของ animation
+                customGifUrl: '', // URL ของ GIF ที่จะแสดงแทนไอคอน
+                useCustomGif: false // เปิด/ปิดการใช้ GIF แทนไอคอน
             },
             
             // ประวัติการสนับสนุน
@@ -226,6 +243,24 @@ class UserManager {
     // อัพเดทการตั้งค่า
     updateConfig(username, newConfig) {
         const userData = this.loadUserData(username);
+        
+        // Validate config values
+        if (newConfig.minTTSAmount !== undefined) {
+            newConfig.minTTSAmount = Math.max(0, parseInt(newConfig.minTTSAmount) || 0);
+        }
+        if (newConfig.fontSize !== undefined) {
+            newConfig.fontSize = Math.max(12, Math.min(100, parseInt(newConfig.fontSize) || 42));
+        }
+        if (newConfig.amountSize !== undefined) {
+            newConfig.amountSize = Math.max(12, Math.min(120, parseInt(newConfig.amountSize) || 56));
+        }
+        if (newConfig.borderRadius !== undefined) {
+            newConfig.borderRadius = Math.max(0, Math.min(50, parseInt(newConfig.borderRadius) || 25));
+        }
+        if (newConfig.animationSpeed !== undefined) {
+            newConfig.animationSpeed = Math.max(0.1, Math.min(5, parseFloat(newConfig.animationSpeed) || 1.2));
+        }
+        
         userData.config = { ...userData.config, ...newConfig };
         this.saveUserData(username, userData);
         
