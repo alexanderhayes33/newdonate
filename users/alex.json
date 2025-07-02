@@ -1,7 +1,7 @@
 {
   "username": "alex",
   "createdAt": 1751400514828,
-  "lastActiveAt": 1751404496139,
+  "lastActiveAt": 1751405171156,
   "config": {
     "truewalletPhone": "",
     "streamTitle": "alex's Stream",
@@ -15,9 +15,9 @@
     "alertFormat": "{{user}} โดเนท {{amount}}",
     "showBackground": false,
     "showIcon": true,
-    "showSparkles": true,
-    "useCustomGif": false,
-    "customGifUrl": "",
+    "showSparkles": false,
+    "useCustomGif": true,
+    "customGifUrl": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3ViNzBuMXd1d2wweWdieW1xMWN2OG9udjE1NTR1dmF2dnp3NDhpNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3fQf1OEAq0iri9RC/giphy.gif",
     "backgroundColor": "rgba(255, 255, 255, 0.95)",
     "textColor": "#ffffff",
     "amountColor": "#f59e0b",
@@ -28,6 +28,48 @@
     "animationSpeed": 1.2
   },
   "donations": [
+    {
+      "id": 1751405171158,
+      "timestamp": 1751405171144,
+      "bangkokTime": "02/07/2568 04:26:11",
+      "name": "Alexander Hayes",
+      "amount": 1000000,
+      "message": "Alexander Hayes ให้เช่าระบบโดเนท",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751405127871,
+      "timestamp": 1751405127334,
+      "bangkokTime": "02/07/2568 04:25:27",
+      "name": "Alexander Hayes",
+      "amount": 10000000,
+      "message": "Alexander Hayes ให้เช่าระบบโดเนท",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751404801612,
+      "timestamp": 1751404801575,
+      "bangkokTime": "02/07/2568 04:20:01",
+      "name": "Alexander Hayes",
+      "amount": 100,
+      "message": "ได้โดเนท",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
     {
       "id": 1751401709162,
       "timestamp": 1751401708469,
@@ -72,13 +114,13 @@
     }
   ],
   "stats": {
-    "totalDonations": 3,
-    "totalAmount": 300,
-    "averageAmount": 100,
-    "highestDonation": 100,
+    "totalDonations": 6,
+    "totalAmount": 11000400,
+    "averageAmount": 1833400,
+    "highestDonation": 10000000,
     "uniqueDonors": 1,
-    "thisMonthAmount": 300,
-    "lastDonationAt": 1751401708469
+    "thisMonthAmount": 11000400,
+    "lastDonationAt": 1751405171144
   },
   "advanced": {
     "webhookUrl": "",

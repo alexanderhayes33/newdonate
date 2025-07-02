@@ -408,16 +408,16 @@
         </div>
 
         <!-- Success message for new users -->
-        <div class="success-message" style="display: {{ isNewUser ? 'block' : 'none' }};">
+        <div class="success-message" style="display: {{ isNewUser }};">
             🎉 สร้าง User สำเร็จแล้ว! กรุณาตรวจสอบและปรับแต่งการตั้งค่าด้านล่าง
         </div>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('basic')">📱 การตั้งค่าพื้นฐาน</button>
-            <button class="tab-btn" onclick="switchTab('widget')">🎨 ปรับแต่ง Widget</button>
-            <button class="tab-btn" onclick="switchTab('advanced')">🔧 ขั้นสูง</button>
-            <button class="tab-btn" onclick="switchTab('links')">🔗 ลิงก์</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'basic')">📱 การตั้งค่าพื้นฐาน</button>
+            <button class="tab-btn" onclick="switchTab(event, 'widget')">🎨 ปรับแต่ง Widget</button>
+            <button class="tab-btn" onclick="switchTab(event, 'advanced')">🔧 ขั้นสูง</button>
+            <button class="tab-btn" onclick="switchTab(event, 'links')">🔗 ลิงก์</button>
         </div>
 
         <!-- Basic Settings Tab -->
@@ -516,7 +516,7 @@
 
                         <div class="form-group">
                             <label for="customGifUrl">🔗 URL ของ GIF</label>
-                            <input type="url" id="customGifUrl" placeholder="https://img2.pic.in.th/pic/example.gif">
+                            <input type="url" id="customGifUrl" placeholder="https://example.com/animation.gif">
                             <div class="description">ใส่ลิงก์ GIF ที่ต้องการแสดงแทนไอคอน (ขนาดจะถูก resize อัตโนมัติ)
                             </div>
                         </div>
@@ -694,20 +694,64 @@
         // Load current config
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const configStr = '{{ config }}';
-                try {
-                    currentConfig = JSON.parse(configStr);
-                } catch (e) {
+                // ลองหลายวิธีในการโหลด config
+                let configLoaded = false;
+
+                // Method 1: ลองดึงจาก template variable โดยตรง
+                const configStr = `{{ config }}`.trim();
+
+                if (configStr && configStr !== '{{ config }}' && configStr !== '') {
+                    try {
+                        // ถ้า config ถูก escape ด้วย &quot; ให้แปลงกลับ
+                        const unescapedConfig = configStr
+                            .replace(/&quot;/g, '"')
+                            .replace(/&amp;/g, '&')
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>')
+                            .replace(/&#039;/g, "'");
+
+                        currentConfig = JSON.parse(unescapedConfig);
+                        configLoaded = true;
+                        console.log('Config loaded from template:', currentConfig);
+                    } catch (e) {
+                        console.warn('Failed to parse config from template:', e);
+                    }
+                }
+
+                // Method 2: ถ้าโหลดจาก template ไม่ได้ ลองเรียก API
+                if (!configLoaded) {
+                    try {
+                        const response = await fetch('/user/{{ username }}/api/config');
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.config) {
+                                currentConfig = data.config;
+                                configLoaded = true;
+                                console.log('Config loaded from API:', currentConfig);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to load config from API:', e);
+                    }
+                }
+
+                // Method 3: ถ้ายังโหลดไม่ได้ ใช้ default
+                if (!configLoaded) {
+                    console.log('Using default config');
                     currentConfig = getDefaultConfig();
                 }
 
+                // Populate form และ setup UI
                 populateForm(currentConfig);
                 setupColorPickers();
                 updatePreview();
+
             } catch (error) {
-                console.error('Error loading config:', error);
+                console.error('Error in config initialization:', error);
                 currentConfig = getDefaultConfig();
                 populateForm(currentConfig);
+                setupColorPickers();
+                updatePreview();
             }
         });
 
@@ -720,7 +764,7 @@
                 enableSound: true,
                 alertFormat: '{{user}} โดเนท {{amount}}',
                 minTTSAmount: 50,
-                showBackground: false, // เปลี่ยนเป็น false
+                showBackground: false,
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 textColor: '#1f2937',
                 amountColor: '#f59e0b',
@@ -732,7 +776,9 @@
                 showSparkles: true,
                 animationSpeed: 1.2,
                 customCSS: '',
-                welcomeMessage: 'ยินดีต้อนรับสู่สตรีมของ {{ username }}!'
+                welcomeMessage: 'ยินดีต้อนรับสู่สตรีมของ {{ username }}!',
+                useCustomGif: false,
+                customGifUrl: ''
             };
         }
 
@@ -747,7 +793,7 @@
 
             // Widget customization
             document.getElementById('alertFormat').value = config.alertFormat || '{{user}} โดเนท {{amount}}';
-            document.getElementById('showBackground').value = config.showBackground === true ? 'true' : 'false'; // แก้ไขการตรวจสอบ
+            document.getElementById('showBackground').value = config.showBackground === true ? 'true' : 'false';
             document.getElementById('showIcon').value = config.showIcon !== false ? 'true' : 'false';
             document.getElementById('showSparkles').value = config.showSparkles !== false ? 'true' : 'false';
             document.getElementById('useCustomGif').value = config.useCustomGif === true ? 'true' : 'false';
@@ -775,10 +821,10 @@
         function setupColorPickers() {
             // Setup color picker synchronization
             const colorInputs = [
-                { picker: 'backgroundColorPicker', text: 'backgroundColor' },
-                { picker: 'textColorPicker', text: 'textColor' },
-                { picker: 'amountColorPicker', text: 'amountColor' },
-                { picker: 'donorColorPicker', text: 'donorColor' }
+                { picker: 'backgroundColorPicker', text: 'backgroundColor', defaultColor: '#ffffff' },
+                { picker: 'textColorPicker', text: 'textColor', defaultColor: '#1f2937' },
+                { picker: 'amountColorPicker', text: 'amountColor', defaultColor: '#f59e0b' },
+                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' }
             ];
 
             colorInputs.forEach(({ picker, text }) => {
@@ -790,7 +836,6 @@
                 pickerEl.addEventListener('change', () => {
                     textEl.value = pickerEl.value;
                     updatePreview();
-                    console.log(`Color picker ${picker} changed to:`, pickerEl.value);
                 });
 
                 textEl.addEventListener('input', () => {
@@ -799,7 +844,6 @@
                         pickerEl.value = textEl.value;
                     }
                     updatePreview();
-                    console.log(`Text input ${text} changed to:`, textEl.value);
                 });
             });
 
@@ -809,7 +853,55 @@
             }, 100);
         }
 
-        function switchTab(tabName) {
+        function syncColorPickers() {
+            // ฟังก์ชันสำหรับซิงค์ค่าสีเริ่มต้นระหว่าง color picker และ text input
+            const colorInputs = [
+                { picker: 'backgroundColorPicker', text: 'backgroundColor', defaultColor: '#ffffff' },
+                { picker: 'textColorPicker', text: 'textColor', defaultColor: '#1f2937' },
+                { picker: 'amountColorPicker', text: 'amountColor', defaultColor: '#f59e0b' },
+                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' }
+            ];
+
+            colorInputs.forEach(({ picker, text, defaultColor }) => {
+                const pickerEl = document.getElementById(picker);
+                const textEl = document.getElementById(text);
+
+                if (!pickerEl || !textEl) return;
+
+                const textValue = textEl.value;
+
+                // ถ้าเป็นสี hex ให้ sync ไป color picker
+                if (textValue && textValue.startsWith('#') && textValue.length === 7) {
+                    pickerEl.value = textValue;
+                } else if (textValue && textValue.startsWith('rgba')) {
+                    // ถ้าเป็น rgba ให้แปลงเป็น hex แล้ว sync
+                    const hex = rgbaToHex(textValue);
+                    if (hex) {
+                        pickerEl.value = hex;
+                    } else {
+                        pickerEl.value = defaultColor;
+                    }
+                } else {
+                    // ถ้าไม่มีค่าหรือค่าไม่ถูกต้อง ใช้ค่า default
+                    pickerEl.value = defaultColor;
+                    textEl.value = defaultColor;
+                }
+            });
+        }
+
+        function rgbaToHex(rgba) {
+            // แปลง rgba เป็น hex (ไม่รวม alpha)
+            const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) {
+                const r = parseInt(match[1]).toString(16).padStart(2, '0');
+                const g = parseInt(match[2]).toString(16).padStart(2, '0');
+                const b = parseInt(match[3]).toString(16).padStart(2, '0');
+                return `#${r}${g}${b}`;
+            }
+            return null;
+        }
+
+        function switchTab(event, tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -1007,6 +1099,11 @@
             if (e.target.closest('#widget-tab')) {
                 updatePreview();
             }
+        });
+
+        // Initialize preview on load
+        window.addEventListener('load', () => {
+            updatePreview();
         });
     </script>
 </body>

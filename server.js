@@ -591,6 +591,7 @@ app.post('/user/:username/api/redeem-voucher', async (req, res) => {
 });
 
 // ⚙️ API อัพเดท config
+// ⚙️ API อัพเดท config
 app.post('/user/:username/api/config', (req, res) => {
     try {
         const updatedConfig = userManager.updateConfig(req.username, req.body);
@@ -601,6 +602,23 @@ app.post('/user/:username/api/config', (req, res) => {
         });
     } catch (error) {
         console.error(`Error updating config for ${req.username}:`, error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+});
+
+// ⚙️ API ดึง config (เพิ่มใหม่)
+app.get('/user/:username/api/config', (req, res) => {
+    try {
+        const userData = userManager.loadUserData(req.username);
+        res.json({ 
+            success: true, 
+            config: userData.config 
+        });
+    } catch (error) {
+        console.error(`Error getting config for ${req.username}:`, error);
         res.status(500).json({ 
             success: false, 
             message: error.message 
