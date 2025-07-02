@@ -4,11 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donate to {{ streamTitle }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- เพิ่ม Toastify สำหรับ notifications -->
+    <title>Support {{ streamTitle }} | Donation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,210 +31,341 @@
         }
 
         body {
-            font-family: 'Kanit', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: gradientShift 20s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(102, 126, 234, 0.4);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        .particle:nth-child(2n) {
+            background: rgba(16, 185, 129, 0.3);
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(3n) {
+            background: rgba(245, 158, 11, 0.3);
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 2rem;
+            position: relative;
         }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
+        .donation-card {
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px;
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            padding: 3rem;
             width: 100%;
             max-width: 600px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
         }
 
+        .donation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--primary-gradient);
+            opacity: 0.6;
+        }
+
+        /* Header Section */
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 3rem;
+            position: relative;
         }
 
-        .header .icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
+        .creator-avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--primary-gradient);
+            border-radius: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin: 0 auto 1.5rem;
+            font-size: 3rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+
+        .creator-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 2rem;
+            padding: 2px;
+            background: var(--primary-gradient);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0.5;
         }
 
         .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
         }
 
-        .header .streamer-name {
-            font-size: 20px;
-            color: #667eea;
-            font-weight: 600;
-            margin-bottom: 8px;
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
         }
 
+        /* Connection Status */
         .connection-status {
-            text-align: center;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.9rem;
             transition: all 0.3s ease;
         }
 
         .connection-status.connected {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: #065f46;
-            border: 1px solid #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
         }
 
         .connection-status.disconnected {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: #dc2626;
-            border: 1px solid #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
         }
 
-        /* Tab Navigation */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Tabs */
         .payment-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: #f3f4f6;
-            border-radius: 15px;
-            padding: 5px;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            border: 1px solid var(--glass-border);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px 20px;
+            padding: 1rem 1.5rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 0.75rem;
             font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: transparent;
-            color: #6b7280;
-            font-family: 'Kanit', sans-serif;
+            color: var(--text-muted);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .tab-btn:hover::before {
+            left: 100%;
         }
 
         .tab-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
         }
 
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        /* Tab Content */
         .tab-content {
             display: none;
         }
 
         .tab-content.active {
             display: block;
+            animation: fadeInUp 0.5s ease;
         }
 
-        .form-container {
-            background: #fafafa;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid #f0f0f0;
-        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #374151;
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        input[type="text"],
-        input[type="file"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: 'Kanit', sans-serif;
-            font-weight: 400;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: white;
-            color: #1f2937;
-        }
-
-        input[type="text"]:focus,
-        input[type="file"]:focus,
-        input[type="number"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
-        }
-
-        input[type="text"]::placeholder,
-        input[type="number"]::placeholder,
-        textarea::placeholder {
-            color: #9ca3af;
-            font-weight: 400;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.6;
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Bank Info Display */
         .bank-info {
-            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
-            border: 1px solid #81d4fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bank-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--success-gradient);
         }
 
         .bank-info h3 {
-            color: #0277bd;
-            margin-bottom: 15px;
-            font-size: 18px;
+            color: #10b981;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .bank-details {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #b3e5fc;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .bank-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
             align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem 0;
         }
 
         .bank-row:last-child {
@@ -228,115 +374,228 @@
 
         .bank-label {
             font-weight: 600;
-            color: #0277bd;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
         .bank-value {
-            font-family: monospace;
-            background: #f5f5f5;
-            padding: 4px 8px;
-            border-radius: 5px;
-            color: #333;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .copy-btn {
-            background: #0277bd;
+            background: var(--success-gradient);
             color: white;
             border: none;
-            padding: 4px 8px;
-            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
             cursor: pointer;
-            font-size: 12px;
-            margin-left: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.75rem;
+            transition: all 0.2s ease;
         }
 
         .copy-btn:hover {
-            background: #01579b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        /* File Upload Styling */
+        /* Form Styles */
+        .form-container {
+            background: var(--bg-card);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* File Upload */
         .file-upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 12px;
-            padding: 30px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
             text-align: center;
-            background: #f8f9ff;
+            background: rgba(102, 126, 234, 0.02);
             transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .file-upload-area:hover::before {
+            left: 100%;
         }
 
         .file-upload-area:hover {
-            border-color: #5a67d8;
-            background: #f0f4ff;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateY(-2px);
         }
 
         .file-upload-area.dragover {
-            border-color: #4c51bf;
-            background: #e6fffa;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
         }
 
         .upload-icon {
-            font-size: 48px;
+            font-size: 3rem;
             color: #667eea;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
+            display: block;
         }
 
         .upload-text {
-            color: #667eea;
+            color: var(--text-primary);
             font-weight: 600;
-            margin-bottom: 5px;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
         }
 
         .upload-subtext {
-            color: #9ca3af;
-            font-size: 14px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 400;
         }
 
         .file-preview {
-            margin-top: 15px;
-            text-align: left;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
+            margin-top: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .file-preview img {
             max-width: 100%;
             max-height: 200px;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            object-fit: cover;
         }
 
         .file-info {
-            color: #6b7280;
-            font-size: 14px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
+        /* Submit Button */
         .submit-btn {
             width: 100%;
-            padding: 18px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.25rem 2rem;
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            border-radius: 16px;
-            font-size: 18px;
+            border-radius: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            font-family: 'Kanit', sans-serif;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            letter-spacing: -0.3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .submit-btn:hover:not(:disabled)::before {
+            left: 100%;
         }
 
         .submit-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
         .submit-btn:disabled {
@@ -352,7 +611,7 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
@@ -361,161 +620,194 @@
             }
         }
 
-        .char-count {
-            text-align: right;
-            font-size: 13px;
-            color: #9ca3af;
-            margin-top: 6px;
-            font-weight: 500;
-        }
-
-        /* Toastify custom styling */
-        .toastify {
-            font-family: 'Kanit', sans-serif !important;
-            font-weight: 600 !important;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
             }
 
-            .container {
-                padding: 25px;
-                max-width: 100%;
+            .donation-card {
+                padding: 2rem;
+                border-radius: 1.5rem;
+            }
+
+            .creator-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+                border-radius: 1.5rem;
             }
 
             .header h1 {
-                font-size: 24px;
-            }
-
-            .header .icon {
-                width: 70px;
-                height: 70px;
-                font-size: 35px;
+                font-size: 1.75rem;
             }
 
             .payment-tabs {
                 flex-direction: column;
             }
 
-            .tab-btn {
-                text-align: center;
+            .bank-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
             }
+
+            .file-upload-area {
+                padding: 2rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .donation-card {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-container {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Toast Styles */
+        .toastify {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 600 !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
         }
     </style>
 </head>
 
 <body>
+    <!-- Floating Particles -->
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <div class="icon">💰</div>
-            <h1>โดเนทสตรีม</h1>
-            <div class="streamer-name">{{ username }}</div>
-            <p>{{ streamTitle }}</p>
-        </div>
-
-        <div class="connection-status" id="connectionStatus">กำลังเชื่อมต่อ...</div>
-
-        <!-- Payment Method Tabs -->
-        <div class="payment-tabs">
-            <button class="tab-btn active" onclick="switchTab('truewallet')">🎯 TrueWallet</button>
-            <button class="tab-btn" onclick="switchTab('bank')">🏦 โอนธนาคาร</button>
-        </div>
-
-        <!-- TrueWallet Tab -->
-        <div id="truewallet-tab" class="tab-content active">
-            <div class="form-container">
-                <form id="truewalletForm">
-                    <div class="form-group">
-                        <label for="donorName1">ชื่อของคุณ</label>
-                        <input type="text" id="donorName1" name="donorName" placeholder="ใส่ชื่อหรือ Nickname" required
-                            maxlength="30">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="donationMessage1">ข้อความ (ไม่บังคับ)</label>
-                        <textarea id="donationMessage1" name="donationMessage"
-                            placeholder="ฝากข้อความถึง {{ username }}..." maxlength="200"></textarea>
-                        <div class="char-count">เหลือ <span id="charCount1">200</span> ตัวอักษร</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="voucherLink">ลิงก์ซองอั่งเปา TrueWallet</label>
-                        <input type="text" id="voucherLink" placeholder="https://gift.truemoney.com/campaign/?v=..."
-                            required>
-                    </div>
-
-                    <button type="submit" class="submit-btn" id="truewalletSubmitBtn">
-                        <div class="loading-spinner" id="truewalletSpinner"></div>
-                        <span id="truewalletBtnText">ส่งการโดเนท</span>
-                    </button>
-                </form>
+        <div class="donation-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="creator-avatar">💎</div>
+                <h1>Support {{ username }}</h1>
+                <p class="subtitle">{{ streamTitle }}</p>
             </div>
-        </div>
 
-        <!-- Bank Transfer Tab -->
-        <div id="bank-tab" class="tab-content">
-            <!-- Bank Info Display -->
-            <div class="bank-info" id="bankInfo" style="display: none;">
-                <h3>📋 ข้อมูลการโอนเงิน</h3>
-                <div class="bank-details">
-                    <div class="bank-row">
-                        <span class="bank-label">ธนาคาร:</span>
-                        <span class="bank-value" id="bankName">-</span>
-                    </div>
-                    <div class="bank-row">
-                        <span class="bank-label">เลขบัญชี:</span>
-                        <span class="bank-value" id="bankAccount">-</span>
-                        <button class="copy-btn" onclick="copyBankAccount()">📋</button>
-                    </div>
-                    <div class="bank-row">
-                        <span class="bank-label">ชื่อบัญชี:</span>
-                        <span class="bank-value" id="bankAccountName">-</span>
-                    </div>
+            <!-- Connection Status -->
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator"></div>
+                <span>กำลังเชื่อมต่อ...</span>
+            </div>
+
+            <!-- Payment Tabs -->
+            <div class="payment-tabs">
+                <button class="tab-btn active" onclick="switchTab('truewallet')">
+                    TrueWallet
+                </button>
+                <button class="tab-btn" onclick="switchTab('bank')">
+                    โอนธนาคาร
+                </button>
+            </div>
+
+            <!-- TrueWallet Tab -->
+            <div id="truewallet-tab" class="tab-content active">
+                <div class="form-container">
+                    <form id="truewalletForm">
+                        <div class="form-group">
+                            <label class="form-label" for="donorName1">ชื่อของคุณ</label>
+                            <input type="text" class="form-input" id="donorName1" name="donorName"
+                                placeholder="ใส่ชื่อหรือ Nickname" required maxlength="30">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="donationMessage1">ข้อความ (ไม่บังคับ)</label>
+                            <textarea class="form-textarea" id="donationMessage1" name="donationMessage"
+                                placeholder="ฝากข้อความถึง {{ username }}..." maxlength="200"></textarea>
+                            <div class="char-count">เหลือ <span id="charCount1">200</span> ตัวอักษร</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="voucherLink">ลิงก์ซองอั่งเปา TrueWallet</label>
+                            <input type="text" class="form-input" id="voucherLink"
+                                placeholder="https://gift.truemoney.com/campaign/?v=..." required>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="truewalletSubmitBtn">
+                            <div class="loading-spinner" id="truewalletSpinner"></div>
+                            <span id="truewalletBtnText">โดเนท</span>
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <div class="form-container">
-                <form id="bankTransferForm">
-                    <div class="form-group">
-                        <label for="donorName2">ชื่อของคุณ</label>
-                        <input type="text" id="donorName2" name="donorName" placeholder="ใส่ชื่อหรือ Nickname" required
-                            maxlength="30">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="donationAmount">จำนวนเงิน (บาท)</label>
-                        <input type="number" id="donationAmount" name="donationAmount" placeholder="ใส่จำนวนเงินที่โอน"
-                            required min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="donationMessage2">ข้อความ (ไม่บังคับ)</label>
-                        <textarea id="donationMessage2" name="donationMessage"
-                            placeholder="ฝากข้อความถึง {{ username }}..." maxlength="200"></textarea>
-                        <div class="char-count">เหลือ <span id="charCount2">200</span> ตัวอักษร</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="slipImage">อัพโหลดสลิปการโอนเงิน</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <div class="upload-icon">📷</div>
-                            <div class="upload-text">คลิกเพื่ือเลือกไฟล์ หรือลากไฟล์มาวาง</div>
-                            <div class="upload-subtext">รองรับไฟล์ PNG, JPG, JPEG (ขนาดไม่เกิน 5MB)</div>
-                            <input type="file" id="slipImage" accept="image/*" style="display: none;" required>
+            <!-- Bank Transfer Tab -->
+            <div id="bank-tab" class="tab-content">
+                <!-- Bank Info Display -->
+                <div class="bank-info" id="bankInfo" style="display: none;">
+                    <h3>📋 ข้อมูลการโอนเงิน</h3>
+                    <div class="bank-details">
+                        <div class="bank-row">
+                            <span class="bank-label">ธนาคาร:</span>
+                            <span class="bank-value" id="bankName">-</span>
                         </div>
-                        <div class="file-preview" id="filePreview" style="display: none;">
-                            <img id="previewImage" alt="Preview">
-                            <div class="file-info" id="fileInfo"></div>
+                        <div class="bank-row">
+                            <span class="bank-label">เลขบัญชี:</span>
+                            <span class="bank-value" id="bankAccount">-</span>
+                            <button class="copy-btn" onclick="copyBankAccount()">📋 คัดลอก</button>
+                        </div>
+                        <div class="bank-row">
+                            <span class="bank-label">ชื่อบัญชี:</span>
+                            <span class="bank-value" id="bankAccountName">-</span>
                         </div>
                     </div>
+                </div>
 
-                    <button type="submit" class="submit-btn" id="bankSubmitBtn">
-                        <div class="loading-spinner" id="bankSpinner"></div>
-                        <span id="bankBtnText">ตรวจสอบและส่งการโดเนท</span>
-                    </button>
-                </form>
+                <div class="form-container">
+                    <form id="bankTransferForm">
+                        <div class="form-group">
+                            <label class="form-label" for="donorName2">ชื่อของคุณ</label>
+                            <input type="text" class="form-input" id="donorName2" name="donorName"
+                                placeholder="ใส่ชื่อหรือ Nickname" required maxlength="30">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="donationMessage2">ข้อความ (ไม่บังคับ)</label>
+                            <textarea class="form-textarea" id="donationMessage2" name="donationMessage"
+                                placeholder="ฝากข้อความถึง {{ username }}..." maxlength="200"></textarea>
+                            <div class="char-count">เหลือ <span id="charCount2">200</span> ตัวอักษร</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="slipImage">อัพโหลดสลิปการโอนเงิน</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <div class="upload-icon">📷</div>
+                                <div class="upload-text">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง</div>
+                                <div class="upload-subtext">รองรับไฟล์ PNG, JPG, JPEG (ขนาดไม่เกิน 5MB)</div>
+                                <input type="file" id="slipImage" accept="image/*" style="display: none;" required>
+                            </div>
+                            <div class="file-preview" id="filePreview" style="display: none;">
+                                <img id="previewImage" alt="Preview">
+                                <div class="file-info" id="fileInfo"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="bankSubmitBtn">
+                            <div class="loading-spinner" id="bankSpinner"></div>
+                            <span id="bankBtnText">โดเนท</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -526,13 +818,26 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <script>
-        class DonateWidget {
+        class ModernDonateWidget {
             constructor() {
                 this.username = '{{ username }}';
                 this.selectedFile = null;
                 this.setupSocket();
                 this.setupEventListeners();
                 this.loadBankInfo();
+                this.createParticles();
+            }
+
+            createParticles() {
+                const particles = document.querySelector('.particles');
+                for (let i = 0; i < 15; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 15 + 's';
+                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    particles.appendChild(particle);
+                }
             }
 
             setupSocket() {
@@ -575,7 +880,7 @@
                 input.addEventListener('input', () => {
                     const remaining = 200 - input.value.length;
                     counter.textContent = remaining;
-                    counter.style.color = remaining < 20 ? '#dc2626' : '#9ca3af';
+                    counter.style.color = remaining < 20 ? '#ef4444' : 'var(--text-muted)';
                 });
             }
 
@@ -666,11 +971,11 @@
             updateConnectionStatus(status) {
                 const statusElement = document.getElementById('connectionStatus');
                 const statusText = {
-                    connected: '🟢 เชื่อมต่อสำเร็จ - พร้อมรับการโดเนท',
+                    connected: '🟢 เชื่อมต่อสำเร็จ - พร้อมรับการสนับสนุน',
                     disconnected: '🔴 ขาดการเชื่อมต่อ - ไม่สามารถส่งได้ขณะนี้'
                 };
 
-                statusElement.textContent = statusText[status] || status;
+                statusElement.querySelector('span').textContent = statusText[status] || status;
                 statusElement.className = `connection-status ${status}`;
             }
 
@@ -710,8 +1015,9 @@
                     const apiResponse = await response.json();
 
                     if (apiResponse.status === 'SUCCESS') {
-                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการโดเนท ฿${apiResponse.amount.toLocaleString()}!`, 'success');
+                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ฿${apiResponse.amount.toLocaleString()}!`, 'success');
                         this.resetForm('truewallet');
+                        this.celebrateSuccess();
                     } else {
                         this.showToast(apiResponse.reason || 'ไม่สามารถตรวจสอบซองอั่งเปาได้', 'error');
                     }
@@ -726,11 +1032,10 @@
             async submitBankTransfer() {
                 const formData = new FormData(document.getElementById('bankTransferForm'));
                 const name = formData.get('donorName').trim();
-                const amount = parseFloat(formData.get('donationAmount'));
                 const message = formData.get('donationMessage').trim();
 
-                if (!name || !amount || !this.selectedFile) {
-                    this.showToast('กรุณากรอกข้อมูลและอัพโหลดสลิปให้ครบถ้วน', 'error');
+                if (!name || !this.selectedFile) {
+                    this.showToast('กรุณากรอกชื่อและอัพโหลดสลิปให้ครบถ้วน', 'error');
                     return;
                 }
 
@@ -744,7 +1049,7 @@
                         throw new Error('ไม่พบ QR Code ในสลิป กรุณาตรวจสอบรูปภาพ');
                     }
 
-                    // ส่งไปตรวจสอบกับ API
+                    // ส่งไปตรวจสอบกับ API (ไม่ส่ง expected_amount)
                     const verifyResponse = await fetch(`/user/${this.username}/api/verify-slip`, {
                         method: 'POST',
                         headers: {
@@ -752,7 +1057,6 @@
                         },
                         body: JSON.stringify({
                             payload: qrPayload,
-                            expected_amount: amount,
                             donor_name: name,
                             donor_message: message
                         })
@@ -766,8 +1070,10 @@
                     const verifyResult = await verifyResponse.json();
 
                     if (verifyResult.success) {
-                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการโดเนท ฿${amount.toLocaleString()}!`, 'success');
+                        const amount = verifyResult.verified_amount || verifyResult.donation?.amount || 0;
+                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ฿${amount.toLocaleString()}!`, 'success');
                         this.resetForm('bank');
+                        this.celebrateSuccess();
                     } else {
                         this.showToast(verifyResult.reason || 'การตรวจสอบสลิปไม่ผ่าน', 'error');
                     }
@@ -813,7 +1119,7 @@
 
                 btn.disabled = true;
                 spinner.style.display = 'inline-block';
-                text.textContent = type === 'truewallet' ? 'กำลังประมวลผล...' : 'กำลังตรวจสอบสลิป...';
+                text.textContent = type === 'truewallet' ? '🔄 กำลังประมวลผล...' : '🔍 กำลังตรวจสอบสลิป...';
             }
 
             hideLoading(type) {
@@ -823,7 +1129,7 @@
 
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                text.textContent = type === 'truewallet' ? 'ส่งการโดเนท' : 'ตรวจสอบและส่งการโดเนท';
+                text.textContent = type === 'truewallet' ? '✨ ส่งการสนับสนุน' : '🔍 ตรวจสอบและส่งการสนับสนุน';
             }
 
             resetForm(type) {
@@ -838,11 +1144,38 @@
                 }
             }
 
+            celebrateSuccess() {
+                // Create floating hearts effect
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        this.createFloatingHeart();
+                    }, i * 100);
+                }
+            }
+
+            createFloatingHeart() {
+                const heart = document.createElement('div');
+                heart.innerHTML = '💖';
+                heart.style.position = 'fixed';
+                heart.style.left = Math.random() * window.innerWidth + 'px';
+                heart.style.bottom = '0px';
+                heart.style.fontSize = '2rem';
+                heart.style.zIndex = '9999';
+                heart.style.pointerEvents = 'none';
+                heart.style.animation = 'floatUp 3s ease-out forwards';
+
+                document.body.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.remove();
+                }, 3000);
+            }
+
             showToast(message, type) {
                 const backgroundColor = {
-                    success: '#28a745',
-                    error: '#dc3545',
-                    warning: '#ffc107'
+                    success: 'linear-gradient(135deg, #10b981, #059669)',
+                    error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    warning: 'linear-gradient(135deg, #f59e0b, #d97706)'
                 };
 
                 Toastify({
@@ -851,9 +1184,15 @@
                     close: false,
                     gravity: "top",
                     position: "center",
-                    backgroundColor: backgroundColor[type] || '#6c757d',
+                    backgroundColor: backgroundColor[type] || '#6b7280',
                     stopOnFocus: true,
-                    className: 'toastify'
+                    className: 'toastify',
+                    style: {
+                        borderRadius: '1rem',
+                        padding: '1rem 1.5rem',
+                        fontSize: '1rem',
+                        fontWeight: '600'
+                    }
                 }).showToast();
             }
         }
@@ -885,7 +1224,7 @@
                         close: false,
                         gravity: "top",
                         position: "center",
-                        backgroundColor: "#28a745",
+                        backgroundColor: "linear-gradient(135deg, #10b981, #059669)",
                         stopOnFocus: true,
                         className: 'toastify'
                     }).showToast();
@@ -907,7 +1246,7 @@
                         close: false,
                         gravity: "top",
                         position: "center",
-                        backgroundColor: "#28a745",
+                        backgroundColor: "linear-gradient(135deg, #10b981, #059669)",
                         stopOnFocus: true,
                         className: 'toastify'
                     }).showToast();
@@ -919,9 +1258,29 @@
             }
         }
 
+        // Add floating animation for hearts
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes floatUp {
+                0% {
+                    opacity: 0;
+                    transform: translateY(0) scale(0);
+                }
+                20% {
+                    opacity: 1;
+                    transform: translateY(-50px) scale(1);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateY(-200px) scale(0.5) rotate(180deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Initialize widget when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new DonateWidget();
+            new ModernDonateWidget();
         });
     </script>
 </body>

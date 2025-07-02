@@ -666,6 +666,7 @@ app.post('/user/:username/api/redeem-voucher', async (req, res) => {
 });
 
 // 🏦 API ตรวจสอบสลิปธนาคาร - Enhanced Version
+// 🏦 API ตรวจสอบสลิปธนาคาร - Enhanced Version (Auto Amount Detection)
 app.post('/user/:username/api/verify-slip', async (req, res) => {
     try {
         const { payload, expected_amount, donor_name, donor_message } = req.body;
@@ -690,7 +691,7 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
             });
         }
 
-        if (!payload || !expected_amount || !donor_name) {
+        if (!payload || !donor_name) {
             return res.status(400).json({
                 success: false,
                 reason: 'ข้อมูลไม่ครบถ้วน'
@@ -733,6 +734,15 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
             });
         }
 
+        // ดึงจำนวนเงินจากสลิป
+        const actualAmount = slipData.data?.amount;
+        if (!actualAmount || actualAmount <= 0) {
+            return res.json({
+                success: false,
+                reason: 'ไม่สามารถอ่านจำนวนเงินจากสลิปได้'
+            });
+        }
+
         // ตรวจสอบ transaction ซ้ำก่อน (ใช้ transRef และ discriminator)
         const transactionRef = slipData.data?.transRef;
         const discriminator = slipData.discriminator;
@@ -771,9 +781,8 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
 
         console.log(`✅ [${req.username}] Enhanced account validation passed!`);
 
-        // ตรวจสอบจำนวนเงิน
-        const actualAmount = slipData.data?.amount;
-        if (actualAmount !== expected_amount) {
+        // ตรวจสอบจำนวนเงินกับ expected_amount (ถ้ามี)
+        if (expected_amount && actualAmount !== expected_amount) {
             console.log(`❌ [${req.username}] Amount mismatch: expected ${expected_amount}, got ${actualAmount}`);
             return res.json({
                 success: false,
@@ -781,7 +790,7 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
             });
         }
 
-        console.log(`✅ [${req.username}] Bank slip verified successfully with enhanced validation`);
+        console.log(`✅ [${req.username}] Bank slip verified successfully with auto amount detection: ฿${actualAmount}`);
 
         // บันทึกการโดเนท
         const donationData = {
@@ -816,12 +825,13 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
             timestamp: donation.timestamp
         });
 
-        console.log(`🎉 [${req.username}] Enhanced bank donation alert sent:`, donation);
+        console.log(`🎉 [${req.username}] Auto-amount bank donation alert sent:`, donation);
 
         res.json({
             success: true,
             donation: donation,
             verified_amount: actualAmount,
+            auto_detected: true, // ระบุว่าเป็นการตรวจหาจำนวนเงินอัตโนมัติ
             transaction_info: {
                 transRef: transactionRef,
                 transDate: slipData.data?.transDate,
@@ -831,7 +841,7 @@ app.post('/user/:username/api/verify-slip', async (req, res) => {
         });
 
     } catch (error) {
-        console.error(`❌ [${req.username}] Error in enhanced bank slip verification:`, error);
+        console.error(`❌ [${req.username}] Error in auto-amount bank slip verification:`, error);
         res.status(500).json({
             success: false,
             reason: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'

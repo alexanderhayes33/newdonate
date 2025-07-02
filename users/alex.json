@@ -1,13 +1,13 @@
 {
   "username": "alex",
   "createdAt": 1751400514828,
-  "lastActiveAt": 1751440032158,
+  "lastActiveAt": 1751440726037,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": true,
     "bankName": "ธนาคารกสิกรไทย",
-    "bankAccount": "0538749281",
-    "bankAccountName": "นาย เกียรติศักดิ์ ชนะพล",
+    "bankAccount": "1758362740",
+    "bankAccountName": "นายธีรพงษ์ ก้อนแก้ว",
     "streamTitle": "alex's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
@@ -32,6 +32,54 @@
     "useCustomGif": true
   },
   "donations": [
+    {
+      "id": 1751440311615,
+      "timestamp": 1751440311553,
+      "bangkokTime": "02/07/2568 14:11:51",
+      "name": "alex",
+      "amount": 200,
+      "message": "",
+      "paymentMethod": "bank_transfer",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "ธนาคารกรุงไทย",
+      "bankAccount": "1520567383",
+      "transactionRef": "518314268688I000006B9790",
+      "discriminator": "030.518314268688I000006B9790",
+      "slipData": {
+        "sender": {
+          "displayName": "นางสาว ธัญจิรา ส",
+          "name": null,
+          "proxy": {
+            "type": null,
+            "value": null
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "0204xxxx8158"
+          }
+        },
+        "receiver": {
+          "displayName": "นายภาณุ ภ",
+          "name": "MR.PHANU P",
+          "proxy": {
+            "type": null,
+            "value": null
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "15xxxx7383"
+          }
+        },
+        "transDate": "20250702",
+        "transTime": "14:09:16",
+        "sendingBank": "030",
+        "receivingBank": "006"
+      },
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
     {
       "id": 1751440032719,
       "timestamp": 1751440032155,
@@ -166,21 +214,21 @@
     }
   ],
   "stats": {
-    "totalDonations": 7,
-    "totalAmount": 11002900,
-    "averageAmount": 1571843,
+    "totalDonations": 8,
+    "totalAmount": 11003100,
+    "averageAmount": 1375388,
     "highestDonation": 10000000,
     "uniqueDonors": 2,
-    "thisMonthAmount": 11002900,
-    "lastDonationAt": 1751440032155,
+    "thisMonthAmount": 11003100,
+    "lastDonationAt": 1751440311553,
     "paymentMethods": {
       "truewallet": {
         "count": 0,
         "amount": 0
       },
       "bank_transfer": {
-        "count": 1,
-        "amount": 2500
+        "count": 2,
+        "amount": 2700
       },
       "manual": {
         "count": 6,
