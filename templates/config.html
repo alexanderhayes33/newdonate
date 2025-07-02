@@ -375,6 +375,40 @@
             border: 1px solid #ef4444;
         }
 
+        /* Bank Settings Specific Styles */
+        .bank-settings-group {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 1px solid #81d4fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .test-connection-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: #0277bd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .test-connection-btn:hover {
+            background: #01579b;
+            transform: translateY(-1px);
+        }
+
+        .test-connection-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 25px;
@@ -465,6 +499,66 @@
                             </div>
                         </div>
                     </form>
+                </div>
+
+                <!-- Bank Settings Section -->
+                <div class="form-section">
+                    <h3>การตั้งค่าธนาคาร</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="enableBankTransfer">🔄 เปิดใช้งานโอนธนาคาร</label>
+                            <select id="enableBankTransfer" onchange="toggleBankSettings()">
+                                <option value="false">ปิดใช้งาน</option>
+                                <option value="true">เปิดใช้งาน</option>
+                            </select>
+                            <div class="description">เปิดให้ผู้ชมสามารถโดเนทผ่านการโอนธนาคารได้</div>
+                        </div>
+                    </div>
+
+                    <div class="bank-settings-group" id="bankSettingsGroup" style="display: none;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="bankName">🏦 ธนาคาร</label>
+                                <select id="bankName">
+                                    <option value="">เลือกธนาคาร</option>
+                                    <option value="ธนาคารกรุงเทพ">ธนาคารกรุงเทพ (BBL)</option>
+                                    <option value="ธนาคารกสิกรไทย">ธนาคารกสิกรไทย (KBANK)</option>
+                                    <option value="ธนาคารไทยพาณิชย์">ธนาคารไทยพาณิชย์ (SCB)</option>
+                                    <option value="ธนาคารกรุงไทย">ธนาคารกรุงไทย (KTB)</option>
+                                    <option value="ธนาคารทหารไทย">ธนาคารทหารไทย (TMB)</option>
+                                    <option value="ธนาคารกรุงศรีอยุธยา">ธนาคารกรุงศรีอยุธยา (BAY)</option>
+                                    <option value="ธนาคารเกียรตินาคิน">ธนาคารเกียรตินาคิน (KKP)</option>
+                                    <option value="ธนาคารซีไอเอ็มบี ไทย">ธนาคารซีไอเอ็มบี ไทย (CIMB)</option>
+                                    <option value="ธนาคารยูโอบี">ธนาคารยูโอบี (UOB)</option>
+                                    <option value="ธนาคารแลนด์ แอนด์ เฮาส์">ธนาคารแลนด์ แอนด์ เฮาส์ (LH Bank)</option>
+                                    <option value="ธนาคารออมสิน">ธนาคารออมสิน (GSB)</option>
+                                    <option value="ธนาคารอาคารสงเคราะห์">ธนาคารอาคารสงเคราะห์ (GHB)</option>
+                                    <option value="ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร">
+                                        ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร (BAAC)</option>
+                                    <option value="ธนาคารอิสลามแห่งประเทศไทย">ธนาคารอิสลามแห่งประเทศไทย (IBANK)</option>
+                                    <option value="ธนาคารไอซีบีซี">ธนาคารไอซีบีซี (ICBC)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bankAccount">💳 เลขบัญชี</label>
+                                <input type="text" id="bankAccount" placeholder="xxx-x-xxxxx-x" maxlength="20">
+                                <div class="description">เลขบัญชีที่จะให้ผู้ชมโอนเงินเข้า (ใช้สำหรับตรวจสอบสลิป)</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bankAccountName">👤 ชื่อบัญชี</label>
+                                <input type="text" id="bankAccountName" placeholder="นาย/นาง ชื่อ นามสกุล"
+                                    maxlength="50">
+                                <div class="description">ชื่อเจ้าของบัญชีที่ตรงกับธนาคาร</div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="test-connection-btn" onclick="testSlipConnection()"
+                            id="testConnectionBtn">
+                            🔍 ทดสอบการเชื่อมต่อระบบตรวจสอบสลิป
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -764,6 +858,14 @@
                 enableSound: true,
                 alertFormat: '{{user}} โดเนท {{amount}}',
                 minTTSAmount: 50,
+
+                // Bank settings
+                enableBankTransfer: false,
+                bankName: '',
+                bankAccount: '',
+                bankAccountName: '',
+
+                // Widget settings
                 showBackground: false,
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 textColor: '#1f2937',
@@ -791,6 +893,12 @@
             document.getElementById('enableTTS').value = config.enableTTS ? 'true' : 'false';
             document.getElementById('enableSound').value = config.enableSound ? 'true' : 'false';
 
+            // Bank settings
+            document.getElementById('enableBankTransfer').value = config.enableBankTransfer ? 'true' : 'false';
+            document.getElementById('bankName').value = config.bankName || '';
+            document.getElementById('bankAccount').value = config.bankAccount || '';
+            document.getElementById('bankAccountName').value = config.bankAccountName || '';
+
             // Widget customization
             document.getElementById('alertFormat').value = config.alertFormat || '{{user}} โดเนท {{amount}}';
             document.getElementById('showBackground').value = config.showBackground === true ? 'true' : 'false';
@@ -816,6 +924,9 @@
             updateRangeValue('amountSize', 'amountSizeValue');
             updateRangeValue('borderRadius', 'borderRadiusValue');
             updateRangeValue('animationSpeed', 'animationSpeedValue');
+
+            // Toggle bank settings visibility
+            toggleBankSettings();
         }
 
         function setupColorPickers() {
@@ -983,6 +1094,40 @@
             `;
         }
 
+        function toggleBankSettings() {
+            const enableBankTransfer = document.getElementById('enableBankTransfer').value === 'true';
+            const bankSettingsGroup = document.getElementById('bankSettingsGroup');
+
+            if (bankSettingsGroup) {
+                bankSettingsGroup.style.display = enableBankTransfer ? 'block' : 'none';
+            }
+        }
+
+        async function testSlipConnection() {
+            const testBtn = document.getElementById('testConnectionBtn');
+            const originalText = testBtn.textContent;
+
+            testBtn.disabled = true;
+            testBtn.textContent = '🔄 กำลังทดสอบ...';
+
+            try {
+                const response = await fetch('/user/{{ username }}/api/test-slip-connection');
+                const result = await response.json();
+
+                if (result.success && result.connected) {
+                    showStatus('✅ เชื่อมต่อระบบตรวจสอบสลิปสำเร็จ!', 'success');
+                } else {
+                    showStatus('❌ ไม่สามารถเชื่อมต่อระบบตรวจสอบสลิปได้', 'error');
+                }
+            } catch (error) {
+                console.error('Error testing slip connection:', error);
+                showStatus('❌ เกิดข้อผิดพลาดในการทดสอบ', 'error');
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = originalText;
+            }
+        }
+
         async function saveConfig() {
             const config = {
                 // Basic settings
@@ -992,6 +1137,12 @@
                 enableTTS: document.getElementById('enableTTS').value === 'true',
                 enableSound: document.getElementById('enableSound').value === 'true',
                 minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
+
+                // Bank settings
+                enableBankTransfer: document.getElementById('enableBankTransfer').value === 'true',
+                bankName: document.getElementById('bankName').value,
+                bankAccount: document.getElementById('bankAccount').value,
+                bankAccountName: document.getElementById('bankAccountName').value,
 
                 // Widget customization
                 alertFormat: document.getElementById('alertFormat').value,
@@ -1086,6 +1237,40 @@
             const isValid = /^[0-9]{10}$/.test(phone);
 
             if (phone.length > 0 && !isValid) {
+                e.target.style.borderColor = '#ef4444';
+                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+            } else {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+            }
+        });
+
+        // Bank account validation
+        document.getElementById('bankAccount').addEventListener('input', function (e) {
+            const account = e.target.value;
+            // ลบตัวอักษรที่ไม่ใช่ตัวเลขและ dash
+            const cleaned = account.replace(/[^0-9-]/g, '');
+            e.target.value = cleaned;
+
+            // ตรวจสอบรูปแบบ
+            const isValid = /^[\d-]{0,20}$/.test(cleaned);
+
+            if (cleaned.length > 0 && !isValid) {
+                e.target.style.borderColor = '#ef4444';
+                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+            } else {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.boxShadow = 'none';
+            }
+        });
+
+        // Bank account name validation
+        document.getElementById('bankAccountName').addEventListener('input', function (e) {
+            const name = e.target.value;
+            // อนุญาตเฉพาะตัวอักษรไทย อังกฤษ และช่องว่าง
+            const isValid = /^[a-zA-Zก-๙\s]*$/.test(name);
+
+            if (name.length > 0 && !isValid) {
                 e.target.style.borderColor = '#ef4444';
                 e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
             } else {

@@ -1,9 +1,13 @@
 {
   "username": "alex",
   "createdAt": 1751400514828,
-  "lastActiveAt": 1751405171156,
+  "lastActiveAt": 1751440032158,
   "config": {
     "truewalletPhone": "",
+    "enableBankTransfer": true,
+    "bankName": "ธนาคารกสิกรไทย",
+    "bankAccount": "0538749281",
+    "bankAccountName": "นาย เกียรติศักดิ์ ชนะพล",
     "streamTitle": "alex's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
@@ -11,13 +15,9 @@
     "alertPosition": "top",
     "customCSS": "",
     "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ alex!",
-    "minTTSAmount": 50,
     "alertFormat": "{{user}} โดเนท {{amount}}",
+    "minTTSAmount": 50,
     "showBackground": false,
-    "showIcon": true,
-    "showSparkles": false,
-    "useCustomGif": true,
-    "customGifUrl": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3ViNzBuMXd1d2wweWdieW1xMWN2OG9udjE1NTR1dmF2dnp3NDhpNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3fQf1OEAq0iri9RC/giphy.gif",
     "backgroundColor": "rgba(255, 255, 255, 0.95)",
     "textColor": "#ffffff",
     "amountColor": "#f59e0b",
@@ -25,9 +25,61 @@
     "fontSize": 42,
     "amountSize": 56,
     "borderRadius": 25,
-    "animationSpeed": 1.2
+    "showIcon": true,
+    "showSparkles": false,
+    "animationSpeed": 1.2,
+    "customGifUrl": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3ViNzBuMXd1d2wweWdieW1xMWN2OG9udjE1NTR1dmF2dnp3NDhpNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3fQf1OEAq0iri9RC/giphy.gif",
+    "useCustomGif": true
   },
   "donations": [
+    {
+      "id": 1751440032719,
+      "timestamp": 1751440032155,
+      "bangkokTime": "02/07/2568 14:07:12",
+      "name": "alex",
+      "amount": 2500,
+      "message": "",
+      "paymentMethod": "bank_transfer",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "ธนาคารกสิกรไทย",
+      "bankAccount": "0538749281",
+      "transactionRef": "A46f5713409554ee8",
+      "discriminator": "006.A46f5713409554ee8",
+      "slipData": {
+        "sender": {
+          "name": "MR.Phanu P",
+          "proxy": {
+            "type": null,
+            "value": null
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "XXX-X-XX738-3"
+          },
+          "displayName": "นายภาณุ ภ"
+        },
+        "receiver": {
+          "name": "MR. Kieattisak C",
+          "proxy": {
+            "type": null,
+            "value": null
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "XXX-X-XX928-1"
+          },
+          "displayName": "นาย เกียรติศักดิ์ ช"
+        },
+        "transDate": "20250702",
+        "transTime": "10:26:25",
+        "sendingBank": "006",
+        "receivingBank": "004"
+      },
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
     {
       "id": 1751405171158,
       "timestamp": 1751405171144,
@@ -114,13 +166,27 @@
     }
   ],
   "stats": {
-    "totalDonations": 6,
-    "totalAmount": 11000400,
-    "averageAmount": 1833400,
+    "totalDonations": 7,
+    "totalAmount": 11002900,
+    "averageAmount": 1571843,
     "highestDonation": 10000000,
-    "uniqueDonors": 1,
-    "thisMonthAmount": 11000400,
-    "lastDonationAt": 1751405171144
+    "uniqueDonors": 2,
+    "thisMonthAmount": 11002900,
+    "lastDonationAt": 1751440032155,
+    "paymentMethods": {
+      "truewallet": {
+        "count": 0,
+        "amount": 0
+      },
+      "bank_transfer": {
+        "count": 1,
+        "amount": 2500
+      },
+      "manual": {
+        "count": 6,
+        "amount": 11000400
+      }
+    }
   },
   "advanced": {
     "webhookUrl": "",
@@ -129,6 +195,11 @@
       "milestone100": true,
       "milestone500": true,
       "milestone1000": true
+    },
+    "slipApiSettings": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutMs": 30000
     }
   }
 }

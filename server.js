@@ -1,4 +1,4 @@
-// server.js - Multi-User Alert System with Separate Files
+// server.js - Multi-User Alert System with Enhanced Bank Transfer Support
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -24,6 +24,10 @@ try {
 const PORT = process.env.PORT || 3000;
 const DOMAIN = process.env.DOMAIN || 'localhost';
 const USE_HTTPS = process.env.USE_HTTPS === 'true';
+
+// Slip verification API credentials
+const SLIP_CLIENT_ID = process.env.SLIP_CLIENT_ID || '28b0ed6dd3c9457ca7a50f976aaa1f79';
+const SLIP_CLIENT_SECRET = process.env.SLIP_CLIENT_SECRET || 'lDRsRCLi52pKIk3QLY5Ov';
 
 // สร้าง Express app
 const app = express();
@@ -64,6 +68,72 @@ function isUserActive(lastActiveAt) {
 }
 
 // ===============================
+// Enhanced Bank Account Validation
+// ===============================
+function validateBankAccountPattern(userAccount, apiAccountValue) {
+    try {
+        if (!userAccount || !apiAccountValue) {
+            console.log('🔍 Validation failed: Missing account data');
+            return false;
+        }
+
+        // Extract เฉพาะตัวเลข
+        const userNumbers = userAccount.replace(/[^0-9]/g, '');
+        const apiNumbers = apiAccountValue.replace(/[^0-9]/g, '');
+        
+        if (!userNumbers || !apiNumbers) {
+            console.log('🔍 Validation failed: No numbers found');
+            return false;
+        }
+
+        // เช็คหลายรูปแบบ
+        const checks = [
+            // 1. เลขบัญชีเต็ม
+            apiNumbers.includes(userNumbers),
+            
+            // 2. เลขบัญชีไม่รวมหลักสุดท้าย (เผื่อ check digit)
+            userNumbers.length > 1 && apiNumbers.includes(userNumbers.slice(0, -1)),
+            
+            // 3. เลขบัญชีส่วนกลาง (ตัดหน้า 2 หลัก หลัง 1 หลัก)
+            userNumbers.length > 4 && apiNumbers.includes(userNumbers.slice(2, -1)),
+            
+            // 4. เลขบัญชี 8 หลักสุดท้าย
+            userNumbers.length >= 6 && apiNumbers.includes(userNumbers.slice(-8)),
+            
+            // 5. เลขบัญชี 6 หลักสุดท้าย
+            userNumbers.length >= 6 && apiNumbers.includes(userNumbers.slice(-6)),
+            
+            // 6. เลขบัญชี 4 หลักสุดท้าย (สำหรับกรณีพิเศษ)
+            userNumbers.length >= 4 && apiNumbers.includes(userNumbers.slice(-4))
+        ];
+        
+        const isValid = checks.some(check => check);
+        
+        console.log('🔍 Enhanced Account validation:', {
+            userAccount: userAccount,
+            userNumbers: userNumbers,
+            apiPattern: apiAccountValue,
+            apiNumbers: apiNumbers,
+            checks: {
+                fullMatch: checks[0],
+                withoutLastDigit: checks[1], 
+                middlePart: checks[2],
+                last8Digits: checks[3],
+                last6Digits: checks[4],
+                last4Digits: checks[5]
+            },
+            result: isValid
+        });
+        
+        return isValid;
+        
+    } catch (error) {
+        console.error('Error in bank account validation:', error);
+        return false;
+    }
+}
+
+// ===============================
 // Express Configuration
 // ===============================
 app.set('trust proxy', true);
@@ -73,13 +143,13 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // เพิ่ม limit สำหรับรูปภาพ
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging middleware
 app.use((req, res, next) => {
     console.log(`📝 ${req.method} ${req.url}`);
-    if (Object.keys(req.body).length > 0) {
+    if (Object.keys(req.body).length > 0 && !req.url.includes('/api/verify-slip')) {
         console.log(`📋 Body:`, req.body);
     }
     next();
@@ -191,6 +261,12 @@ app.get('/', (req, res) => {
                 const statusText = isActive ? 'Online' : 'Offline';
                 const avatarLetter = user.username.charAt(0).toUpperCase();
                 
+                // แสดงข้อมูลวิธีการรับเงิน
+                let paymentMethods = [];
+                if (user.enableTrueWallet) paymentMethods.push('TrueWallet');
+                if (user.enableBankTransfer) paymentMethods.push('โอนธนาคาร');
+                if (paymentMethods.length === 0) paymentMethods.push('Manual');
+                
                 usersList += `
                     <div class="streamer-card">
                         <div class="card-header">
@@ -199,6 +275,7 @@ app.get('/', (req, res) => {
                                 <div class="streamer-details">
                                     <h3>${user.username}</h3>
                                     <div class="stream-title">${user.streamTitle}</div>
+                                    <div class="payment-methods">💳 ${paymentMethods.join(', ')}</div>
                                 </div>
                             </div>
                             <div class="status-badge ${statusClass}">${statusText}</div>
@@ -217,7 +294,7 @@ app.get('/', (req, res) => {
                         
                         <div class="card-actions">
                             <a href="/user/${user.username}/donate" class="action-btn primary">
-                                 Donate Page
+                                💝 Donate Page
                             </a>
                             <a href="/user/${user.username}/widget" class="action-btn" target="_blank">
                                 📺 Widget
@@ -225,13 +302,13 @@ app.get('/', (req, res) => {
                             
                             <div class="more-actions">
                                 <a href="/user/${user.username}/control" class="action-btn" target="_blank">
-                                     Alert Test
+                                    🎮 Alert Test
                                 </a>
                                 <a href="/user/${user.username}/history" class="action-btn" target="_blank">
-                                     History
+                                    📊 History
                                 </a>
                                 <a href="/user/${user.username}/config" class="action-btn">
-                                     Settings
+                                    ⚙️ Settings
                                 </a>
                             </div>
                         </div>
@@ -243,7 +320,6 @@ app.get('/', (req, res) => {
         }
         
         console.log('📋 Users HTML length:', usersList.length);
-        console.log('📋 First 200 chars:', usersList.substring(0, 200));
         
         const html = templateEngine.render('homepage', {
             totalUsers: globalStats.totalUsers,
@@ -389,7 +465,7 @@ app.get('/user/:username/widget', (req, res) => {
             enableSound: config.enableSound ? 'true' : 'false',
             minTTSAmount: config.minTTSAmount || 50,
             alertFormat: (config.alertFormat || '{{user}} โดเนท {{amount}}').replace(/"/g, '\\"'),
-            showBackground: (config.showBackground === true) ? 'true' : 'false', // เปลี่ยนเป็นตรวจสอบแบบชัดเจน
+            showBackground: (config.showBackground === true) ? 'true' : 'false',
             showIcon: (config.showIcon !== false) ? 'true' : 'false',
             showSparkles: (config.showSparkles !== false) ? 'true' : 'false',
             useCustomGif: config.useCustomGif ? 'true' : 'false',
@@ -420,7 +496,6 @@ app.get('/user/:username/widget', (req, res) => {
         `);
     }
 });
-
 
 // ⚙️ Config/Settings
 app.get('/user/:username/config', (req, res) => {
@@ -590,7 +665,315 @@ app.post('/user/:username/api/redeem-voucher', async (req, res) => {
     }
 });
 
-// ⚙️ API อัพเดท config
+// 🏦 API ตรวจสอบสลิปธนาคาร - Enhanced Version
+app.post('/user/:username/api/verify-slip', async (req, res) => {
+    try {
+        const { payload, expected_amount, donor_name, donor_message } = req.body;
+        const userData = req.userData;
+        
+        console.log(`🔍 [${req.username}] Verifying bank slip with enhanced validation...`);
+        
+        // ตรวจสอบว่าเปิดใช้งานโอนธนาคารหรือไม่
+        if (!userData.config.enableBankTransfer) {
+            return res.status(400).json({
+                success: false,
+                reason: 'ระบบโอนธนาคารยังไม่เปิดใช้งาน'
+            });
+        }
+
+        // ตรวจสอบการตั้งค่าธนาคาร
+        const bankValidation = userManager.validateBankSettings(req.username);
+        if (!bankValidation.isValid) {
+            return res.status(400).json({
+                success: false,
+                reason: 'การตั้งค่าธนาคารไม่ถูกต้อง: ' + bankValidation.errors.join(', ')
+            });
+        }
+
+        if (!payload || !expected_amount || !donor_name) {
+            return res.status(400).json({
+                success: false,
+                reason: 'ข้อมูลไม่ครบถ้วน'
+            });
+        }
+
+        console.log(`🔄 [${req.username}] Calling slip verification API...`);
+
+        // เรียก API ตรวจสอบสลิป
+        const verifyResponse = await fetch('https://suba.rdcw.co.th/v1/inquiry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + Buffer.from(`${SLIP_CLIENT_ID}:${SLIP_CLIENT_SECRET}`).toString('base64')
+            },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!verifyResponse.ok) {
+            console.error(`❌ [${req.username}] Slip API error:`, verifyResponse.status);
+            return res.status(500).json({
+                success: false,
+                reason: 'ไม่สามารถเชื่อมต่อกับระบบตรวจสอบสลิปได้'
+            });
+        }
+
+        const slipData = await verifyResponse.json();
+        console.log(`📋 [${req.username}] Slip verification result:`, {
+            valid: slipData.valid,
+            amount: slipData.data?.amount,
+            receiver: slipData.data?.receiver?.account?.value,
+            transRef: slipData.data?.transRef
+        });
+
+        // ตรวจสอบความถูกต้องของสลิป
+        if (!slipData.valid) {
+            return res.json({
+                success: false,
+                reason: 'สลิปการโอนเงินไม่ถูกต้อง'
+            });
+        }
+
+        // ตรวจสอบ transaction ซ้ำก่อน (ใช้ transRef และ discriminator)
+        const transactionRef = slipData.data?.transRef;
+        const discriminator = slipData.discriminator;
+        
+        if (transactionRef && userManager.isDuplicateTransaction(req.username, transactionRef)) {
+            console.log(`❌ [${req.username}] Duplicate transaction ref: ${transactionRef}`);
+            return res.json({
+                success: false,
+                reason: 'สลิปนี้เคยใช้งานแล้ว (Transaction Reference ซ้ำ)'
+            });
+        }
+
+        if (discriminator && userManager.isDuplicateDiscriminator(req.username, discriminator)) {
+            console.log(`❌ [${req.username}] Duplicate discriminator: ${discriminator}`);
+            return res.json({
+                success: false,
+                reason: 'สลิปนี้เคยใช้งานแล้ว (Discriminator ซ้ำ)'
+            });
+        }
+
+        // ตรวจสอบบัญชีผู้รับด้วย Enhanced Pattern Validation
+        const receiverAccount = slipData.data?.receiver?.account?.value;
+        const userBankAccount = userData.config.bankAccount;
+        
+        console.log(`🔍 [${req.username}] Starting enhanced bank account validation...`);
+        console.log(`📋 User Account: ${userBankAccount}`);
+        console.log(`📋 API Account Pattern: ${receiverAccount}`);
+        
+        if (!validateBankAccountPattern(userBankAccount, receiverAccount)) {
+            console.log(`❌ [${req.username}] Enhanced account validation failed`);
+            return res.json({
+                success: false,
+                reason: 'บัญชีผู้รับเงินไม่ถูกต้อง - ไม่ตรงกับการตั้งค่า'
+            });
+        }
+
+        console.log(`✅ [${req.username}] Enhanced account validation passed!`);
+
+        // ตรวจสอบจำนวนเงิน
+        const actualAmount = slipData.data?.amount;
+        if (actualAmount !== expected_amount) {
+            console.log(`❌ [${req.username}] Amount mismatch: expected ${expected_amount}, got ${actualAmount}`);
+            return res.json({
+                success: false,
+                reason: `จำนวนเงินไม่ตรงกัน คาดหวัง ฿${expected_amount} แต่พบ ฿${actualAmount}`
+            });
+        }
+
+        console.log(`✅ [${req.username}] Bank slip verified successfully with enhanced validation`);
+
+        // บันทึกการโดเนท
+        const donationData = {
+            name: donor_name,
+            amount: parseInt(actualAmount),
+            message: donor_message || '',
+            paymentMethod: 'bank_transfer',
+            bankName: userData.config.bankName,
+            bankAccount: userData.config.bankAccount,
+            transactionRef: transactionRef,
+            discriminator: discriminator, // เพิ่มการเก็บ discriminator
+            slipData: {
+                sender: slipData.data?.sender,
+                receiver: slipData.data?.receiver,
+                transDate: slipData.data?.transDate,
+                transTime: slipData.data?.transTime,
+                sendingBank: slipData.data?.sendingBank,
+                receivingBank: slipData.data?.receivingBank
+            },
+            ip: req.ip,
+            userAgent: req.get('User-Agent')
+        };
+
+        const donation = userManager.addDonation(req.username, donationData);
+
+        // ส่ง alert แจ้งเตือน
+        io.to(`user-${req.username}`).emit('new-alert', {
+            id: donation.id,
+            name: donation.name,
+            amount: donation.amount,
+            message: donation.message,
+            timestamp: donation.timestamp
+        });
+
+        console.log(`🎉 [${req.username}] Enhanced bank donation alert sent:`, donation);
+
+        res.json({
+            success: true,
+            donation: donation,
+            verified_amount: actualAmount,
+            transaction_info: {
+                transRef: transactionRef,
+                transDate: slipData.data?.transDate,
+                transTime: slipData.data?.transTime,
+                sendingBank: slipData.data?.sendingBank
+            }
+        });
+
+    } catch (error) {
+        console.error(`❌ [${req.username}] Error in enhanced bank slip verification:`, error);
+        res.status(500).json({
+            success: false,
+            reason: 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'
+        });
+    }
+});
+
+app.get('/user/:username/api/used-slips', (req, res) => {
+    try {
+        const userData = userManager.loadUserData(req.username);
+        const bankDonations = userData.donations.filter(d => d.paymentMethod === 'bank_transfer');
+        
+        const usedSlips = bankDonations.map(donation => ({
+            id: donation.id,
+            transactionRef: donation.transactionRef,
+            discriminator: donation.discriminator,
+            amount: donation.amount,
+            name: donation.name,
+            timestamp: donation.timestamp,
+            bangkokTime: donation.bangkokTime
+        }));
+        
+        res.json({
+            success: true,
+            total: usedSlips.length,
+            data: usedSlips.slice(0, 100) // แสดง 100 รายการล่าสุด
+        });
+        
+    } catch (error) {
+        console.error(`Error getting used slips for ${req.username}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// เพิ่ม API สำหรับ admin ดูสถิติการใช้สลิป
+app.get('/api/admin/slip-usage-stats', (req, res) => {
+    try {
+        const users = userManager.getAllUsers();
+        let totalSlips = 0;
+        let uniqueTransRefs = new Set();
+        let uniqueDiscriminators = new Set();
+        
+        users.forEach(user => {
+            const userData = userManager.loadUserData(user.username);
+            const bankDonations = userData.donations.filter(d => d.paymentMethod === 'bank_transfer');
+            
+            bankDonations.forEach(donation => {
+                totalSlips++;
+                if (donation.transactionRef) {
+                    uniqueTransRefs.add(donation.transactionRef);
+                }
+                if (donation.discriminator) {
+                    uniqueDiscriminators.add(donation.discriminator);
+                }
+            });
+        });
+        
+        res.json({
+            success: true,
+            stats: {
+                totalBankTransfers: totalSlips,
+                uniqueTransactionRefs: uniqueTransRefs.size,
+                uniqueDiscriminators: uniqueDiscriminators.size,
+                duplicateAttempts: {
+                    transRefs: totalSlips - uniqueTransRefs.size,
+                    discriminators: totalSlips - uniqueDiscriminators.size
+                }
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 🔍 API ทดสอบการเชื่อมต่อ slip verification
+app.get('/user/:username/api/test-slip-connection', async (req, res) => {
+    try {
+        const testResponse = await fetch('https://suba.rdcw.co.th/v1/inquiry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + Buffer.from(`${SLIP_CLIENT_ID}:${SLIP_CLIENT_SECRET}`).toString('base64')
+            },
+            body: JSON.stringify({ payload: 'test' })
+        });
+
+        res.json({
+            success: true,
+            status: testResponse.status,
+            connected: testResponse.ok,
+            message: testResponse.ok ? 'เชื่อมต่อ API สำเร็จ' : 'ไม่สามารถเชื่อมต่อ API ได้'
+        });
+
+    } catch (error) {
+        console.error('Slip API connection test failed:', error);
+        res.status(500).json({
+            success: false,
+            message: 'ไม่สามารถทดสอบการเชื่อมต่อได้',
+            error: error.message
+        });
+    }
+});
+
+// 🧪 API ทดสอบ Enhanced Bank Validation
+app.post('/user/:username/api/test-bank-validation', async (req, res) => {
+    try {
+        const { userAccount, apiPattern } = req.body;
+        
+        if (!userAccount || !apiPattern) {
+            return res.status(400).json({
+                success: false,
+                message: 'กรุณาระบุ userAccount และ apiPattern'
+            });
+        }
+        
+        const result = validateBankAccountPattern(userAccount, apiPattern);
+        
+        res.json({
+            success: true,
+            userAccount: userAccount,
+            apiPattern: apiPattern,
+            validationResult: result,
+            message: result ? 'ผ่านการตรวจสอบ' : 'ไม่ผ่านการตรวจสอบ'
+        });
+        
+    } catch (error) {
+        console.error('Error testing bank validation:', error);
+        res.status(500).json({
+            success: false,
+            message: 'เกิดข้อผิดพลาดในการทดสอบ',
+            error: error.message
+        });
+    }
+});
+
 // ⚙️ API อัพเดท config
 app.post('/user/:username/api/config', (req, res) => {
     try {
@@ -609,7 +992,7 @@ app.post('/user/:username/api/config', (req, res) => {
     }
 });
 
-// ⚙️ API ดึง config (เพิ่มใหม่)
+// ⚙️ API ดึง config
 app.get('/user/:username/api/config', (req, res) => {
     try {
         const userData = userManager.loadUserData(req.username);
@@ -629,26 +1012,22 @@ app.get('/user/:username/api/config', (req, res) => {
 // 📊 API ดู donation logs
 app.get('/user/:username/api/donations', (req, res) => {
     try {
-        const { page = 1, limit = 50, search = '', dateFrom, dateTo } = req.query;
+        const { page = 1, limit = 50, search = '', dateFrom, dateTo, paymentMethod } = req.query;
         
-        let donations = [...req.userData.donations];
-        
-        if (search) {
-            const searchLower = search.toLowerCase();
-            donations = donations.filter(donation => 
-                donation.name.toLowerCase().includes(searchLower) ||
-                (donation.message && donation.message.toLowerCase().includes(searchLower))
-            );
-        }
-        
-        if (dateFrom || dateTo) {
-            donations = donations.filter(donation => {
-                const donationDate = new Date(donation.timestamp);
-                if (dateFrom && donationDate < new Date(dateFrom)) return false;
-                if (dateTo && donationDate > new Date(dateTo + ' 23:59:59')) return false;
-                return true;
-            });
-        }
+        // สร้าง criteria สำหรับการค้นหา
+        const criteria = {
+            search: search,
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            paymentMethod: paymentMethod
+        };
+
+        // ลบ criteria ที่ว่าง
+        Object.keys(criteria).forEach(key => {
+            if (!criteria[key]) delete criteria[key];
+        });
+
+        let donations = userManager.searchDonations(req.username, criteria);
         
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + parseInt(limit);
@@ -695,26 +1074,85 @@ app.get('/user/:username/api/donations', (req, res) => {
     }
 });
 
+// 📊 API สถิติการโดเนทแยกตามประเภท
+app.get('/user/:username/api/donation-stats', (req, res) => {
+    try {
+        const stats = userManager.getDonationStatsByMethod(req.username);
+        res.json({
+            success: true,
+            stats: stats
+        });
+    } catch (error) {
+        console.error(`Error getting donation stats for ${req.username}:`, error);
+        res.status(500).json({
+            success: false,
+            message: 'ไม่สามารถดึงสถิติได้'
+        });
+    }
+});
+
 // 📥 API export donations
 app.get('/user/:username/api/donations/export', (req, res) => {
     try {
-        const donations = req.userData.donations;
-        const filename = `${req.username}_donations_${new Date().toISOString().split('T')[0]}.json`;
+        const { format = 'json' } = req.query;
         
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify({
-            username: req.username,
-            exportDate: new Date().toISOString(),
-            stats: req.userData.stats,
-            donations: donations
-        }, null, 2));
+        if (format === 'csv') {
+            const exportResult = userManager.exportToCSV(req.username, req.query);
+            
+            if (exportResult.success) {
+                res.setHeader('Content-Disposition', `attachment; filename="${exportResult.filename}"`);
+                res.setHeader('Content-Type', 'text/csv');
+                res.send(exportResult.content);
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: exportResult.error
+                });
+            }
+        } else {
+            // Default JSON export
+            const donations = req.userData.donations;
+            const filename = `${req.username}_donations_${new Date().toISOString().split('T')[0]}.json`;
+            
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({
+                username: req.username,
+                exportDate: new Date().toISOString(),
+                stats: req.userData.stats,
+                donations: donations
+            }, null, 2));
+        }
         
     } catch (error) {
         console.error(`Error exporting donations for ${req.username}:`, error);
         res.status(500).json({ 
             success: false, 
             message: error.message 
+        });
+    }
+});
+
+// 📥 API import donations
+app.post('/user/:username/api/donations/import', (req, res) => {
+    try {
+        const { csvContent } = req.body;
+        
+        if (!csvContent) {
+            return res.status(400).json({
+                success: false,
+                message: 'CSV content is required'
+            });
+        }
+        
+        const importResult = userManager.importFromCSV(req.username, csvContent);
+        res.json(importResult);
+        
+    } catch (error) {
+        console.error(`Error importing donations for ${req.username}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
         });
     }
 });
@@ -774,28 +1212,105 @@ app.get('/api/tts', async (req, res) => {
 // 📊 API สถานะ server
 app.get('/api/status', (req, res) => {
     const globalStats = userManager.getGlobalStats();
+    const systemHealth = userManager.getSystemHealth();
     const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     
     res.json({
         success: true,
-        server: 'Multi-User Alert System',
-        version: '2.0.0',
+        server: 'Multi-User Alert System with Enhanced Bank Transfer',
+        version: '2.2.0',
         domain: DOMAIN,
         protocol: protocol,
         uptime: process.uptime(),
         connections: io.engine.clientsCount,
+        features: {
+            truewallet: !!truewallet,
+            bankTransfer: true,
+            slipVerification: true,
+            enhancedBankValidation: true
+        },
         ...globalStats,
+        systemHealth: systemHealth,
         timestamp: new Date().toISOString()
     });
 });
 
+// 🔧 API สำหรับ admin (ถ้าต้องการ)
+app.get('/api/admin/system-health', (req, res) => {
+    try {
+        const health = userManager.getSystemHealth();
+        res.json({
+            success: true,
+            health: health
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 🧹 API สำหรับ cleanup ข้อมูลเก่า
+app.post('/api/admin/cleanup', (req, res) => {
+    try {
+        const { daysOld = 365 } = req.body;
+        const result = userManager.cleanupOldData(daysOld);
+        
+        res.json({
+            success: true,
+            message: `Cleanup completed: ${result.cleanedDonations} donations removed from ${result.cleanedUsers} users`,
+            result: result
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 💾 API สำหรับ backup
+app.post('/api/admin/backup', (req, res) => {
+    try {
+        const backupPath = userManager.backupAllUsers();
+        
+        if (backupPath) {
+            res.json({
+                success: true,
+                message: 'Backup created successfully',
+                backupPath: backupPath
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to create backup'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // 🏥 Health check
 app.get('/health', (req, res) => {
+    const health = userManager.getSystemHealth();
+    
     res.json({
-        status: 'OK',
-        message: 'Multi-User Alert System is running',
+        status: health.status === 'healthy' ? 'OK' : 'ERROR',
+        message: 'Multi-User Alert System with Enhanced Bank Transfer',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
+        features: {
+            truewallet: !!truewallet,
+            bankTransfer: true,
+            slipVerification: true,
+            enhancedBankValidation: true
+        },
+        health: health
     });
 });
 
@@ -832,7 +1347,7 @@ server.listen(PORT, '0.0.0.0', () => {
     const protocol = USE_HTTPS ? 'https' : 'http';
     
     console.log('🎉 =====================================');
-    console.log('🚀 Multi-User Alert System Started!');
+    console.log('🚀 Enhanced Multi-User Alert System Started!');
     console.log('🎉 =====================================');
     console.log(`🌐 Server: ${protocol}://${DOMAIN}:${PORT}`);
     console.log(`🏠 Homepage: ${protocol}://${DOMAIN}:${PORT}/`);
@@ -848,18 +1363,58 @@ server.listen(PORT, '0.0.0.0', () => {
             console.log(`   📺 ${user.username} - ${user.streamTitle}`);
             console.log(`      💝 Donate: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/donate`);
             console.log(`      📺 Widget: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/widget`);
+            
+            // แสดงวิธีการรับเงินที่เปิดใช้งาน
+            const paymentMethods = [];
+            if (user.enableTrueWallet) paymentMethods.push('TrueWallet');
+            if (user.enableBankTransfer) paymentMethods.push('Bank Transfer');
+            if (paymentMethods.length > 0) {
+                console.log(`      💳 Payment Methods: ${paymentMethods.join(', ')}`);
+            }
         });
         console.log('🎉 =====================================');
     }
     
+    // แสดง feature status
+    console.log('🔧 Features Status:');
+    console.log(`   🎯 TrueWallet API: ${truewallet ? '✅ Enabled' : '❌ Disabled'}`);
+    console.log(`   🏦 Bank Transfer: ✅ Enabled`);
+    console.log(`   🔍 Slip Verification: ✅ Enabled`);
+    console.log(`   🚀 Enhanced Bank Validation: ✅ Enabled`);
+    console.log(`   📊 Advanced Analytics: ✅ Enabled`);
+    console.log('🎉 =====================================');
+    
     // แสดง debug information
     console.log('🔍 Debug Information:');
     templateEngine.debugInfo();
+    
+    // แสดงสถิติระบบ
+    const globalStats = userManager.getGlobalStats();
+    console.log('📊 System Statistics:');
+    console.log(`   👥 Total Users: ${globalStats.totalUsers}`);
+    console.log(`   💰 Total Donations: ${globalStats.totalDonations}`);
+    console.log(`   💵 Total Amount: ฿${globalStats.totalAmount.toLocaleString()}`);
+    console.log(`   🟢 Active Users (7 days): ${globalStats.activeUsers}`);
+    
+    // แสดงสถิติการใช้งานตามประเภท
+    if (globalStats.paymentMethodUsage) {
+        console.log('💳 Payment Method Usage:');
+        console.log(`   🎯 TrueWallet Users: ${globalStats.paymentMethodUsage.truewallet}`);
+        console.log(`   🏦 Bank Transfer Users: ${globalStats.paymentMethodUsage.bank_transfer}`);
+        console.log(`   💯 Both Methods: ${globalStats.paymentMethodUsage.both}`);
+    }
+    
+    console.log('🎉 =====================================');
 });
 
 // Graceful Shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
+    
+    // สำรองข้อมูลก่อนปิด
+    console.log('📦 Creating backup before shutdown...');
+    userManager.backupAllUsers();
+    
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
@@ -868,10 +1423,36 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully');
+    
+    // สำรองข้อมูลก่อนปิด
+    console.log('📦 Creating backup before shutdown...');
+    userManager.backupAllUsers();
+    
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
     });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    
+    // สำรองข้อมูลก่อนปิด
+    console.log('📦 Creating emergency backup...');
+    userManager.backupAllUsers();
+    
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    
+    // สำรองข้อมูลก่อนปิด
+    console.log('📦 Creating emergency backup...');
+    userManager.backupAllUsers();
+    
+    process.exit(1);
 });
 
 module.exports = { app, userManager, templateEngine };
