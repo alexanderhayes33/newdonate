@@ -1072,35 +1072,43 @@ app.post('/user/create', async (req, res) => {
                         margin: 20px 0;
                         border: 2px solid rgba(102, 126, 234, 0.3);
                     }
-                    .password-section {
-                        background: rgba(239, 68, 68, 0.1);
-                        border: 2px solid rgba(239, 68, 68, 0.3);
+                    .info-section {
+                        background: rgba(16, 185, 129, 0.1);
+                        border: 2px solid rgba(16, 185, 129, 0.3);
                         border-radius: 15px;
                         padding: 25px;
                         margin: 20px 0;
+                        text-align: left;
                     }
-                    .password {
-                        background: rgba(255, 255, 255, 0.2);
-                        color: #ff6b6b;
-                        padding: 15px 25px;
+                    .info-content {
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 20px;
                         border-radius: 10px;
                         font-family: monospace;
-                        font-size: 1.8em;
-                        font-weight: bold;
-                        margin: 15px 0;
-                        border: 1px solid rgba(255, 255, 255, 0.3);
-                        letter-spacing: 2px;
+                        font-size: 0.85em;
+                        line-height: 1.8;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        white-space: pre-wrap;
                         user-select: all;
+                        word-break: break-all;
+                    }
+                    .copy-btn {
+                        background: linear-gradient(135deg, #f59e0b, #f97316);
+                        color: white;
+                        border: none;
+                        padding: 12px 25px;
+                        border-radius: 10px;
+                        font-weight: 600;
+                        font-size: 1em;
                         cursor: pointer;
+                        transition: all 0.3s ease;
+                        margin: 15px 0;
+                        display: block;
+                        width: 100%;
                     }
-                    .password:hover {
-                        background: rgba(255, 255, 255, 0.3);
-                    }
-                    .warning {
-                        color: #fca5a5;
-                        font-size: 0.9em;
-                        margin-top: 10px;
-                        line-height: 1.5;
+                    .copy-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
                     }
                     .btn {
                         display: inline-block;
@@ -1123,14 +1131,25 @@ app.post('/user/create', async (req, res) => {
                     .btn.secondary:hover {
                         box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
                     }
-                    .info {
-                        background: rgba(59, 130, 246, 0.1);
-                        border: 1px solid rgba(59, 130, 246, 0.3);
+                    .warning {
+                        background: rgba(239, 68, 68, 0.1);
+                        border: 1px solid rgba(239, 68, 68, 0.3);
                         border-radius: 10px;
                         padding: 15px;
                         margin: 20px 0;
                         font-size: 0.9em;
                         line-height: 1.5;
+                        color: #fca5a5;
+                    }
+                    .success-message {
+                        background: rgba(16, 185, 129, 0.2);
+                        border: 1px solid rgba(16, 185, 129, 0.4);
+                        color: #34d399;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        margin: 10px 0;
+                        font-weight: 500;
+                        display: none;
                     }
                 </style>
             </head>
@@ -1140,24 +1159,32 @@ app.post('/user/create', async (req, res) => {
                     
                     <div class="username">@${username}</div>
                     
-                    <div class="password-section">
-                        <h3 style="margin-bottom: 15px;">🔑 รหัสผ่านของคุณ</h3>
-                        <div class="password" onclick="copyPassword()" title="คลิกเพื่อคัดลอก">
-                            ${result.defaultPassword}
-                        </div>
-                        <div class="warning">
-                            ⚠️ <strong>สำคัญมาก!</strong><br>
-                            • กรุณาบันทึกรหัสผ่านนี้ไว้ในที่ปลอดภัย<br>
-                            • รหัสผ่านนี้จะไม่แสดงอีกครั้ง<br>
-                            • ใช้สำหรับเข้า Config และ History เท่านั้น<br>
-                            • คลิกที่รหัสผ่านเพื่อคัดลอก
+                    <div class="info-section">
+                        <h3 style="margin-bottom: 15px; text-align: center;">📋 ข้อมูลสำหรับลูกค้า</h3>
+                        <div class="info-content" id="customerInfo">ใช้รหัสผ่าน : ${result.defaultPassword}
+ในการเข้าตั้งค่า : https://chatmateth.chat/user/${username}/config 
+หน้าconfig 
+https://chatmateth.chat/user/${username}/config
+หน้าประวัติ
+https://chatmateth.chat/user/${username}/history
+หน้าเทส alert 
+https://chatmateth.chat/user/${username}/control
+หน้าโดเนท
+https://chatmateth.chat/user/${username}/donate
+ลองใช้งานได้เลยครับ ติดตรงไหนสอบถามได้เลยครับ หากพบปัญหาหรือมีข้อเสนอตรงไหนแจ้งได้เลยครับ</div>
+                        <button class="copy-btn" onclick="copyCustomerInfo()">
+                            📋 คัดลอกข้อมูลทั้งหมดเพื่อส่งให้ลูกค้า
+                        </button>
+                        <div class="success-message" id="successMessage">
+                            ✅ คัดลอกข้อมูลสำเร็จ! พร้อมส่งให้ลูกค้าแล้ว
                         </div>
                     </div>
                     
-                    <div class="info">
-                        💡 <strong>ข้อมูลเพิ่มเติม:</strong><br>
-                        • Donate Page และ Widget ไม่ต้องใช้รหัสผ่าน<br>
-                        • เฉพาะหน้า Settings และ History เท่านั้นที่ต้องล็อกอิน<br>
+                    <div class="warning">
+                        ⚠️ <strong>สำคัญ!</strong><br>
+                        • คัดลอกข้อมูลข้างบนส่งให้ลูกค้า<br>
+                        • รหัสผ่านใช้สำหรับเข้า Config และ History เท่านั้น<br>
+                        • หน้า Donate ไม่ต้องใช้รหัสผ่าน<br>
                         • สามารถเปลี่ยนรหัสผ่านได้ในหน้า Settings
                     </div>
                     
@@ -1168,35 +1195,44 @@ app.post('/user/create', async (req, res) => {
                 </div>
                 
                 <script>
-                    function copyPassword() {
-                        const password = '${result.defaultPassword}';
+                    function copyCustomerInfo() {
+                        const customerInfo = document.getElementById('customerInfo').textContent;
+                        const successMessage = document.getElementById('successMessage');
+                        
                         if (navigator.clipboard) {
-                            navigator.clipboard.writeText(password).then(() => {
-                                alert('📋 คัดลอกรหัสผ่านสำเร็จ!');
+                            navigator.clipboard.writeText(customerInfo).then(() => {
+                                showSuccessMessage(successMessage);
                             }).catch(err => {
-                                fallbackCopy(password);
+                                fallbackCopy(customerInfo, successMessage);
                             });
                         } else {
-                            fallbackCopy(password);
+                            fallbackCopy(customerInfo, successMessage);
                         }
                     }
                     
-                    function fallbackCopy(text) {
+                    function fallbackCopy(text, successMessage) {
                         const textarea = document.createElement('textarea');
                         textarea.value = text;
                         document.body.appendChild(textarea);
                         textarea.select();
                         try {
                             document.execCommand('copy');
-                            alert('📋 คัดลอกรหัสผ่านสำเร็จ!');
+                            showSuccessMessage(successMessage);
                         } catch (err) {
-                            alert('กรุณาคัดลอกรหัสผ่านด้วยตนเอง: ' + text);
+                            alert('กรุณาคัดลอกข้อมูลด้วยตนเอง:\\n\\n' + text);
                         }
                         document.body.removeChild(textarea);
                     }
                     
-                    // Auto select password when click
-                    document.querySelector('.password').addEventListener('click', function() {
+                    function showSuccessMessage(element) {
+                        element.style.display = 'block';
+                        setTimeout(() => {
+                            element.style.display = 'none';
+                        }, 3000);
+                    }
+                    
+                    // Auto select info when click
+                    document.getElementById('customerInfo').addEventListener('click', function() {
                         if (window.getSelection) {
                             const selection = window.getSelection();
                             const range = document.createRange();
@@ -1209,7 +1245,7 @@ app.post('/user/create', async (req, res) => {
                     // เตือนก่อนออกจากหน้า
                     window.addEventListener('beforeunload', function (e) {
                         e.preventDefault();
-                        e.returnValue = 'คุณได้บันทึกรหัสผ่านแล้วหรือยัง? รหัสผ่านจะไม่แสดงอีกครั้ง';
+                        e.returnValue = 'คุณได้คัดลอกข้อมูลส่งให้ลูกค้าแล้วหรือยัง?';
                     });
                 </script>
             </body>
