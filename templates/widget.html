@@ -403,6 +403,8 @@
                 username: "{{ username }}",
                 alertDuration: parseInt("{{ alertDuration }}") || 5000,
                 enableTTS: "{{ enableTTS }}" === "true",
+                enableTTSName: "{{ enableTTSName }}" === "true",
+                enableTTSMessage: "{{ enableTTSMessage }}" === "true",
                 enableSound: "{{ enableSound }}" === "true",
                 minTTSAmount: parseInt("{{ minTTSAmount }}") || 50,
                 alertFormat: "{{ alertFormat }}".replace(/\\"/g, '"'),
@@ -415,8 +417,10 @@
                 textColor: "{{ textColor }}",
                 amountColor: "{{ amountColor }}",
                 donorColor: "{{ donorColor }}",
+                messageColor: "{{ messageColor }}",
                 fontSize: parseInt("{{ fontSize }}") || 42,
                 amountSize: parseInt("{{ amountSize }}") || 56,
+                messageSize: parseInt("{{ messageSize }}") || 24,
                 borderRadius: parseInt("{{ borderRadius }}") || 25,
                 animationSpeed: parseFloat("{{ animationSpeed }}") || 1.2,
                 customCSS: "{{ customCSS }}"
@@ -454,6 +458,8 @@
                 this.username = window.WIDGET_CONFIG.username;
                 this.alertDuration = window.WIDGET_CONFIG.alertDuration;
                 this.enableTTS = window.WIDGET_CONFIG.enableTTS;
+                this.enableTTSName = window.WIDGET_CONFIG.enableTTSName;
+                this.enableTTSMessage = window.WIDGET_CONFIG.enableTTSMessage;
                 this.enableSound = window.WIDGET_CONFIG.enableSound;
                 this.minTTSAmount = window.WIDGET_CONFIG.minTTSAmount;
                 this.alertFormat = window.WIDGET_CONFIG.alertFormat;
@@ -519,7 +525,8 @@
                     this.donationAmount.style.fontSize = config.amountSize + 'px';
                     this.donationAmount.style.color = config.amountColor;
                     this.donorName.style.color = config.donorColor;
-                    this.donationMessage.style.color = config.textColor;
+                    this.donationMessage.style.color = config.messageColor;
+                    this.donationMessage.style.fontSize = config.messageSize + 'px';
 
                     // Apply animation speed
                     const animationDuration = config.animationSpeed + 's';
@@ -631,10 +638,25 @@
                     this.playSound();
                 }
 
-                // Play TTS only if amount meets minimum requirement
-                if (this.enableTTS && message && message.trim() && amount >= this.minTTSAmount) {
+               // Play TTS only if amount meets minimum requirement
+                if (this.enableTTS && amount >= this.minTTSAmount) {
                     setTimeout(() => {
-                        this.playTTS(message);
+                        let ttsText = '';
+
+                        // เพิ่มชื่อคนโดเนทถ้าเปิดใช้งาน
+                        if (this.enableTTSName) {
+                            ttsText += name + ' ';
+                        }
+
+                        // เพิ่มข้อความถ้าเปิดใช้งานและมีข้อความ
+                        if (this.enableTTSMessage && message && message.trim()) {
+                            ttsText += message;
+                        }
+
+                        // ถ้ามีข้อความให้อ่าน
+                        if (ttsText.trim()) {
+                            this.playTTS(ttsText.trim());
+                        }
                     }, 1000);
                 }
 

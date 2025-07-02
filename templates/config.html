@@ -489,6 +489,24 @@
                                     <option value="false">ปิดใช้งาน</option>
                                 </select>
                             </div>
+                            
+                            <div class="form-group">
+                                <label for="enableTTSName">👤 อ่านชื่อคนโดเนท</label>
+                                <select id="enableTTSName">
+                                    <option value="true">อ่านชื่อด้วย</option>
+                                    <option value="false">ไม่อ่านชื่อ</option>
+                                </select>
+                                <div class="description">เมื่อเปิดใช้งาน TTS จะอ่านชื่อคนโดเนทด้วยหรือไม่</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="enableTTSMessage">💬 อ่านข้อความโดเนท</label>
+                                <select id="enableTTSMessage">
+                                    <option value="true">อ่านข้อความด้วย</option>
+                                    <option value="false">ไม่อ่านข้อความ</option>
+                                </select>
+                                <div class="description">เมื่อเปิดใช้งาน TTS จะอ่านข้อความที่ส่งมาด้วยหรือไม่</div>
+                            </div>
 
                             <div class="form-group">
                                 <label for="enableSound">🎵 เปิดใช้งานเสียงแจ้งเตือน</label>
@@ -654,6 +672,14 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="messageColor">💬 สีข้อความโดเนท</label>
+                            <div class="color-input">
+                                <input type="color" id="messageColorPicker" value="#6b7280">
+                                <input type="text" id="messageColor" placeholder="#6b7280">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label for="fontSize">📏 ขนาดตัวอักษร: <span id="fontSizeValue">42</span>px</label>
                             <div class="range-input">
                                 <input type="range" id="fontSize" min="12" max="100" value="42"
@@ -687,6 +713,14 @@
                                 <input type="range" id="animationSpeed" min="0.1" max="5" step="0.1" value="1.2"
                                     oninput="updateRangeValue('animationSpeed', 'animationSpeedValue')">
                                 <div class="value" id="animationSpeedDisplay">1.2x</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="messageSize">💬 ขนาดข้อความ: <span id="messageSizeValue">24</span>px</label>
+                            <div class="range-input">
+                                <input type="range" id="messageSize" min="12" max="48" value="24"
+                                    oninput="updateRangeValue('messageSize', 'messageSizeValue')">
+                                <div class="value" id="messageSizeDisplay">24px</div>
                             </div>
                         </div>
                     </div>
@@ -855,6 +889,8 @@
                 streamTitle: '{{ username }}\'s Stream',
                 alertDuration: 5000,
                 enableTTS: true,
+                enableTTSName: true,
+                enableTTSMessage: true,
                 enableSound: true,
                 alertFormat: '{{user}} โดเนท {{amount}}',
                 minTTSAmount: 50,
@@ -871,8 +907,10 @@
                 textColor: '#1f2937',
                 amountColor: '#f59e0b',
                 donorColor: '#667eea',
+                messageColor: '#6b7280',
                 fontSize: 42,
                 amountSize: 56,
+                messageSize: 24,
                 borderRadius: 25,
                 showIcon: true,
                 showSparkles: true,
@@ -891,6 +929,8 @@
             document.getElementById('alertDuration').value = config.alertDuration || 5000;
             document.getElementById('minTTSAmount').value = config.minTTSAmount || 50;
             document.getElementById('enableTTS').value = config.enableTTS ? 'true' : 'false';
+            document.getElementById('enableTTSName').value = config.enableTTSName !== false ? 'true' : 'false';
+            document.getElementById('enableTTSMessage').value = config.enableTTSMessage !== false ? 'true' : 'false';
             document.getElementById('enableSound').value = config.enableSound ? 'true' : 'false';
 
             // Bank settings
@@ -910,8 +950,10 @@
             document.getElementById('textColor').value = config.textColor || '#1f2937';
             document.getElementById('amountColor').value = config.amountColor || '#f59e0b';
             document.getElementById('donorColor').value = config.donorColor || '#667eea';
+            document.getElementById('messageColor').value = config.messageColor || '#6b7280';
             document.getElementById('fontSize').value = config.fontSize || 42;
             document.getElementById('amountSize').value = config.amountSize || 56;
+            document.getElementById('messageSize').value = config.messageSize || 24;
             document.getElementById('borderRadius').value = config.borderRadius || 25;
             document.getElementById('animationSpeed').value = config.animationSpeed || 1.2;
 
@@ -922,6 +964,7 @@
             // Update range displays
             updateRangeValue('fontSize', 'fontSizeValue');
             updateRangeValue('amountSize', 'amountSizeValue');
+            updateRangeValue('messageSize', 'messageSizeValue');
             updateRangeValue('borderRadius', 'borderRadiusValue');
             updateRangeValue('animationSpeed', 'animationSpeedValue');
 
@@ -935,7 +978,8 @@
                 { picker: 'backgroundColorPicker', text: 'backgroundColor', defaultColor: '#ffffff' },
                 { picker: 'textColorPicker', text: 'textColor', defaultColor: '#1f2937' },
                 { picker: 'amountColorPicker', text: 'amountColor', defaultColor: '#f59e0b' },
-                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' }
+                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' },
+                { picker: 'messageColorPicker', text: 'messageColor', defaultColor: '#6b7280' }
             ];
 
             colorInputs.forEach(({ picker, text }) => {
@@ -970,7 +1014,8 @@
                 { picker: 'backgroundColorPicker', text: 'backgroundColor', defaultColor: '#ffffff' },
                 { picker: 'textColorPicker', text: 'textColor', defaultColor: '#1f2937' },
                 { picker: 'amountColorPicker', text: 'amountColor', defaultColor: '#f59e0b' },
-                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' }
+                { picker: 'donorColorPicker', text: 'donorColor', defaultColor: '#667eea' },
+                { picker: 'messageColorPicker', text: 'messageColor', defaultColor: '#6b7280' }
             ];
 
             colorInputs.forEach(({ picker, text, defaultColor }) => {
@@ -1048,8 +1093,10 @@
             const textColor = document.getElementById('textColor').value;
             const amountColor = document.getElementById('amountColor').value;
             const donorColor = document.getElementById('donorColor').value;
+            const messageColor = document.getElementById('messageColor').value;
             const fontSize = document.getElementById('fontSize').value;
             const amountSize = document.getElementById('amountSize').value;
+            const messageSize = document.getElementById('messageSize').value;
             const borderRadius = document.getElementById('borderRadius').value;
             const alertFormat = document.getElementById('alertFormat').value;
             const useCustomGif = document.getElementById('useCustomGif').value === 'true';
@@ -1090,7 +1137,7 @@
                 <div style="font-size: ${fontSize}px; margin-bottom: 10px;">
                     ${formattedText}
                 </div>
-                <div style="font-style: italic; color: #6b7280; margin-top: 10px;">ข้อความทดสอบ</div>
+                <div style="font-style: italic; color: ${messageColor}; margin-top: 10px; font-size: ${messageSize}px;">ข้อความทดสอบ</div>
             `;
         }
 
@@ -1135,6 +1182,8 @@
                 streamTitle: document.getElementById('streamTitle').value,
                 alertDuration: parseInt(document.getElementById('alertDuration').value),
                 enableTTS: document.getElementById('enableTTS').value === 'true',
+                enableTTSName: document.getElementById('enableTTSName').value === 'true',
+                enableTTSMessage: document.getElementById('enableTTSMessage').value === 'true',
                 enableSound: document.getElementById('enableSound').value === 'true',
                 minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
 
@@ -1155,8 +1204,10 @@
                 textColor: document.getElementById('textColor').value,
                 amountColor: document.getElementById('amountColor').value,
                 donorColor: document.getElementById('donorColor').value,
+                messageColor: document.getElementById('messageColor').value,
                 fontSize: parseInt(document.getElementById('fontSize').value),
                 amountSize: parseInt(document.getElementById('amountSize').value),
+                messageSize: parseInt(document.getElementById('messageSize').value),
                 borderRadius: parseInt(document.getElementById('borderRadius').value),
                 animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
 

@@ -1,7 +1,7 @@
 {
   "username": "test1",
   "createdAt": 1751462930011,
-  "lastActiveAt": 1751462942569,
+  "lastActiveAt": 1751465218962,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": false,
@@ -24,6 +24,7 @@
     "donorColor": "#667eea",
     "fontSize": 42,
     "amountSize": 56,
+    "messageSize": 31,
     "borderRadius": 25,
     "showIcon": true,
     "showSparkles": true,

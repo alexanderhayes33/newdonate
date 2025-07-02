@@ -1,7 +1,7 @@
 {
   "username": "Tanu168",
   "createdAt": 1751459409500,
-  "lastActiveAt": 1751464021759,
+  "lastActiveAt": 1751466355799,
   "config": {
     "truewalletPhone": "0801544992",
     "enableBankTransfer": true,
@@ -24,6 +24,7 @@
     "donorColor": "#a39eff",
     "fontSize": 40,
     "amountSize": 40,
+    "messageSize": 24,
     "borderRadius": 50,
     "showIcon": false,
     "showSparkles": false,
@@ -32,6 +33,44 @@
     "useCustomGif": true
   },
   "donations": [
+    {
+      "id": 1751466356316,
+      "timestamp": 1751466355780,
+      "bangkokTime": "02/07/2568 21:25:55",
+      "name": "DDS5549836",
+      "amount": 35,
+      "message": "1จุ่มคับ",
+      "paymentMethod": "truewallet",
+      "voucherCode": "0197cb878e987ab282eac71249e9842ea2O",
+      "phoneNumber": "0801544992",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "2403:6200:8862:4bb1:bac7:bd74:7d23:8e47",
+      "userAgent": "Mozilla/5.0 (Linux; Android 15; Infinix X6873 Build/AP3A.240905.015.A2; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/137.0.7151.115 Mobile Safari/537.36 trill_400603 AppName/trill ByteLocale/th-TH",
+      "status": "completed"
+    },
+    {
+      "id": 1751466064676,
+      "timestamp": 1751466064048,
+      "bangkokTime": "02/07/2568 21:21:04",
+      "name": "กากากากา🖕",
+      "amount": 35,
+      "message": "ชื่อในเกมLuanX03907",
+      "paymentMethod": "truewallet",
+      "voucherCode": "0197cb817a4773e493479b1862ff67fad1O",
+      "phoneNumber": "0801544992",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "2001:44c8:4287:ba78:1:1:995e:b2b9",
+      "userAgent": "Mozilla/5.0 (Linux; Android 15; 23129RN51X Build/AP3A.240905.015.A2; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/137.0.7151.115 Mobile Safari/537.36 trill_400503 AppName/trill ByteLocale/th-TH",
+      "status": "completed"
+    },
     {
       "id": 1751464022086,
       "timestamp": 1751464021739,
@@ -614,17 +653,17 @@
     }
   ],
   "stats": {
-    "totalDonations": 29,
-    "totalAmount": 24419,
-    "averageAmount": 842,
+    "totalDonations": 31,
+    "totalAmount": 24489,
+    "averageAmount": 790,
     "highestDonation": 12000,
-    "uniqueDonors": 7,
-    "thisMonthAmount": 24419,
-    "lastDonationAt": 1751464021739,
+    "uniqueDonors": 9,
+    "thisMonthAmount": 24489,
+    "lastDonationAt": 1751466355780,
     "paymentMethods": {
       "truewallet": {
-        "count": 0,
-        "amount": 0
+        "count": 2,
+        "amount": 70
       },
       "bank_transfer": {
         "count": 1,

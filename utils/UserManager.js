@@ -130,6 +130,8 @@ class UserManager {
                 streamTitle: `${username}'s Stream`,
                 alertDuration: 5000,
                 enableTTS: true,
+                enableTTSName: true,
+                enableTTSMessage: true,
                 enableSound: true,
                 alertPosition: 'top',
                 customCSS: '',
@@ -143,8 +145,10 @@ class UserManager {
                 textColor: '#1f2937',
                 amountColor: '#f59e0b',
                 donorColor: '#667eea',
+                messageColor: '#6b7280',
                 fontSize: 42,
                 amountSize: 56,
+                messageSize: 24,
                 borderRadius: 25,
                 showIcon: true,
                 showSparkles: true,
@@ -385,6 +389,9 @@ class UserManager {
         }
         if (newConfig.borderRadius !== undefined) {
             newConfig.borderRadius = Math.max(0, Math.min(50, parseInt(newConfig.borderRadius) || 25));
+        }
+        if (newConfig.messageSize !== undefined) {
+            newConfig.messageSize = Math.max(12, Math.min(48, parseInt(newConfig.messageSize) || 24));
         }
         if (newConfig.animationSpeed !== undefined) {
             newConfig.animationSpeed = Math.max(0.1, Math.min(5, parseFloat(newConfig.animationSpeed) || 1.2));
