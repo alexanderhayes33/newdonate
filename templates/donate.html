@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support {{ streamTitle }} | Donation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
         :root {
@@ -30,7 +30,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Kanit', sans-serif;
             background: var(--bg-dark);
             color: var(--text-primary);
             min-height: 100vh;
@@ -170,7 +170,12 @@
             box-shadow: var(--shadow-lg);
             position: relative;
         }
-
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2rem;
+}
         .creator-avatar::after {
             content: '';
             position: absolute;
@@ -184,6 +189,7 @@
         }
 
         .header h1 {
+            font-family: 'Kanit', sans-serif;
             font-size: 2rem;
             font-weight: 800;
             background: var(--primary-gradient);
@@ -195,6 +201,7 @@
         }
 
         .header .subtitle {
+            font-family: 'Kanit', sans-serif;
             color: var(--text-secondary);
             font-size: 1.1rem;
             font-weight: 500;
@@ -209,6 +216,7 @@
             padding: 1rem;
             border-radius: 1rem;
             margin-bottom: 2rem;
+            font-family: 'Kanit', sans-serif;
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.3s ease;
@@ -262,6 +270,7 @@
             padding: 1rem 1.5rem;
             border: none;
             border-radius: 0.75rem;
+            font-family: 'Kanit', sans-serif;
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
@@ -343,6 +352,7 @@
         }
 
         .bank-info h3 {
+            font-family: 'Kanit', sans-serif;
             color: #10b981;
             margin-bottom: 1.5rem;
             font-size: 1.2rem;
@@ -372,13 +382,14 @@
         }
 
         .bank-label {
+            font-family: 'Kanit', sans-serif;
             font-weight: 600;
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
         .bank-value {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Kanit', sans-serif;
             background: rgba(16, 185, 129, 0.1);
             color: #10b981;
             padding: 0.5rem 1rem;
@@ -394,6 +405,7 @@
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             cursor: pointer;
+            font-family: 'Kanit', sans-serif;
             font-size: 0.8rem;
             font-weight: 600;
             margin-left: 0.75rem;
@@ -426,6 +438,7 @@
             display: block;
             margin-bottom: 0.75rem;
             color: var(--text-primary);
+            font-family: 'Kanit', sans-serif;
             font-weight: 600;
             font-size: 0.95rem;
         }
@@ -441,7 +454,7 @@
             font-size: 1rem;
             font-weight: 500;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: inherit;
+            font-family: 'Kanit', sans-serif;
         }
 
         .form-input:focus,
@@ -457,6 +470,7 @@
         .form-textarea::placeholder {
             color: var(--text-muted);
             font-weight: 400;
+            font-family: 'Kanit', sans-serif;
         }
 
         .form-textarea {
@@ -470,6 +484,7 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-top: 0.5rem;
+            font-family: 'Kanit', sans-serif;
             font-weight: 500;
         }
 
@@ -522,6 +537,7 @@
 
         .upload-text {
             color: var(--text-primary);
+            font-family: 'Kanit', sans-serif;
             font-weight: 600;
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
@@ -529,6 +545,7 @@
 
         .upload-subtext {
             color: var(--text-muted);
+            font-family: 'Kanit', sans-serif;
             font-size: 0.9rem;
             font-weight: 400;
         }
@@ -551,6 +568,7 @@
 
         .file-info {
             color: var(--text-secondary);
+            font-family: 'Kanit', sans-serif;
             font-size: 0.9rem;
             font-weight: 500;
         }
@@ -563,6 +581,7 @@
             color: white;
             border: none;
             border-radius: 1rem;
+            font-family: 'Kanit', sans-serif;
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
@@ -620,6 +639,9 @@
         }
 
         /* Responsive Design */
+        .creator-avatar img {
+    border-radius: 1.5rem;
+}
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -636,6 +658,13 @@
                 font-size: 2.5rem;
                 border-radius: 1.5rem;
             }
+
+            .creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2rem;
+}
 
             .header h1 {
                 font-size: 1.75rem;
@@ -672,7 +701,7 @@
 
         /* Toast Styles */
         .toastify {
-            font-family: 'Inter', sans-serif !important;
+            font-family: 'Kanit', sans-serif !important;
             font-weight: 600 !important;
             border-radius: 1rem !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
@@ -698,7 +727,9 @@
         <div class="donation-card">
             <!-- Header -->
             <div class="header">
-                <div class="creator-avatar">💎</div>
+                <div class="creator-avatar">
+    <img src="https://img2.pic.in.th/pic/8c4d7bfc-7e12-4cb3-81fa-bb64e1e6e07d.jpg" alt="Creator Avatar" />
+</div>
                 <h1>Support {{ username }}</h1>
                 <p class="subtitle">{{ streamTitle }}</p>
             </div>
@@ -1014,7 +1045,7 @@
                     const apiResponse = await response.json();
 
                     if (apiResponse.status === 'SUCCESS') {
-                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ฿${apiResponse.amount.toLocaleString()}!`, 'success');
+                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ${apiResponse.amount.toLocaleString()}!`, 'success');
                         this.resetForm('truewallet');
                         this.celebrateSuccess();
                     } else {
@@ -1070,7 +1101,7 @@
 
                     if (verifyResult.success) {
                         const amount = verifyResult.verified_amount || verifyResult.donation?.amount || 0;
-                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ฿${amount.toLocaleString()}!`, 'success');
+                        this.showToast(`🎉 ขอบคุณ ${name} สำหรับการสนับสนุน ${amount.toLocaleString()}!`, 'success');
                         this.resetForm('bank');
                         this.celebrateSuccess();
                     } else {

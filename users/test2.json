@@ -1,20 +1,20 @@
 {
-  "username": "test1",
-  "createdAt": 1751462930011,
-  "lastActiveAt": 1751462942569,
+  "username": "test2",
+  "createdAt": 1751458606432,
+  "lastActiveAt": 1751458684063,
   "config": {
-    "truewalletPhone": "",
+    "truewalletPhone": "0928707912",
     "enableBankTransfer": false,
     "bankName": "",
     "bankAccount": "",
     "bankAccountName": "",
-    "streamTitle": "test1's Stream",
+    "streamTitle": "test2's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
     "enableSound": true,
     "alertPosition": "top",
     "customCSS": "",
-    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test1!",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test2!",
     "alertFormat": "{{user}} โดเนท {{amount}}",
     "minTTSAmount": 50,
     "showBackground": false,
@@ -33,9 +33,9 @@
   },
   "donations": [
     {
-      "id": 1751462942778,
-      "timestamp": 1751462942553,
-      "bangkokTime": "02/07/2568 20:29:02",
+      "id": 1751458684082,
+      "timestamp": 1751458684046,
+      "bangkokTime": "02/07/2568 19:18:04",
       "name": "alex",
       "amount": 100,
       "message": "test ทดสอบ",
@@ -59,7 +59,7 @@
     "highestDonation": 100,
     "uniqueDonors": 1,
     "thisMonthAmount": 100,
-    "lastDonationAt": 1751462942553,
+    "lastDonationAt": 1751458684046,
     "paymentMethods": {
       "truewallet": {
         "count": 0,

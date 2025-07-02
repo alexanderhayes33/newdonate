@@ -1,10 +1,11 @@
-// server.js - Multi-User Alert System with Enhanced Bank Transfer Support
+// server.js - Multi-User Alert System with Enhanced Bank Transfer Support + Domain Configuration
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const https = require('https'); // 🔧 เพิ่มสำหรับ HTTPS support
 
 // Import custom modules
 const UserManager = require('./utils/UserManager');
@@ -20,10 +21,11 @@ try {
     console.log('ℹ️ TrueWallet features will be disabled');
 }
 
-// ⚙️ Configuration
+const HOMEPAGE_PASSWORD = process.env.HOMEPAGE_PASSWORD || 'Ba225teW'; // 🔒 รหัสสำหรับเข้า homepage
+// ⚙️ Configuration - 🔧 Enhanced with Domain Support
 const PORT = process.env.PORT || 3000;
-const DOMAIN = process.env.DOMAIN || 'localhost';
-const USE_HTTPS = process.env.USE_HTTPS === 'true';
+const DOMAIN = process.env.DOMAIN || 'chatmateth.chat'; // 🔧 เพิ่ม Domain Configuration
+const USE_HTTPS = process.env.USE_HTTPS === 'true'; // 🔧 เพิ่ม HTTPS Support
 
 // Slip verification API credentials
 const SLIP_CLIENT_ID = process.env.SLIP_CLIENT_ID || '28b0ed6dd3c9457ca7a50f976aaa1f79';
@@ -32,12 +34,23 @@ const SLIP_CLIENT_SECRET = process.env.SLIP_CLIENT_SECRET || 'lDRsRCLi52pKIk3QLY
 // สร้าง Express app
 const app = express();
 const server = http.createServer(app);
+
+// 🔧 Enhanced Socket.IO Configuration with Domain Support
 const io = socketIo(server, {
     cors: {
-        origin: "*",
+        origin: [
+            `http://${DOMAIN}`,        // 🔧 รองรับ http://chatmateth.chat
+            `https://${DOMAIN}`,       // 🔧 รองรับ https://chatmateth.chat
+            `http://localhost:${PORT}`,
+            `http://127.0.0.1:${PORT}`,
+            "http://localhost:3000",   // เก็บ default port
+            "http://127.0.0.1:3000",   // เก็บ default port
+            "*"                        // เก็บไว้สำหรับ development
+        ],
         methods: ["GET", "POST"],
-        credentials: true
-    }
+        credentials: true              // 🔧 เพิ่ม credentials support
+    },
+    allowEIO3: true
 });
 
 // สร้าง instances
@@ -94,7 +107,7 @@ function validateBankAccountPattern(userAccount, apiAccountValue) {
             // 2. เลขบัญชีไม่รวมหลักสุดท้าย (เผื่อ check digit)
             userNumbers.length > 1 && apiNumbers.includes(userNumbers.slice(0, -1)),
             
-            // 3. เลขบัญชีส่วนกลาง (ตัดหน้า 2 หลัก หลัง 1 หลัก)
+            // 3. เลขบัญชีส่วนกลาง (ตัดหน้า 2 หลัง หลัง 1 หลัก)
             userNumbers.length > 4 && apiNumbers.includes(userNumbers.slice(2, -1)),
             
             // 4. เลขบัญชี 8 หลักสุดท้าย
@@ -134,17 +147,388 @@ function validateBankAccountPattern(userAccount, apiAccountValue) {
 }
 
 // ===============================
-// Express Configuration
+// Express Configuration - 🔧 Enhanced
 // ===============================
+
+// 🔧 Middleware สำหรับ HTTPS Redirect (เพิ่มใหม่)
+app.use((req, res, next) => {
+    // ถ้าใช้ Cloudflare และต้องการ Force HTTPS
+    if (req.headers['x-forwarded-proto'] === 'http' && USE_HTTPS) {
+        return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+});
+
+// 🔧 Trust proxy headers (สำคัญสำหรับ Cloudflare)
 app.set('trust proxy', true);
 
+// 🔧 Enhanced CORS Configuration with Domain Support
 app.use(cors({
-    origin: "*",
-    credentials: true
+    origin: [
+        `http://${DOMAIN}`,        // 🔧 รองรับ http://chatmateth.chat
+        `https://${DOMAIN}`,       // 🔧 รองรับ https://chatmateth.chat
+        `http://localhost:${PORT}`,
+        `http://127.0.0.1:${PORT}`,
+        "http://localhost:3000",   // เก็บ default port
+        "http://127.0.0.1:3000",   // เก็บ default port
+        "*"                        // เก็บไว้สำหรับ development
+    ],
+    credentials: true              // 🔧 เพิ่ม credentials support
 }));
 
 app.use(express.json({ limit: '10mb' })); // เพิ่ม limit สำหรับรูปภาพ
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 🔧 Security Headers สำหรับ HTTPS (เพิ่มใหม่)
+app.use((req, res, next) => {
+    if (USE_HTTPS) {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+    }
+    next();
+});
+
+app.use(require('express-session')({
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: USE_HTTPS, // ใช้ secure cookie เมื่อใช้ HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 ชั่วโมง
+    }
+}));
+
+function requireHomepageAuth(req, res, next) {
+    // ถ้าเป็น API หรือ user pages ให้ผ่าน
+    if (req.path.startsWith('/api/') || 
+        req.path.startsWith('/user/') || 
+        req.path === '/login' || 
+        req.path === '/auth') {
+        return next();
+    }
+    
+    // ตรวจสอบว่า login แล้วหรือยัง
+    if (req.session.homepageAuth) {
+        return next();
+    }
+    
+    // ถ้ายังไม่ login ให้ redirect ไปหน้า login
+    res.redirect('/login');
+}
+
+app.use('/', requireHomepageAuth);
+
+// 🔐 หน้า Login
+app.get('/login', (req, res) => {
+    const error = req.query.error;
+    const html = `
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🔒 Admin Login - Alert System</title>
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Kanit', sans-serif;
+                background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+                color: #ffffff;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            
+            /* Animated Background */
+            .background-animation {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                overflow: hidden;
+            }
+            
+            .floating-shapes {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
+            
+            .shape {
+                position: absolute;
+                background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+                border-radius: 50%;
+                animation: float 20s infinite linear;
+            }
+            
+            .shape:nth-child(1) {
+                width: 80px;
+                height: 80px;
+                top: 20%;
+                left: 10%;
+                animation-delay: 0s;
+            }
+            
+            .shape:nth-child(2) {
+                width: 120px;
+                height: 120px;
+                top: 60%;
+                right: 10%;
+                animation-delay: 5s;
+            }
+            
+            .shape:nth-child(3) {
+                width: 60px;
+                height: 60px;
+                top: 80%;
+                left: 50%;
+                animation-delay: 10s;
+            }
+            
+            @keyframes float {
+                0%, 100% {
+                    transform: translateY(0px) rotate(0deg);
+                    opacity: 0.5;
+                }
+                50% {
+                    transform: translateY(-20px) rotate(180deg);
+                    opacity: 0.8;
+                }
+            }
+            
+            .login-container {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 24px;
+                padding: 40px;
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+            
+            .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 15px;
+                font-size: 28px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 30px;
+            }
+            
+            .logo .icon {
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: white;
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            }
+            
+            h1 {
+                font-size: 2em;
+                font-weight: 700;
+                margin-bottom: 10px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .subtitle {
+                color: rgba(255, 255, 255, 0.7);
+                margin-bottom: 30px;
+                font-size: 1.1em;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+                text-align: left;
+            }
+            
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 15px;
+            }
+            
+            input[type="password"] {
+                width: 100%;
+                padding: 16px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 16px;
+                color: white;
+                font-size: 16px;
+                font-family: 'Kanit', sans-serif;
+                transition: all 0.3s ease;
+            }
+            
+            input[type="password"]:focus {
+                outline: none;
+                border-color: #667eea;
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            }
+            
+            input[type="password"]::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 16px 32px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                border-radius: 16px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+                margin-bottom: 20px;
+            }
+            
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+                background: linear-gradient(135deg, #5a67d8, #6b46c1);
+            }
+            
+            .error-message {
+                background: rgba(239, 68, 68, 0.2);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #fca5a5;
+                padding: 12px 16px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+            
+            .info {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+            
+            @media (max-width: 480px) {
+                .login-container {
+                    margin: 20px;
+                    padding: 30px;
+                }
+                
+                .logo {
+                    font-size: 24px;
+                }
+                
+                h1 {
+                    font-size: 1.8em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Animated Background -->
+        <div class="background-animation">
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+        </div>
+        
+        <div class="login-container">
+            <div class="logo">
+                <div class="icon">🔒</div>
+                <span>Admin Access</span>
+            </div>
+            
+            <h1>เข้าสู่ระบบ</h1>
+            <p class="subtitle">กรุณาใส่รหัสผ่านเพื่อเข้าสู่หน้า Admin</p>
+            
+            ${error ? `<div class="error-message">❌ รหัสผ่านไม่ถูกต้อง</div>` : ''}
+            
+            <form action="/auth" method="post">
+                <div class="form-group">
+                    <label for="password">🔑 รหัสผ่าน</label>
+                    <input type="password" id="password" name="password" placeholder="ใส่รหัสผ่าน" required autofocus>
+                </div>
+                
+                <button type="submit" class="login-btn">🚀 เข้าสู่ระบบ</button>
+            </form>
+            
+            <div class="info">
+                <p>🔐 หน้านี้ป้องกันการเข้าถึงหน้า Admin Dashboard</p>
+                <p>📱 User pages ยังคงเข้าได้ปกติโดยไม่ต้องรหัสผ่าน</p>
+            </div>
+        </div>
+        
+        <script>
+            // Focus on password input
+            document.getElementById('password').focus();
+            
+            // Enter key submit
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.target.closest('form').submit();
+                }
+            });
+        </script>
+    </body>
+    </html>
+    `;
+    
+    res.send(html);
+});
+
+// 🔐 ตรวจสอบรหัสผ่าน
+app.post('/auth', (req, res) => {
+    const { password } = req.body;
+    
+    if (password === HOMEPAGE_PASSWORD) {
+        req.session.homepageAuth = true;
+        console.log(`✅ Admin login successful from IP: ${req.ip}`);
+        res.redirect('/');
+    } else {
+        console.log(`❌ Failed admin login attempt from IP: ${req.ip}`);
+        res.redirect('/login?error=1');
+    }
+});
+
+// 🚪 Logout
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+        }
+        res.redirect('/login');
+    });
+});
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -261,7 +645,6 @@ app.get('/', (req, res) => {
                 const statusText = isActive ? 'Online' : 'Offline';
                 const avatarLetter = user.username.charAt(0).toUpperCase();
                 
-                // แสดงข้อมูลวิธีการรับเงิน
                 let paymentMethods = [];
                 if (user.enableTrueWallet) paymentMethods.push('TrueWallet');
                 if (user.enableBankTransfer) paymentMethods.push('โอนธนาคาร');
@@ -321,6 +704,7 @@ app.get('/', (req, res) => {
         
         console.log('📋 Users HTML length:', usersList.length);
         
+        // เพิ่ม logout button และข้อมูล session ใน template
         const html = templateEngine.render('homepage', {
             totalUsers: globalStats.totalUsers,
             totalAmount: globalStats.totalAmount.toLocaleString(),
@@ -329,7 +713,28 @@ app.get('/', (req, res) => {
             usersList: usersList
         });
         
-        res.send(html);
+        // แทรก logout button ใน header
+        const htmlWithLogout = html.replace(
+            '<div class="header-stats">',
+            `<div class="header-stats">
+                <a href="/logout" style="
+                    background: rgba(239, 68, 68, 0.2);
+                    color: #fca5a5;
+                    border: 1px solid rgba(239, 68, 68, 0.3);
+                    padding: 8px 16px;
+                    border-radius: 12px;
+                    text-decoration: none;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    margin-right: 20px;
+                " onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" 
+                   onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                    🚪 Logout
+                </a>`
+        );
+        
+        res.send(htmlWithLogout);
         
     } catch (error) {
         console.error('Error rendering homepage:', error);
@@ -497,14 +902,16 @@ app.get('/user/:username/widget', (req, res) => {
     }
 });
 
-// ⚙️ Config/Settings
+// ⚙️ Config/Settings - 🔧 Enhanced with Domain Support
 app.get('/user/:username/config', (req, res) => {
     try {
         console.log(`📄 Loading config page for: ${req.username}`);
         
         const isNewUser = req.query.created === 'true';
+        // 🔧 Enhanced Protocol Detection with Domain Support
         const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
         
+        // 🔧 Enhanced URL Generation with Domain Support
         const widgetUrl = `${protocol}://${req.get('host')}/user/${req.username}/widget`;
         const donateUrl = `${protocol}://${req.get('host')}/user/${req.username}/donate`;
         
@@ -665,7 +1072,6 @@ app.post('/user/:username/api/redeem-voucher', async (req, res) => {
     }
 });
 
-// 🏦 API ตรวจสอบสลิปธนาคาร - Enhanced Version
 // 🏦 API ตรวจสอบสลิปธนาคาร - Enhanced Version (Auto Amount Detection)
 app.post('/user/:username/api/verify-slip', async (req, res) => {
     try {
@@ -1181,7 +1587,6 @@ app.get('/api/tts', async (req, res) => {
     try {
         console.log('🔊 TTS Request:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
         
-        const https = require('https');
         const encodedText = encodeURIComponent(text);
         const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodedText}`;
         
@@ -1219,25 +1624,55 @@ app.get('/api/tts', async (req, res) => {
     }
 });
 
-// 📊 API สถานะ server
+// 🏥 Health check - 🔧 Enhanced with Domain Info
+app.get('/health', (req, res) => {
+    const health = userManager.getSystemHealth();
+    // 🔧 Enhanced Protocol Detection with Domain Support
+    const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    
+    res.json({
+        status: health.status === 'healthy' ? 'OK' : 'ERROR',
+        message: 'Multi-User Alert System with Enhanced Bank Transfer and Domain Support',
+        timestamp: new Date().toISOString(),
+        // 🔧 เพิ่ม Domain Info ใน Health Check
+        domain: DOMAIN,
+        protocol: protocol,
+        httpsEnabled: USE_HTTPS,
+        uptime: process.uptime(),
+        features: {
+            truewallet: !!truewallet,
+            bankTransfer: true,
+            slipVerification: true,
+            enhancedBankValidation: true,
+            domainSupport: true // 🔧 เพิ่ม domain support flag
+        },
+        health: health
+    });
+});
+
+// 📊 API สถานะ server - 🔧 Enhanced with Domain Info
 app.get('/api/status', (req, res) => {
     const globalStats = userManager.getGlobalStats();
     const systemHealth = userManager.getSystemHealth();
+    // 🔧 Enhanced Protocol Detection with Domain Support
     const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     
     res.json({
         success: true,
-        server: 'Multi-User Alert System with Enhanced Bank Transfer',
-        version: '2.2.0',
+        server: 'Multi-User Alert System with Enhanced Bank Transfer and Domain Support',
+        version: '2.3.0', // 🔧 เพิ่ม version สำหรับ domain support
+        // 🔧 เพิ่ม Domain Info ใน API Status
         domain: DOMAIN,
         protocol: protocol,
+        httpsEnabled: USE_HTTPS,
         uptime: process.uptime(),
         connections: io.engine.clientsCount,
         features: {
             truewallet: !!truewallet,
             bankTransfer: true,
             slipVerification: true,
-            enhancedBankValidation: true
+            enhancedBankValidation: true,
+            domainSupport: true // 🔧 เพิ่ม domain support flag
         },
         ...globalStats,
         systemHealth: systemHealth,
@@ -1305,25 +1740,6 @@ app.post('/api/admin/backup', (req, res) => {
     }
 });
 
-// 🏥 Health check
-app.get('/health', (req, res) => {
-    const health = userManager.getSystemHealth();
-    
-    res.json({
-        status: health.status === 'healthy' ? 'OK' : 'ERROR',
-        message: 'Multi-User Alert System with Enhanced Bank Transfer',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        features: {
-            truewallet: !!truewallet,
-            bankTransfer: true,
-            slipVerification: true,
-            enhancedBankValidation: true
-        },
-        health: health
-    });
-});
-
 // ===============================
 // Error Handling
 // ===============================
@@ -1351,17 +1767,22 @@ app.use((req, res) => {
 });
 
 // ===============================
-// Start Server
+// Start Server - 🔧 Enhanced with Domain Support
 // ===============================
+// 🔧 เปลี่ยน Server Binding เป็น 0.0.0.0
 server.listen(PORT, '0.0.0.0', () => {
+    // 🔧 Enhanced Protocol Detection
     const protocol = USE_HTTPS ? 'https' : 'http';
     
     console.log('🎉 =====================================');
-    console.log('🚀 Enhanced Multi-User Alert System Started!');
+    console.log('🚀 Enhanced Multi-User Alert System with Domain Support Started!');
     console.log('🎉 =====================================');
-    console.log(`🌐 Server: ${protocol}://${DOMAIN}:${PORT}`);
+    // 🔧 Enhanced Console Output with Domain Support
+    console.log(`🌐 Domain: ${protocol}://${DOMAIN}:${PORT}`);
     console.log(`🏠 Homepage: ${protocol}://${DOMAIN}:${PORT}/`);
     console.log(`📊 API Status: ${protocol}://${DOMAIN}:${PORT}/api/status`);
+    console.log(`🏥 Health Check: ${protocol}://${DOMAIN}:${PORT}/health`);
+    console.log(`🔒 HTTPS Enabled: ${USE_HTTPS}`);
     console.log(`💾 Users Directory: ${userManager.USER_DATA_DIR}`);
     console.log('🎉 =====================================');
     
@@ -1371,8 +1792,11 @@ server.listen(PORT, '0.0.0.0', () => {
         console.log(`👥 Existing Users (${existingUsers.length}):`);
         existingUsers.forEach(user => {
             console.log(`   📺 ${user.username} - ${user.streamTitle}`);
+            // 🔧 Enhanced URL Display with Domain Support
             console.log(`      💝 Donate: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/donate`);
             console.log(`      📺 Widget: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/widget`);
+            console.log(`      🎮 Control: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/control`);
+            console.log(`      ⚙️ Settings: ${protocol}://${DOMAIN}:${PORT}/user/${user.username}/config`);
             
             // แสดงวิธีการรับเงินที่เปิดใช้งาน
             const paymentMethods = [];
@@ -1391,6 +1815,8 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`   🏦 Bank Transfer: ✅ Enabled`);
     console.log(`   🔍 Slip Verification: ✅ Enabled`);
     console.log(`   🚀 Enhanced Bank Validation: ✅ Enabled`);
+    console.log(`   🌐 Domain Support: ✅ Enabled (${DOMAIN})`); // 🔧 เพิ่ม domain status
+    console.log(`   🔒 HTTPS Support: ${USE_HTTPS ? '✅ Enabled' : '❌ Disabled'}`); // 🔧 เพิ่ม HTTPS status
     console.log(`   📊 Advanced Analytics: ✅ Enabled`);
     console.log('🎉 =====================================');
     
@@ -1417,7 +1843,7 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('🎉 =====================================');
 });
 
-// Graceful Shutdown
+// Graceful Shutdown - 🔧 Enhanced
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
     

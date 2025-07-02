@@ -1,7 +1,7 @@
 {
   "username": "alex",
   "createdAt": 1751400514828,
-  "lastActiveAt": 1751440726037,
+  "lastActiveAt": 1751463596214,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": true,
@@ -19,7 +19,7 @@
     "minTTSAmount": 50,
     "showBackground": false,
     "backgroundColor": "rgba(255, 255, 255, 0.95)",
-    "textColor": "#ffffff",
+    "textColor": "#ff0000",
     "amountColor": "#f59e0b",
     "donorColor": "#667eea",
     "fontSize": 42,
@@ -32,6 +32,101 @@
     "useCustomGif": true
   },
   "donations": [
+    {
+      "id": 1751463597142,
+      "timestamp": 1751463596197,
+      "bangkokTime": "02/07/2568 20:39:56",
+      "name": "alex",
+      "amount": 1,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751462662420,
+      "timestamp": 1751462662375,
+      "bangkokTime": "02/07/2568 20:24:22",
+      "name": "alex",
+      "amount": 100,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751460839261,
+      "timestamp": 1751460839140,
+      "bangkokTime": "02/07/2568 19:53:59",
+      "name": "alex",
+      "amount": 100,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751460796688,
+      "timestamp": 1751460796409,
+      "bangkokTime": "02/07/2568 19:53:16",
+      "name": "alex",
+      "amount": 100,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751460649584,
+      "timestamp": 1751460648953,
+      "bangkokTime": "02/07/2568 19:50:48",
+      "name": "alex",
+      "amount": 100,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
     {
       "id": 1751440311615,
       "timestamp": 1751440311553,
@@ -214,13 +309,13 @@
     }
   ],
   "stats": {
-    "totalDonations": 8,
-    "totalAmount": 11003100,
-    "averageAmount": 1375388,
+    "totalDonations": 13,
+    "totalAmount": 11003501,
+    "averageAmount": 846423,
     "highestDonation": 10000000,
     "uniqueDonors": 2,
-    "thisMonthAmount": 11003100,
-    "lastDonationAt": 1751440311553,
+    "thisMonthAmount": 11003501,
+    "lastDonationAt": 1751463596197,
     "paymentMethods": {
       "truewallet": {
         "count": 0,
@@ -231,8 +326,8 @@
         "amount": 2700
       },
       "manual": {
-        "count": 6,
-        "amount": 11000400
+        "count": 11,
+        "amount": 11000801
       }
     }
   },

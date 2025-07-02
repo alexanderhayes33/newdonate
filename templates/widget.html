@@ -375,7 +375,7 @@
 
 <body>
     <div class="connection-indicator" id="connectionIndicator"></div>
-    <div class="user-label">{{ username }} - Alert Widget</div>
+    <!-- <div class="user-label">{{ username }} - Alert Widget</div> -->
 
     <div class="alert-container" id="alertContainer">
         <div class="sparkles" id="sparkles"></div>
@@ -385,7 +385,7 @@
 
             <div class="donation-text" id="donationText">
                 <span class="donor-name" id="donorName">ชื่อผู้โดเนท</span> โดเนท
-                <span class="donation-amount" id="donationAmount">฿0</span>
+                <span class="donation-amount" id="donationAmount">0</span>
             </div>
 
             <div class="donation-message" id="donationMessage"></div>
@@ -579,7 +579,7 @@
                 // Format the alert text using the custom format
                 let formattedText = this.alertFormat
                     .replace(/\{\{user\}\}/g, `<span class="donor-name">${name}</span>`)
-                    .replace(/\{\{amount\}\}/g, `<span class="donation-amount">฿${amount.toLocaleString()}</span>`);
+                    .replace(/\{\{amount\}\}/g, `<span class="donation-amount">${amount.toLocaleString()}</span>`);
 
                 // Update content based on format
                 if (this.alertFormat.includes('{{user}}') && this.alertFormat.includes('{{amount}}')) {

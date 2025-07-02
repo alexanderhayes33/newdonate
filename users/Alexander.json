@@ -1,20 +1,20 @@
 {
-  "username": "test1",
-  "createdAt": 1751462930011,
-  "lastActiveAt": 1751462942569,
+  "username": "Alexander",
+  "createdAt": 1751461325980,
+  "lastActiveAt": 1751461325980,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": false,
     "bankName": "",
     "bankAccount": "",
     "bankAccountName": "",
-    "streamTitle": "test1's Stream",
+    "streamTitle": "Alexander's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
     "enableSound": true,
     "alertPosition": "top",
     "customCSS": "",
-    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test1!",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ Alexander!",
     "alertFormat": "{{user}} โดเนท {{amount}}",
     "minTTSAmount": 50,
     "showBackground": false,
@@ -31,35 +31,15 @@
     "customGifUrl": "",
     "useCustomGif": false
   },
-  "donations": [
-    {
-      "id": 1751462942778,
-      "timestamp": 1751462942553,
-      "bangkokTime": "02/07/2568 20:29:02",
-      "name": "alex",
-      "amount": 100,
-      "message": "test ทดสอบ",
-      "paymentMethod": "manual",
-      "voucherCode": "",
-      "phoneNumber": "",
-      "bankName": "",
-      "bankAccount": "",
-      "transactionRef": "",
-      "discriminator": "",
-      "slipData": null,
-      "ip": "127.0.0.1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
-      "status": "completed"
-    }
-  ],
+  "donations": [],
   "stats": {
-    "totalDonations": 1,
-    "totalAmount": 100,
-    "averageAmount": 100,
-    "highestDonation": 100,
-    "uniqueDonors": 1,
-    "thisMonthAmount": 100,
-    "lastDonationAt": 1751462942553,
+    "totalDonations": 0,
+    "totalAmount": 0,
+    "averageAmount": 0,
+    "highestDonation": 0,
+    "uniqueDonors": 0,
+    "thisMonthAmount": 0,
+    "lastDonationAt": null,
     "paymentMethods": {
       "truewallet": {
         "count": 0,
@@ -70,8 +50,8 @@
         "amount": 0
       },
       "manual": {
-        "count": 1,
-        "amount": 100
+        "count": 0,
+        "amount": 0
       }
     }
   },
