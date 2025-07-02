@@ -2,11 +2,99 @@
 
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 class UserManager {
     constructor() {
         this.USER_DATA_DIR = path.join(__dirname, '..', 'users');
         this.ensureUserDirectory();
+    }
+
+    // ฟังก์ชันสำหรับ hash รหัสผ่าน
+    async hashPassword(password) {
+        const saltRounds = 10;
+        return await bcrypt.hash(password, saltRounds);
+    }
+
+    // ฟังก์ชันสำหรับตรวจสอบรหัสผ่าน
+    async verifyPassword(password, hashedPassword) {
+        return await bcrypt.compare(password, hashedPassword);
+    }
+
+    // ฟังก์ชัน login verification
+    async verifyLogin(username, password) {
+        const userData = this.loadUserData(username);
+        
+        // ตรวจสอบว่าบัญชีถูกล็อคหรือไม่
+        if (userData.auth.lockedUntil && Date.now() < userData.auth.lockedUntil) {
+            const lockTime = Math.ceil((userData.auth.lockedUntil - Date.now()) / 1000 / 60);
+            throw new Error(`บัญชีถูกล็อค กรุณารอ ${lockTime} นาที`);
+        }
+        
+        // ตรวจสอบรหัสผ่าน
+        const isValidPassword = await this.verifyPassword(password, userData.auth.hashedPassword);
+        
+        if (!isValidPassword) {
+            // เพิ่มจำนวนครั้งที่ login ผิด
+            userData.auth.loginAttempts = (userData.auth.loginAttempts || 0) + 1;
+            
+            // ล็อคบัญชีถ้า login ผิด 5 ครั้ง
+            if (userData.auth.loginAttempts >= 5) {
+                userData.auth.lockedUntil = Date.now() + (15 * 60 * 1000); // ล็อค 15 นาที
+                this.saveUserData(username, userData);
+                throw new Error('Login ผิด 5 ครั้ง บัญชีถูกล็อค 15 นาที');
+            }
+            
+            this.saveUserData(username, userData);
+            throw new Error(`รหัสผ่านไม่ถูกต้อง (เหลือ ${5 - userData.auth.loginAttempts} ครั้ง)`);
+        }
+        
+        // Login สำเร็จ - reset attempts และ update login time
+        userData.auth.loginAttempts = 0;
+        userData.auth.lockedUntil = null;
+        userData.auth.lastLoginAt = Date.now();
+        this.saveUserData(username, userData);
+        
+        console.log(`🔑 User logged in: ${username}`);
+        return true;
+    }
+
+    // ฟังก์ชันสำหรับ reset รหัสผ่าน (สำหรับ admin หรือ user เก่า)
+    async resetPassword(username) {
+        const userData = this.loadUserData(username);
+        
+        // ⭐ เพิ่มการตรวจสอบและสร้าง auth object ถ้าไม่มี
+        if (!userData.auth) {
+            console.log(`⚠️ Creating auth object for user: ${username}`);
+            userData.auth = {
+                hashedPassword: '',
+                lastLoginAt: null,
+                loginAttempts: 0,
+                lockedUntil: null
+            };
+        }
+        
+        // สร้างรหัสผ่านใหม่
+        const newPassword = this.generateDefaultPassword();
+        userData.auth.hashedPassword = await this.hashPassword(newPassword);
+        userData.auth.loginAttempts = 0;
+        userData.auth.lockedUntil = null;
+        userData.auth.lastLoginAt = null; // รีเซ็ต login time
+        
+        this.saveUserData(username, userData);
+        
+        console.log(`🔑 Password reset for user: ${username} - New password: ${newPassword}`);
+        return newPassword;
+    }
+
+    // ฟังก์ชันสร้างรหัสผ่านแบบสุ่ม
+    generateDefaultPassword() {
+        const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        let password = '';
+        for (let i = 0; i < 8; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
     }
 
     // สร้าง folder users ถ้ายังไม่มี
@@ -114,6 +202,13 @@ class UserManager {
             username: username,
             createdAt: Date.now(),
             lastActiveAt: Date.now(),
+
+            auth: {
+                hashedPassword: '', // จะใส่ค่าจริงตอน createUser
+                lastLoginAt: null,
+                loginAttempts: 0,
+                lockedUntil: null
+            },
             
             // การตั้งค่า
             config: {
@@ -213,7 +308,7 @@ class UserManager {
     }
 
     // สร้าง user ใหม่
-    createUser(username, initialConfig = {}) {
+    async createUser(username, initialConfig = {}) {
         const validation = this.validateUsername(username);
         
         if (!validation.isValid) {
@@ -225,6 +320,10 @@ class UserManager {
         }
 
         const userData = this.createDefaultUserData(username);
+
+        // สร้างรหัสผ่านเริ่มต้น
+        const defaultPassword = this.generateDefaultPassword();
+        userData.auth.hashedPassword = await this.hashPassword(defaultPassword);
         
         // ใส่ config เริ่มต้น
         if (initialConfig.truewalletPhone) {
@@ -245,8 +344,13 @@ class UserManager {
 
         this.saveUserData(username, userData);
         
-        console.log(`✅ Created new user: ${username}`);
-        return userData;
+        console.log(`✅ Created new user: ${username} with password: ${defaultPassword}`);
+
+        // Return ข้อมูลรวมรหัสผ่าน (เฉพาะตอนสร้างเท่านั้น)
+        return {
+            userData: userData,
+            defaultPassword: defaultPassword
+        };
     }
 
     isDuplicateDiscriminator(username, discriminator) {

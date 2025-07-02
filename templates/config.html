@@ -821,67 +821,110 @@
 
         // Load current config
         document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // ลองหลายวิธีในการโหลด config
-                let configLoaded = false;
-
-                // Method 1: ลองดึงจาก template variable โดยตรง
-                const configStr = `{{ config }}`.trim();
-
-                if (configStr && configStr !== '{{ config }}' && configStr !== '') {
-                    try {
-                        // ถ้า config ถูก escape ด้วย &quot; ให้แปลงกลับ
-                        const unescapedConfig = configStr
-                            .replace(/&quot;/g, '"')
-                            .replace(/&amp;/g, '&')
-                            .replace(/&lt;/g, '<')
-                            .replace(/&gt;/g, '>')
-                            .replace(/&#039;/g, "'");
-
-                        currentConfig = JSON.parse(unescapedConfig);
-                        configLoaded = true;
-                        console.log('Config loaded from template:', currentConfig);
-                    } catch (e) {
-                        console.warn('Failed to parse config from template:', e);
-                    }
-                }
-
-                // Method 2: ถ้าโหลดจาก template ไม่ได้ ลองเรียก API
-                if (!configLoaded) {
-                    try {
-                        const response = await fetch('/user/{{ username }}/api/config');
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.success && data.config) {
-                                currentConfig = data.config;
-                                configLoaded = true;
-                                console.log('Config loaded from API:', currentConfig);
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Failed to load config from API:', e);
-                    }
-                }
-
-                // Method 3: ถ้ายังโหลดไม่ได้ ใช้ default
-                if (!configLoaded) {
-                    console.log('Using default config');
-                    currentConfig = getDefaultConfig();
-                }
-
-                // Populate form และ setup UI
-                populateForm(currentConfig);
-                setupColorPickers();
-                updatePreview();
-
-            } catch (error) {
-                console.error('Error in config initialization:', error);
-                currentConfig = getDefaultConfig();
-                populateForm(currentConfig);
-                setupColorPickers();
-                updatePreview();
-            }
+    try {
+        console.log('🔍 Initializing config page...');
+        
+        // ตรวจสอบ session ก่อนโหลดข้อมูล
+        const sessionCheckResponse = await fetch('/user/{{ username }}/api/session-status', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin'
         });
+
+        if (sessionCheckResponse.status === 401) {
+            console.log('❌ Session not valid, redirecting to login...');
+            showStatus('🔒 กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน Settings', 'error');
+            
+            setTimeout(() => {
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+            }, 2000);
+            return;
+        }
+
+        console.log('✅ Session validation passed');
+
+        // โหลด config
+        let configLoaded = false;
+        
+        const configResponse = await fetch('/user/{{ username }}/api/config', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin'
+        });
+
+        if (configResponse.ok) {
+            const data = await configResponse.json();
+            if (data.success && data.config) {
+                currentConfig = data.config;
+                configLoaded = true;
+                console.log('✅ Config loaded from API:', currentConfig);
+            }
+        }
+
+        // Fallback to template data
+        if (!configLoaded) {
+            const configStr = `{{ config }}`.trim();
+            if (configStr && configStr !== '{{ config }}' && configStr !== '') {
+                try {
+                    const unescapedConfig = configStr
+                        .replace(/&quot;/g, '"')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&#039;/g, "'");
+
+                    currentConfig = JSON.parse(unescapedConfig);
+                    configLoaded = true;
+                    console.log('✅ Config loaded from template:', currentConfig);
+                } catch (e) {
+                    console.warn('Failed to parse config from template:', e);
+                }
+            }
+        }
+
+        // Default config
+        if (!configLoaded) {
+            console.log('⚠️ Using default config');
+            currentConfig = getDefaultConfig();
+        }
+
+        // Setup UI
+        populateForm(currentConfig);
+        setupColorPickers();
+        updatePreview();
+
+        // เริ่ม session keep-alive
+        startSessionKeepAlive();
+
+        console.log('🎉 Config page loaded successfully');
+
+    } catch (error) {
+        console.error('💥 Error in config initialization:', error);
+        
+        // ถ้าเป็น network error
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            showStatus('🔒 ไม่สามารถตรวจสอบสิทธิ์ได้ กำลังนำไปหน้าล็อกอิน...', 'error');
+            setTimeout(() => {
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+            }, 2000);
+            return;
+        }
+        
+        // ใช้ default config และแสดง error
+        currentConfig = getDefaultConfig();
+        populateForm(currentConfig);
+        setupColorPickers();
+        updatePreview();
+        
+        showStatus('⚠️ โหลดการตั้งค่าไม่สำเร็จ ใช้ค่าเริ่มต้น', 'error');
+    }
+});
 
         function getDefaultConfig() {
             return {
@@ -1176,68 +1219,117 @@
         }
 
         async function saveConfig() {
-            const config = {
-                // Basic settings
-                truewalletPhone: document.getElementById('truewalletPhone').value,
-                streamTitle: document.getElementById('streamTitle').value,
-                alertDuration: parseInt(document.getElementById('alertDuration').value),
-                enableTTS: document.getElementById('enableTTS').value === 'true',
-                enableTTSName: document.getElementById('enableTTSName').value === 'true',
-                enableTTSMessage: document.getElementById('enableTTSMessage').value === 'true',
-                enableSound: document.getElementById('enableSound').value === 'true',
-                minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
+    const config = {
+        // ... (config data same as before)
+        truewalletPhone: document.getElementById('truewalletPhone').value,
+        streamTitle: document.getElementById('streamTitle').value,
+        alertDuration: parseInt(document.getElementById('alertDuration').value),
+        enableTTS: document.getElementById('enableTTS').value === 'true',
+        enableTTSName: document.getElementById('enableTTSName').value === 'true',
+        enableTTSMessage: document.getElementById('enableTTSMessage').value === 'true',
+        enableSound: document.getElementById('enableSound').value === 'true',
+        minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
 
-                // Bank settings
-                enableBankTransfer: document.getElementById('enableBankTransfer').value === 'true',
-                bankName: document.getElementById('bankName').value,
-                bankAccount: document.getElementById('bankAccount').value,
-                bankAccountName: document.getElementById('bankAccountName').value,
+        // Bank settings
+        enableBankTransfer: document.getElementById('enableBankTransfer').value === 'true',
+        bankName: document.getElementById('bankName').value,
+        bankAccount: document.getElementById('bankAccount').value,
+        bankAccountName: document.getElementById('bankAccountName').value,
 
-                // Widget customization
-                alertFormat: document.getElementById('alertFormat').value,
-                showBackground: document.getElementById('showBackground').value === 'true',
-                showIcon: document.getElementById('showIcon').value === 'true',
-                showSparkles: document.getElementById('showSparkles').value === 'true',
-                useCustomGif: document.getElementById('useCustomGif').value === 'true',
-                customGifUrl: document.getElementById('customGifUrl').value,
-                backgroundColor: document.getElementById('backgroundColor').value,
-                textColor: document.getElementById('textColor').value,
-                amountColor: document.getElementById('amountColor').value,
-                donorColor: document.getElementById('donorColor').value,
-                messageColor: document.getElementById('messageColor').value,
-                fontSize: parseInt(document.getElementById('fontSize').value),
-                amountSize: parseInt(document.getElementById('amountSize').value),
-                messageSize: parseInt(document.getElementById('messageSize').value),
-                borderRadius: parseInt(document.getElementById('borderRadius').value),
-                animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
+        // Widget customization
+        alertFormat: document.getElementById('alertFormat').value,
+        showBackground: document.getElementById('showBackground').value === 'true',
+        showIcon: document.getElementById('showIcon').value === 'true',
+        showSparkles: document.getElementById('showSparkles').value === 'true',
+        useCustomGif: document.getElementById('useCustomGif').value === 'true',
+        customGifUrl: document.getElementById('customGifUrl').value,
+        backgroundColor: document.getElementById('backgroundColor').value,
+        textColor: document.getElementById('textColor').value,
+        amountColor: document.getElementById('amountColor').value,
+        donorColor: document.getElementById('donorColor').value,
+        messageColor: document.getElementById('messageColor').value,
+        fontSize: parseInt(document.getElementById('fontSize').value),
+        amountSize: parseInt(document.getElementById('amountSize').value),
+        messageSize: parseInt(document.getElementById('messageSize').value),
+        borderRadius: parseInt(document.getElementById('borderRadius').value),
+        animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
 
-                // Advanced
-                customCSS: document.getElementById('customCSS').value,
-                welcomeMessage: document.getElementById('welcomeMessage').value
-            };
+        // Advanced
+        customCSS: document.getElementById('customCSS').value,
+        welcomeMessage: document.getElementById('welcomeMessage').value
+    };
 
-            try {
-                const response = await fetch('/user/{{ username }}/api/config', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(config)
-                });
+    try {
+        console.log('💾 Attempting to save config...');
 
-                const result = await response.json();
+        // 🔧 ตรวจสอบ session ก่อนบันทึก
+        const sessionCheck = await fetch('/user/{{ username }}/api/session-status', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
 
-                if (result.success) {
-                    showStatus('✅ บันทึกการตั้งค่าสำเร็จ!', 'success');
-                    currentConfig = config;
-                } else {
-                    showStatus('❌ เกิดข้อผิดพลาด: ' + result.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error saving config:', error);
-                showStatus('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+        if (sessionCheck.status === 401) {
+            throw new Error('SESSION_EXPIRED');
+        }
+
+        const response = await fetch('/user/{{ username }}/api/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(config)
+        });
+
+        console.log('📡 Save response status:', response.status);
+
+        // ตรวจสอบ Content-Type ก่อน parse
+        const contentType = response.headers.get('Content-Type');
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            const responseText = await response.text();
+            
+            if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+                throw new Error('SESSION_EXPIRED');
+            } else {
+                throw new Error(`Server returned unexpected content type: ${contentType}`);
             }
         }
+
+        const result = await response.json();
+        console.log('📋 Save result:', result);
+
+        if (response.status === 401 || result.code === 'AUTH_REQUIRED') {
+            throw new Error('SESSION_EXPIRED');
+        }
+
+        if (response.ok && result.success) {
+            showStatus('✅ บันทึกการตั้งค่าสำเร็จ!', 'success');
+            currentConfig = config;
+            
+            // รีเซ็ต error counter หลังจากบันทึกสำเร็จ
+            sessionErrorCount = 0;
+        } else {
+            const errorMessage = result.message || `HTTP ${response.status}: ${response.statusText}`;
+            showStatus('❌ เกิดข้อผิดพลาด: ' + errorMessage, 'error');
+        }
+
+    } catch (error) {
+        console.error('💥 Save config error:', error);
+        
+        if (error.message === 'SESSION_EXPIRED') {
+            showStatus('🔒 Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
+            setTimeout(() => {
+                window.location.href = `/user/{{ username }}/login?return=${encodeURIComponent(window.location.href)}`;
+            }, 2000);
+        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            showStatus('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+        } else {
+            showStatus('❌ เกิดข้อผิดพลาด: ' + error.message, 'error');
+        }
+    }
+}
 
         function copyUrl(elementId) {
             const urlElement = document.getElementById(elementId);
@@ -1315,6 +1407,7 @@
             }
         });
 
+        
         // Bank account name validation
         document.getElementById('bankAccountName').addEventListener('input', function (e) {
             const name = e.target.value;
@@ -1341,6 +1434,76 @@
         window.addEventListener('load', () => {
             updatePreview();
         });
+
+        let sessionKeepAliveInterval;
+        
+        // ตรวจสอบและต่ออายุ session ทุก 5 นาที
+        function startSessionKeepAlive() {
+    // ตรวจสอบ session ทุก 2 นาที
+    sessionKeepAliveInterval = setInterval(async () => {
+        try {
+            console.log('🔄 Checking session status...');
+            
+            const response = await fetch('/user/{{ username }}/api/session-status', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.status === 401) {
+                console.log('❌ Session expired during keep-alive');
+                clearInterval(sessionKeepAliveInterval);
+                showStatus('🔒 Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
+                
+                setTimeout(() => {
+                    const returnUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                }, 2000);
+                return;
+            }
+
+            if (response.ok) {
+                const sessionInfo = await response.json();
+                if (sessionInfo.authenticated) {
+                    console.log('✅ Session is valid, time remaining:', Math.round(sessionInfo.timeRemaining / 1000 / 60), 'minutes');
+                } else {
+                    throw new Error('Session not authenticated');
+                }
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+        } catch (error) {
+            console.error('💥 Session keep-alive error:', error);
+            
+            // ถ้าเกิด error 3 ครั้งติดต่อกัน ให้ redirect ไปหน้า login
+            sessionErrorCount = (sessionErrorCount || 0) + 1;
+            if (sessionErrorCount >= 3) {
+                console.log('❌ Too many session errors, redirecting to login');
+                clearInterval(sessionKeepAliveInterval);
+                showStatus('🔒 เกิดปัญหากับ Session กำลังนำไปหน้าล็อกอิน...', 'error');
+                
+                setTimeout(() => {
+                    const returnUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                }, 2000);
+            }
+        }
+    }, 2 * 60 * 1000); // ทุก 2 นาที
+}
+        
+        // เริ่ม keep-alive เมื่อโหลดหน้า
+        startSessionKeepAlive();
+        
+        // หยุด keep-alive เมื่อออกจากหน้า
+        window.addEventListener('beforeunload', () => {
+    if (sessionKeepAliveInterval) {
+        clearInterval(sessionKeepAliveInterval);
+    }
+});
+
     </script>
 </body>
 

@@ -1,0 +1,159 @@
+{
+  "username": "PackKung",
+  "createdAt": 1751474589512,
+  "lastActiveAt": 1751478438196,
+  "auth": {
+    "hashedPassword": "$2b$10$efBgiAQ4sYHOKqr5jTTDZ.H7YepP79GeGB1WMyjo6stX55AHYPjSm",
+    "lastLoginAt": 1751477934237,
+    "loginAttempts": 0,
+    "lockedUntil": null
+  },
+  "config": {
+    "truewalletPhone": "0626913253",
+    "enableBankTransfer": true,
+    "bankName": "ธนาคารไทยพาณิชย์",
+    "bankAccount": "3642762341",
+    "bankAccountName": "นาย จิรวัฒน์ ยิ่งยืน",
+    "streamTitle": "PackKung",
+    "alertDuration": 10000,
+    "enableTTS": true,
+    "enableTTSName": true,
+    "enableTTSMessage": true,
+    "enableSound": true,
+    "alertPosition": "top",
+    "customCSS": "",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ PackKung!",
+    "alertFormat": "{{user}} โดเนท {{amount}}",
+    "minTTSAmount": 10,
+    "showBackground": false,
+    "backgroundColor": "#d0f0fb",
+    "textColor": "#000000",
+    "amountColor": "#24fd08",
+    "donorColor": "#ffa200",
+    "messageColor": "#000000",
+    "fontSize": 55,
+    "amountSize": 80,
+    "messageSize": 12,
+    "borderRadius": 25,
+    "showIcon": true,
+    "showSparkles": true,
+    "animationSpeed": 3,
+    "customGifUrl": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fbeneaththetangles.com%2Fwwy_hhglance%2F&psig=AOvVaw0tS0IQ-Jo_5BGwPtecZJdz&ust=1751561314543000&source=images&cd=vfe&opi=89978449&ved=0CBMQjRxqFwoTCNiYrMLQno4DFQAAAAAdAAAAABAM",
+    "useCustomGif": true
+  },
+  "donations": [
+    {
+      "id": 1751478388702,
+      "timestamp": 1751478388651,
+      "bangkokTime": "03/07/2568 00:46:28",
+      "name": "กล้าม",
+      "amount": 1,
+      "message": "รวยๆ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "status": "completed"
+    },
+    {
+      "id": 1751478264875,
+      "timestamp": 1751478264013,
+      "bangkokTime": "03/07/2568 00:44:24",
+      "name": "กฟก",
+      "amount": 2200,
+      "message": "ฟกดฟ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "status": "completed"
+    },
+    {
+      "id": 1751478237295,
+      "timestamp": 1751478236355,
+      "bangkokTime": "03/07/2568 00:43:56",
+      "name": "ไกดด",
+      "amount": 2200,
+      "message": "ฟดฟ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "status": "completed"
+    },
+    {
+      "id": 1751478207719,
+      "timestamp": 1751478206751,
+      "bangkokTime": "03/07/2568 00:43:26",
+      "name": "กล้าม",
+      "amount": 2200,
+      "message": "รวยๆ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "status": "completed"
+    }
+  ],
+  "stats": {
+    "totalDonations": 4,
+    "totalAmount": 6601,
+    "averageAmount": 1650,
+    "highestDonation": 2200,
+    "uniqueDonors": 3,
+    "thisMonthAmount": 6601,
+    "lastDonationAt": 1751478388651,
+    "paymentMethods": {
+      "truewallet": {
+        "count": 0,
+        "amount": 0
+      },
+      "bank_transfer": {
+        "count": 0,
+        "amount": 0
+      },
+      "manual": {
+        "count": 4,
+        "amount": 6601
+      }
+    }
+  },
+  "advanced": {
+    "webhookUrl": "",
+    "discordWebhook": "",
+    "customAlerts": {
+      "milestone100": true,
+      "milestone500": true,
+      "milestone1000": true
+    },
+    "slipApiSettings": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutMs": 30000
+    }
+  }
+}

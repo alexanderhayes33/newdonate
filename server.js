@@ -149,7 +149,21 @@ function validateBankAccountPattern(userAccount, apiAccountValue) {
 // ===============================
 // Express Configuration - 🔧 Enhanced
 // ===============================
-
+app.use('/user/:username/*', (req, res, next) => {
+    // Log session info สำหรับ debug
+    if (req.method === 'POST' && req.path.includes('/api/')) {
+        console.log(`📊 Session Debug for ${req.username}:`, {
+            sessionID: req.sessionID?.substring(0, 8) + '...',
+            sessionExists: !!req.session,
+            userAuthExists: !!(req.session && req.session.userAuth),
+            userInSession: !!(req.session && req.session.userAuth && req.session.userAuth[req.username]),
+            method: req.method,
+            path: req.path,
+            timestamp: new Date().toISOString()
+        });
+    }
+    next();
+});
 // 🔧 Middleware สำหรับ HTTPS Redirect (เพิ่มใหม่)
 app.use((req, res, next) => {
     // ถ้าใช้ Cloudflare และต้องการ Force HTTPS
@@ -191,13 +205,17 @@ app.use((req, res, next) => {
 });
 
 app.use(require('express-session')({
-    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
-    resave: false,
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production-very-long-and-secure',
+    resave: true,  // 🔧 เปลี่ยนเป็น true
     saveUninitialized: false,
+    rolling: true, // 🔧 เปลี่ยนเป็น true
     cookie: {
-        secure: USE_HTTPS, // ใช้ secure cookie เมื่อใช้ HTTPS
-        maxAge: 24 * 60 * 60 * 1000 // 24 ชั่วโมง
-    }
+        secure: false,
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'lax'
+    },
+    name: 'alert_system_session'
 }));
 
 function requireHomepageAuth(req, res, next) {
@@ -543,19 +561,210 @@ app.use((req, res, next) => {
 // Username Parameter Middleware
 // ===============================
 app.param('username', (req, res, next, username) => {
+    // 1. ตรวจสอบรูปแบบ username ก่อน
     const validation = userManager.validateUsername(username);
     
     if (!validation.isValid) {
         return res.status(400).json({
             success: false,
+            error: 'Invalid username format',
             message: `Invalid username: ${validation.errors.join(', ')}`
         });
     }
     
-    req.username = username;
-    req.userData = userManager.loadUserData(username);
-    next();
+    // 2. ตรวจสอบว่า user มีอยู่จริงหรือไม่
+    if (!userManager.userExists(username)) {
+        console.log(`❌ User not found: ${username}`);
+        
+        // Return 404 HTML page for browser requests
+        if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>User Not Found</title>
+                    <style>
+                        body {
+                            font-family: 'Kanit', sans-serif;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .container {
+                            background: rgba(255, 255, 255, 0.1);
+                            backdrop-filter: blur(20px);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 20px;
+                            padding: 40px;
+                            text-align: center;
+                            max-width: 500px;
+                            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            font-size: 2.5em;
+                            margin-bottom: 20px;
+                            background: linear-gradient(135deg, #ff6b6b, #feca57);
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            background-clip: text;
+                        }
+                        p {
+                            font-size: 1.2em;
+                            margin-bottom: 30px;
+                            opacity: 0.9;
+                        }
+                        .username {
+                            background: rgba(255, 255, 255, 0.2);
+                            padding: 10px 20px;
+                            border-radius: 10px;
+                            font-family: monospace;
+                            font-weight: bold;
+                            margin: 0 10px;
+                        }
+                        .btn {
+                            display: inline-block;
+                            padding: 15px 30px;
+                            background: linear-gradient(135deg, #10b981, #34d399);
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 15px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            margin: 0 10px;
+                        }
+                        .btn:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                        }
+                        .btn.secondary {
+                            background: linear-gradient(135deg, #6b7280, #9ca3af);
+                        }
+                        .btn.secondary:hover {
+                            box-shadow: 0 10px 25px rgba(107, 114, 128, 0.3);
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>🚫 User Not Found</h1>
+                        <p>
+                            ไม่พบผู้ใช้ <span class="username">${username}</span> ในระบบ
+                        </p>
+                        <p>กรุณาตรวจสอบชื่อผู้ใช้หรือสร้างบัญชีใหม่</p>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+        
+        // Return JSON for API requests
+        return res.status(404).json({
+            success: false,
+            error: 'User not found',
+            message: `User '${username}' not found in the system`,
+            suggestion: 'Please check the username or create a new account'
+        });
+    }
+    
+    // 3. โหลดข้อมูล user และเก็บไว้ใน req
+    try {
+        req.username = username;
+        req.userData = userManager.loadUserData(username);
+        
+        console.log(`✅ User validated: ${username}`);
+        next();
+    } catch (error) {
+        console.error(`❌ Error loading user data for ${username}:`, error);
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: 'Failed to load user data'
+        });
+    }
 });
+// ===============================
+// User Authentication Middleware
+// ===============================
+function requireUserAuth(req, res, next) {
+    const username = req.username;
+    
+    console.log(`🔐 === DETAILED AUTH CHECK for ${username} ===`);
+    console.log(`📋 Session Details:`, {
+        sessionExists: !!req.session,
+        sessionID: req.sessionID?.substring(0, 8) + '...',
+        userAuthExists: !!(req.session && req.session.userAuth),
+        userInAuth: !!(req.session && req.session.userAuth && req.session.userAuth[username])
+    });
+    
+    // ตรวจสอบว่า session object มีอยู่
+    if (!req.session) {
+        console.log(`❌ No session object for ${username}`);
+        return redirectToLogin(req, res, 'No session object');
+    }
+    
+    // 🔧 สร้าง userAuth object ถ้ายังไม่มี
+    if (!req.session.userAuth) {
+        console.log(`⚠️ Creating userAuth object for session`);
+        req.session.userAuth = {};
+    }
+    
+    // ตรวจสอบว่าล็อกอินแล้วหรือยัง
+    const userSession = req.session.userAuth[username];
+    if (!userSession) {
+        console.log(`❌ User ${username} not in session`);
+        console.log(`📋 Available users:`, Object.keys(req.session.userAuth));
+        return redirectToLogin(req, res, 'User not in session');
+    }
+    
+    // ตรวจสอบว่า session หมดอายุหรือไม่ (24 ชั่วโมง)
+    const sessionAge = Date.now() - userSession.loginAt;
+    const maxAge = 24 * 60 * 60 * 1000;
+    
+    if (sessionAge > maxAge) {
+        console.log(`❌ Session expired for ${username}`);
+        delete req.session.userAuth[username];
+        return redirectToLogin(req, res, 'Session expired');
+    }
+    
+    // ✅ ล็อกอินแล้ว - อัพเดท lastAccessAt
+    userSession.lastAccessAt = Date.now();
+    
+    console.log(`✅ SUCCESS: User ${username} authenticated successfully`);
+    return next();
+    
+    // Helper function for redirecting to login
+    function redirectToLogin(req, res, reason) {
+        const isApiRequest = req.path.includes('/api/') || 
+                            req.headers.accept?.includes('application/json') ||
+                            req.headers['content-type']?.includes('application/json');
+        
+        if (isApiRequest) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required',
+                message: 'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่',
+                loginUrl: `/user/${username}/login`,
+                code: 'AUTH_REQUIRED',
+                reason: reason,
+                debug: {
+                    sessionExists: !!req.session,
+                    sessionID: req.sessionID?.substring(0, 8) + '...',
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
+        
+        const returnUrl = req.originalUrl;
+        res.redirect(`/user/${username}/login?return=${encodeURIComponent(returnUrl)}&reason=${encodeURIComponent(reason)}`);
+    }
+}
 
 // ===============================
 // Socket.io Connection Handling
@@ -748,7 +957,7 @@ app.get('/', (req, res) => {
 });
 
 // 🆕 สร้าง user ใหม่
-app.post('/user/create', (req, res) => {
+app.post('/user/create', async (req, res) => {
     try {
         console.log('📝 Create user request:', req.body);
         
@@ -807,14 +1016,205 @@ app.post('/user/create', (req, res) => {
             `);
         }
         
-        const userData = userManager.createUser(username, {
+        const result = await userManager.createUser(username, {
             truewalletPhone: phone,
             streamTitle: `${username}'s Stream`
         });
         
-        console.log(`✅ New user created: ${username} with phone: ${phone.substring(0, 3)}***${phone.substring(7)}`);
+        console.log(`✅ New user created: ${username} with password: ${result.defaultPassword}`);
         
-        res.redirect(`/user/${username}/config?created=true`);
+        // แสดงหน้าที่มีรหัสผ่าน
+        res.send(`
+            <!DOCTYPE html>
+            <html lang="th">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>🎉 สร้างบัญชีสำเร็จ</title>
+                <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+                <style>
+                    body {
+                        font-family: 'Kanit', sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0;
+                        padding: 20px;
+                    }
+                    .container {
+                        background: rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(20px);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 20px;
+                        padding: 40px;
+                        text-align: center;
+                        max-width: 500px;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                    }
+                    h1 {
+                        font-size: 2.5em;
+                        margin-bottom: 20px;
+                        background: linear-gradient(135deg, #10b981, #34d399);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                    }
+                    .username {
+                        background: rgba(102, 126, 234, 0.2);
+                        color: #667eea;
+                        padding: 15px 25px;
+                        border-radius: 15px;
+                        font-size: 1.5em;
+                        font-weight: bold;
+                        margin: 20px 0;
+                        border: 2px solid rgba(102, 126, 234, 0.3);
+                    }
+                    .password-section {
+                        background: rgba(239, 68, 68, 0.1);
+                        border: 2px solid rgba(239, 68, 68, 0.3);
+                        border-radius: 15px;
+                        padding: 25px;
+                        margin: 20px 0;
+                    }
+                    .password {
+                        background: rgba(255, 255, 255, 0.2);
+                        color: #ff6b6b;
+                        padding: 15px 25px;
+                        border-radius: 10px;
+                        font-family: monospace;
+                        font-size: 1.8em;
+                        font-weight: bold;
+                        margin: 15px 0;
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        letter-spacing: 2px;
+                        user-select: all;
+                        cursor: pointer;
+                    }
+                    .password:hover {
+                        background: rgba(255, 255, 255, 0.3);
+                    }
+                    .warning {
+                        color: #fca5a5;
+                        font-size: 0.9em;
+                        margin-top: 10px;
+                        line-height: 1.5;
+                    }
+                    .btn {
+                        display: inline-block;
+                        padding: 15px 30px;
+                        background: linear-gradient(135deg, #10b981, #34d399);
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 15px;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                        margin: 10px;
+                    }
+                    .btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                    }
+                    .btn.secondary {
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                    }
+                    .btn.secondary:hover {
+                        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+                    }
+                    .info {
+                        background: rgba(59, 130, 246, 0.1);
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        border-radius: 10px;
+                        padding: 15px;
+                        margin: 20px 0;
+                        font-size: 0.9em;
+                        line-height: 1.5;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🎉 สร้างบัญชีสำเร็จ!</h1>
+                    
+                    <div class="username">@${username}</div>
+                    
+                    <div class="password-section">
+                        <h3 style="margin-bottom: 15px;">🔑 รหัสผ่านของคุณ</h3>
+                        <div class="password" onclick="copyPassword()" title="คลิกเพื่อคัดลอก">
+                            ${result.defaultPassword}
+                        </div>
+                        <div class="warning">
+                            ⚠️ <strong>สำคัญมาก!</strong><br>
+                            • กรุณาบันทึกรหัสผ่านนี้ไว้ในที่ปลอดภัย<br>
+                            • รหัสผ่านนี้จะไม่แสดงอีกครั้ง<br>
+                            • ใช้สำหรับเข้า Config และ History เท่านั้น<br>
+                            • คลิกที่รหัสผ่านเพื่อคัดลอก
+                        </div>
+                    </div>
+                    
+                    <div class="info">
+                        💡 <strong>ข้อมูลเพิ่มเติม:</strong><br>
+                        • Donate Page และ Widget ไม่ต้องใช้รหัสผ่าน<br>
+                        • เฉพาะหน้า Settings และ History เท่านั้นที่ต้องล็อกอิน<br>
+                        • สามารถเปลี่ยนรหัสผ่านได้ในหน้า Settings
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <a href="/user/${username}/config" class="btn">⚙️ ไปที่ Settings</a>
+                        <a href="/" class="btn secondary">🏠 กลับหน้าแรก</a>
+                    </div>
+                </div>
+                
+                <script>
+                    function copyPassword() {
+                        const password = '${result.defaultPassword}';
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(password).then(() => {
+                                alert('📋 คัดลอกรหัสผ่านสำเร็จ!');
+                            }).catch(err => {
+                                fallbackCopy(password);
+                            });
+                        } else {
+                            fallbackCopy(password);
+                        }
+                    }
+                    
+                    function fallbackCopy(text) {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = text;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            alert('📋 คัดลอกรหัสผ่านสำเร็จ!');
+                        } catch (err) {
+                            alert('กรุณาคัดลอกรหัสผ่านด้วยตนเอง: ' + text);
+                        }
+                        document.body.removeChild(textarea);
+                    }
+                    
+                    // Auto select password when click
+                    document.querySelector('.password').addEventListener('click', function() {
+                        if (window.getSelection) {
+                            const selection = window.getSelection();
+                            const range = document.createRange();
+                            range.selectNodeContents(this);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                        }
+                    });
+                    
+                    // เตือนก่อนออกจากหน้า
+                    window.addEventListener('beforeunload', function (e) {
+                        e.preventDefault();
+                        e.returnValue = 'คุณได้บันทึกรหัสผ่านแล้วหรือยัง? รหัสผ่านจะไม่แสดงอีกครั้ง';
+                    });
+                </script>
+            </body>
+            </html>
+        `);
         
     } catch (error) {
         console.error('❌ Error creating user:', error);
@@ -907,7 +1307,7 @@ app.get('/user/:username/widget', (req, res) => {
 });
 
 // ⚙️ Config/Settings - 🔧 Enhanced with Domain Support
-app.get('/user/:username/config', (req, res) => {
+app.get('/user/:username/config', requireUserAuth, (req, res) => {
     try {
         console.log(`📄 Loading config page for: ${req.username}`);
         
@@ -973,7 +1373,7 @@ app.get('/user/:username/control', (req, res) => {
 });
 
 // 📊 History Dashboard
-app.get('/user/:username/history', (req, res) => {
+app.get('/user/:username/history', requireUserAuth, (req, res) => {
     try {
         console.log(`📄 Rendering history for: ${req.username}`);
         
@@ -1395,7 +1795,7 @@ app.post('/user/:username/api/test-bank-validation', async (req, res) => {
 });
 
 // ⚙️ API อัพเดท config
-app.post('/user/:username/api/config', (req, res) => {
+app.post('/user/:username/api/config', requireUserAuth, (req, res) => {
     try {
         const updatedConfig = userManager.updateConfig(req.username, req.body);
         res.json({ 
@@ -1413,7 +1813,7 @@ app.post('/user/:username/api/config', (req, res) => {
 });
 
 // ⚙️ API ดึง config
-app.get('/user/:username/api/config', (req, res) => {
+app.get('/user/:username/api/config', requireUserAuth, (req, res) => {
     try {
         const userData = userManager.loadUserData(req.username);
         res.json({ 
@@ -1430,7 +1830,7 @@ app.get('/user/:username/api/config', (req, res) => {
 });
 
 // 📊 API ดู donation logs
-app.get('/user/:username/api/donations', (req, res) => {
+app.get('/user/:username/api/donations', requireUserAuth, (req, res) => {
     try {
         const { page = 1, limit = 50, search = '', dateFrom, dateTo, paymentMethod } = req.query;
         
@@ -1512,7 +1912,7 @@ app.get('/user/:username/api/donation-stats', (req, res) => {
 });
 
 // 📥 API export donations
-app.get('/user/:username/api/donations/export', (req, res) => {
+app.get('/user/:username/api/donations/export', requireUserAuth, (req, res) => {
     try {
         const { format = 'json' } = req.query;
         
@@ -1742,6 +2142,343 @@ app.post('/api/admin/backup', (req, res) => {
             message: error.message
         });
     }
+});
+
+// ===============================
+// User Login Routes
+// ===============================
+
+// หน้า Login สำหรับ User
+app.get('/user/:username/login', (req, res) => {
+    const username = req.username;
+    const error = req.query.error;
+    const returnUrl = req.query.return || `/user/${username}/config`;
+    
+    const html = `
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🔒 ${username} - Login</title>
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Kanit', sans-serif;
+                background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+                color: #ffffff;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            
+            .login-container {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 24px;
+                padding: 40px;
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+            
+            .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 15px;
+                font-size: 28px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 30px;
+            }
+            
+            .username-display {
+                background: rgba(102, 126, 234, 0.2);
+                color: #667eea;
+                padding: 10px 20px;
+                border-radius: 12px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                border: 1px solid rgba(102, 126, 234, 0.3);
+            }
+            
+            h1 {
+                font-size: 2em;
+                font-weight: 700;
+                margin-bottom: 10px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+                text-align: left;
+            }
+            
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 15px;
+            }
+            
+            input[type="password"] {
+                width: 100%;
+                padding: 16px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 16px;
+                color: white;
+                font-size: 16px;
+                font-family: 'Kanit', sans-serif;
+                transition: all 0.3s ease;
+            }
+            
+            input[type="password"]:focus {
+                outline: none;
+                border-color: #667eea;
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 16px 32px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                border-radius: 16px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+                margin-bottom: 20px;
+            }
+            
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            }
+            
+            .error-message {
+                background: rgba(239, 68, 68, 0.2);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #fca5a5;
+                padding: 12px 16px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+            
+            .info {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+            
+            .back-link {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+                margin-top: 20px;
+                display: inline-block;
+            }
+            
+            .back-link:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="logo">
+                <span>🔒 User Login</span>
+            </div>
+            
+            <div class="username-display">@${username}</div>
+            
+            <h1>เข้าสู่ระบบ</h1>
+            
+            ${error ? `<div class="error-message">${decodeURIComponent(error)}</div>` : ''}
+            
+            <form action="/user/${username}/auth" method="post">
+                <input type="hidden" name="returnUrl" value="${returnUrl}">
+                
+                <div class="form-group">
+                    <label for="password">🔑 รหัสผ่าน</label>
+                    <input type="password" id="password" name="password" placeholder="ใส่รหัสผ่านของคุณ" required autofocus>
+                </div>
+                
+                <button type="submit" class="login-btn">🚀 เข้าสู่ระบบ</button>
+            </form>
+            
+            <div class="info">
+                <p>🔐 รหัสผ่านเฉพาะสำหรับ ${username}</p>
+                <p>💡 ลืมรหัสผ่าน? ติดต่อ Admin</p>
+            </div>
+            
+            <a href="/" class="back-link">← กลับหน้าแรก</a>
+        </div>
+    </body>
+    </html>
+    `;
+    
+    res.send(html);
+});
+
+// ตรวจสอบรหัสผ่าน User
+app.post('/user/:username/auth', async (req, res) => {
+    const username = req.username;
+    const { password, returnUrl } = req.body;
+    
+    try {
+        await userManager.verifyLogin(username, password);
+        
+        // 🔧 สร้าง session ใหม่เพื่อป้องกัน session fixation
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error('❌ Session regeneration error:', err);
+                return res.status(500).send('ไม่สามารถสร้าง session ได้');
+            }
+            
+            // เก็บ session ด้วยข้อมูลเพิ่มเติม
+            if (!req.session.userAuth) {
+                req.session.userAuth = {};
+            }
+            
+            req.session.userAuth[username] = {
+                loginAt: Date.now(),
+                lastAccessAt: Date.now(),
+                ip: req.ip,
+                userAgent: req.get('User-Agent')?.substring(0, 100),
+                sessionId: req.sessionID
+            };
+            
+            // 🔧 บังคับ save session
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    console.error('❌ Session save error after login:', saveErr);
+                    return res.status(500).send('ไม่สามารถบันทึก session ได้');
+                }
+                
+                console.log(`✅ User login successful: ${username} from IP: ${req.ip}`);
+                console.log(`🔐 New session created with ID: ${req.sessionID?.substring(0, 8)}...`);
+                
+                const finalReturnUrl = returnUrl && returnUrl !== 'undefined' ? 
+                    returnUrl : `/user/${username}/config`;
+                
+                res.redirect(finalReturnUrl);
+            });
+        });
+        
+    } catch (error) {
+        console.log(`❌ User login failed: ${username} - ${error.message}`);
+        const errorMsg = encodeURIComponent(`❌ ${error.message}`);
+        const returnParam = returnUrl ? `&return=${encodeURIComponent(returnUrl)}` : '';
+        res.redirect(`/user/${username}/login?error=${errorMsg}${returnParam}`);
+    }
+});
+
+app.post('/user/:username/api/reset-password', async (req, res) => {
+    try {
+        const username = req.username;
+        
+        // ⭐ เพิ่มการตรวจสอบ user เก่า
+        const userData = userManager.loadUserData(username);
+        let wasOldUser = false;
+        
+        // ตรวจสอบว่าเป็น user เก่าที่ไม่มี auth หรือไม่
+        if (!userData.auth || !userData.auth.hashedPassword) {
+            console.log(`🔄 User ${username} is old user, needs migration`);
+            wasOldUser = true;
+        }
+        
+        const newPassword = await userManager.resetPassword(username);
+        
+        console.log(`🔑 Password ${wasOldUser ? 'created' : 'reset'} for: ${username}`);
+        
+        res.json({
+            success: true,
+            message: wasOldUser ? 'สร้างรหัสผ่านสำเร็จ (User เก่า)' : 'รีเซ็ตรหัสผ่านสำเร็จ',
+            newPassword: newPassword,
+            wasOldUser: wasOldUser
+        });
+        
+    } catch (error) {
+        console.error(`❌ Reset password error for ${req.username}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+app.get('/user/:username/api/session-status', (req, res) => {
+    const username = req.username;
+    
+    if (!req.session || !req.session.userAuth || !req.session.userAuth[username]) {
+        return res.status(401).json({
+            success: false,
+            authenticated: false,
+            message: 'Not authenticated'
+        });
+    }
+    
+    const userSession = req.session.userAuth[username];
+    const sessionAge = Date.now() - userSession.loginAt;
+    const maxAge = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+    
+    if (sessionAge > maxAge) {
+        delete req.session.userAuth[username];
+        return res.status(401).json({
+            success: false,
+            authenticated: false,
+            message: 'Session expired'
+        });
+    }
+    
+    // อัพเดท lastAccessAt
+    userSession.lastAccessAt = Date.now();
+    
+    res.json({
+        success: true,
+        authenticated: true,
+        loginAt: userSession.loginAt,
+        lastAccessAt: userSession.lastAccessAt,
+        sessionAge: sessionAge,
+        maxAge: maxAge,
+        timeRemaining: maxAge - sessionAge
+    });
+});
+
+
+// Logout สำหรับ User
+app.get('/user/:username/logout', (req, res) => {
+    const username = req.username;
+    
+    if (req.session.userAuth && req.session.userAuth[username]) {
+        delete req.session.userAuth[username];
+    }
+    
+    res.redirect(`/user/${username}/login`);
 });
 
 // ===============================
