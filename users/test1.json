@@ -1,7 +1,7 @@
 {
   "username": "test1",
   "createdAt": 1751462930011,
-  "lastActiveAt": 1751477916052,
+  "lastActiveAt": 1751499623470,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": false,
@@ -24,14 +24,14 @@
     "textColor": "#1f2937",
     "amountColor": "#f59e0b",
     "donorColor": "#667eea",
-    "messageColor": "#6b7280",
+    "messageColor": "#ffffff",
     "fontSize": 42,
-    "amountSize": 56,
-    "messageSize": 31,
-    "borderRadius": 25,
+    "amountSize": 106,
+    "messageSize": 48,
+    "borderRadius": 23,
     "showIcon": true,
     "showSparkles": true,
-    "animationSpeed": 1.2,
+    "animationSpeed": 1.3,
     "customGifUrl": "",
     "useCustomGif": false
   },
@@ -94,8 +94,8 @@
     }
   },
   "auth": {
-    "hashedPassword": "$2b$10$lTa0GVkZd4hzYeEYI2boeOYnfGoLe4..vjaXPyjGBqbQN.ywmG2bW",
-    "lastLoginAt": 1751477911520,
+    "hashedPassword": "$2b$10$1UD3O6igWmsS7lukPDI3reg6tRNJslMZ1mptO09kDvn7DVKiDcOh2",
+    "lastLoginAt": 1751499623470,
     "loginAttempts": 0,
     "lockedUntil": null
   }

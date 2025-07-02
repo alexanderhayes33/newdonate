@@ -1,0 +1,72 @@
+{
+  "username": "123123123",
+  "createdAt": 1751460592606,
+  "lastActiveAt": 1751460592607,
+  "config": {
+    "truewalletPhone": "",
+    "enableBankTransfer": false,
+    "bankName": "",
+    "bankAccount": "",
+    "bankAccountName": "",
+    "streamTitle": "123123123's Stream",
+    "alertDuration": 5000,
+    "enableTTS": true,
+    "enableSound": true,
+    "alertPosition": "top",
+    "customCSS": "",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ 123123123!",
+    "alertFormat": "{{user}} โดเนท {{amount}}",
+    "minTTSAmount": 50,
+    "showBackground": false,
+    "backgroundColor": "rgba(255, 255, 255, 0.95)",
+    "textColor": "#1f2937",
+    "amountColor": "#f59e0b",
+    "donorColor": "#667eea",
+    "fontSize": 42,
+    "amountSize": 56,
+    "borderRadius": 25,
+    "showIcon": true,
+    "showSparkles": true,
+    "animationSpeed": 1.2,
+    "customGifUrl": "",
+    "useCustomGif": false
+  },
+  "donations": [],
+  "stats": {
+    "totalDonations": 0,
+    "totalAmount": 0,
+    "averageAmount": 0,
+    "highestDonation": 0,
+    "uniqueDonors": 0,
+    "thisMonthAmount": 0,
+    "lastDonationAt": null,
+    "paymentMethods": {
+      "truewallet": {
+        "count": 0,
+        "amount": 0
+      },
+      "bank_transfer": {
+        "count": 0,
+        "amount": 0
+      },
+      "manual": {
+        "count": 0,
+        "amount": 0
+      }
+    }
+  },
+  "advanced": {
+    "webhookUrl": "",
+    "discordWebhook": "",
+    "customAlerts": {
+      "milestone100": true,
+      "milestone500": true,
+      "milestone1000": true
+    },
+    "slipApiSettings": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutMs": 30000
+    }
+  }
+}

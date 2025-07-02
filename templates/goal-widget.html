@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Goal Widget - {{ username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: 'Kanit', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .goal-widget {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 400px;
+            background: transparent;
+        }
+
+        .goal-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow:
+                2px 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 10px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .goal-amount {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow:
+                1px 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-container {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 25px;
+            height: 50px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+            border-radius: 25px;
+            position: relative;
+            transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 0 20px rgba(16, 185, 129, 0.6),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            min-width: 4px;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+            border-radius: 25px 25px 0 0;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            border-radius: 25px;
+            animation: shine 3s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .progress-bar.pulsing {
+            animation: progressPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progressPulse {
+
+            0%,
+            100% {
+                box-shadow:
+                    0 0 20px rgba(16, 185, 129, 0.6),
+                    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 35px rgba(16, 185, 129, 0.9),
+                    0 0 60px rgba(16, 185, 129, 0.4),
+                    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+            text-shadow:
+                2px 2px 4px rgba(0, 0, 0, 0.9),
+                0 0 8px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            letter-spacing: 0.5px;
+        }
+
+        .goal-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .current-amount {
+            color: #34d399;
+            text-shadow:
+                1px 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 8px rgba(52, 211, 153, 0.4);
+        }
+
+        .target-amount {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow:
+                1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .celebration {
+            position: absolute;
+            top: -100px;
+            left: -50px;
+            right: -50px;
+            bottom: -100px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .confetti {
+            position: absolute;
+            font-size: 24px;
+            animation: confettiFall 4s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(300px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .milestone-popup {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 16px;
+            text-align: center;
+            box-shadow:
+                0 8px 25px rgba(245, 158, 11, 0.5),
+                0 0 40px rgba(245, 158, 11, 0.3);
+            z-index: 15;
+            opacity: 0;
+            animation: milestoneAnimation 3s ease-out forwards;
+        }
+
+        @keyframes milestoneAnimation {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px) scale(0.5);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-10px) scale(1.1);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-10px) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-30px) scale(0.9);
+            }
+        }
+
+        .goal-complete-popup {
+            background: linear-gradient(135deg, #10b981, #34d399) !important;
+            font-size: 20px !important;
+            padding: 16px 32px !important;
+            box-shadow:
+                0 10px 30px rgba(16, 185, 129, 0.6),
+                0 0 50px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        .recent-donation-popup {
+            position: absolute;
+            top: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(102, 126, 234, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow:
+                0 8px 25px rgba(102, 126, 234, 0.4),
+                0 0 30px rgba(102, 126, 234, 0.2);
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 12;
+            white-space: nowrap;
+        }
+
+        .recent-donation-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .donor-name {
+            color: #a5f3fc;
+            font-weight: 800;
+        }
+
+        .donation-amount {
+            color: #34d399;
+            font-weight: 800;
+        }
+
+        /* Position variants */
+        .goal-widget.top-left {
+            top: 50px;
+            left: 50px;
+        }
+
+        .goal-widget.top-right {
+            top: 50px;
+            right: 50px;
+        }
+
+        .goal-widget.bottom-left {
+            bottom: 50px;
+            left: 50px;
+        }
+
+        .goal-widget.bottom-right {
+            bottom: 50px;
+            right: 50px;
+        }
+
+        .goal-widget.center {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 500px) {
+            .goal-widget {
+                width: calc(100vw - 100px);
+                max-width: 350px;
+            }
+
+            .goal-title {
+                font-size: 20px;
+            }
+
+            .goal-amount {
+                font-size: 14px;
+            }
+
+            .progress-text {
+                font-size: 16px;
+            }
+        }
+
+        /* Hide when complete */
+        .goal-widget.hidden {
+            opacity: 0;
+            transform: translateY(-100px);
+            transition: all 1s ease-in;
+        }
+
+        /* Entry animation */
+        .goal-widget {
+            animation: slideInFromTop 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .connection-indicator {
+            position: absolute;
+            top: -15px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .connection-indicator.connected {
+            background: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="goal-widget top-left" id="goalWidget">
+        <div class="connection-indicator" id="connectionIndicator"></div>
+
+        <div class="goal-title" id="goalTitle">ค่าอาหารในแต่ละวัน</div>
+
+        <div class="goal-amount" id="goalAmount">0฿ (0%) จากเป้าหมาย 200฿</div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+            <div class="progress-text" id="progressText">0฿ (0%)</div>
+        </div>
+
+        <div class="goal-details">
+            <div class="current-amount" id="currentAmount">0฿</div>
+            <div class="target-amount" id="targetAmount">เป้าหมาย 200฿</div>
+        </div>
+
+        <div class="recent-donation-popup" id="recentDonation">
+            <span class="donor-name">คุณ A</span> โดเนท <span class="donation-amount">50฿</span>
+        </div>
+
+        <div class="celebration" id="celebration"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Widget configuration from template
+        window.GOAL_CONFIG = {};
+
+        try {
+            window.GOAL_CONFIG = {
+                username: "{{ username }}",
+                goalTitle: "{{ goalTitle }}",
+                targetAmount: parseFloat("{{ goalTargetAmount }}") || 200,
+                startDate: "{{ goalStartDate }}",
+                resetPeriod: "{{ goalResetPeriod }}" || "daily",
+                showRecentDonations: "{{ showRecentDonations }}" === "true",
+                celebrateOnComplete: "{{ celebrateOnComplete }}" === "true",
+                position: "{{ goalPosition }}" || "top-left",
+                hideWhenComplete: "{{ hideWhenComplete }}" === "true",
+                milestones: [25, 50, 75, 90, 100]
+            };
+        } catch (error) {
+            console.error('Error parsing goal config:', error);
+            window.GOAL_CONFIG = {
+                username: "demo",
+                goalTitle: "ค่าอาหารในแต่ละวัน",
+                targetAmount: 200,
+                startDate: new Date().toISOString().split('T')[0],
+                resetPeriod: "daily",
+                showRecentDonations: true,
+                celebrateOnComplete: true,
+                position: "top-left",
+                hideWhenComplete: false,
+                milestones: [25, 50, 75, 90, 100]
+            };
+        }
+
+        class DonationGoalWidget {
+            constructor() {
+                this.config = window.GOAL_CONFIG;
+                this.currentAmount = 0;
+                this.donationCount = 0;
+                this.recentMilestones = new Set();
+                this.isComplete = false;
+
+                this.elements = {
+                    widget: document.getElementById('goalWidget'),
+                    goalTitle: document.getElementById('goalTitle'),
+                    goalAmount: document.getElementById('goalAmount'),
+                    progressBar: document.getElementById('progressBar'),
+                    progressText: document.getElementById('progressText'),
+                    currentAmount: document.getElementById('currentAmount'),
+                    targetAmount: document.getElementById('targetAmount'),
+                    recentDonation: document.getElementById('recentDonation'),
+                    celebration: document.getElementById('celebration'),
+                    connectionIndicator: document.getElementById('connectionIndicator')
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupPosition();
+                this.loadFromServer();
+                this.updateDisplay();
+                this.setupSocket();
+                this.setupAutoReset();
+
+                console.log('🎯 Goal Widget initialized:', this.config);
+            }
+
+            setupPosition() {
+                const widget = this.elements.widget;
+
+                // Remove all position classes
+                widget.className = widget.className.replace(/\b(top-left|top-right|bottom-left|bottom-right|center)\b/g, '');
+
+                // Add new position class
+                widget.classList.add(this.config.position);
+            }
+
+            async loadFromServer() {
+                try {
+                    const response = await fetch(`/user/${this.config.username}/api/goal-data`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            this.currentAmount = data.currentAmount || 0;
+                            this.donationCount = data.donationCount || 0;
+                            this.recentMilestones = new Set(data.milestones || []);
+                            this.isComplete = data.isComplete || false;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not load goal data from server:', error);
+                    this.loadFromLocalStorage();
+                }
+            }
+
+            setupSocket() {
+                this.socket = io();
+
+                this.socket.on('connect', () => {
+                    console.log('📡 Goal Widget connected');
+                    this.updateConnectionStatus(true);
+                    this.socket.emit('join-user-room', this.config.username);
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('📡 Goal Widget disconnected');
+                    this.updateConnectionStatus(false);
+                });
+
+                this.socket.on('new-alert', (alertData) => {
+                    this.addDonation(alertData.amount, alertData.name);
+                });
+
+                this.socket.on('goal-update', (data) => {
+                    if (data.type === 'reset') {
+                        this.resetGoal();
+                    } else if (data.type === 'config-update') {
+                        this.updateConfig(data.config);
+                    }
+                });
+            }
+
+            updateConnectionStatus(connected) {
+                if (connected) {
+                    this.elements.connectionIndicator.classList.add('connected');
+                } else {
+                    this.elements.connectionIndicator.classList.remove('connected');
+                }
+            }
+
+            addDonation(amount, donorName = 'ผู้สนับสนุน') {
+                if (this.isComplete && this.config.hideWhenComplete) {
+                    return;
+                }
+
+                const oldAmount = this.currentAmount;
+                this.currentAmount += amount;
+                this.donationCount++;
+
+                console.log(`💰 Goal donation: ${donorName} - ${amount}฿ (Total: ${this.currentAmount}฿)`);
+
+                // บันทึกข้อมูล
+                this.saveToServer();
+
+                // แอนิเมชันการเปลี่ยนแปลง
+                this.animateProgress(oldAmount, this.currentAmount);
+
+                // แสดงการโดเนทล่าสุด
+                if (this.config.showRecentDonations) {
+                    this.showRecentDonation(donorName, amount);
+                }
+
+                // ตรวจสอบ milestones
+                this.checkMilestones(oldAmount, this.currentAmount);
+
+                // ตรวจสอบเป้าหมายสำเร็จ
+                if (this.currentAmount >= this.config.targetAmount && oldAmount < this.config.targetAmount) {
+                    this.celebrateGoalComplete();
+                }
+            }
+
+            animateProgress(fromAmount, toAmount) {
+                const duration = 2000;
+                const startTime = Date.now();
+                const amountDiff = toAmount - fromAmount;
+
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Smooth easing
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const currentDisplayAmount = fromAmount + (amountDiff * easeOut);
+
+                    this.updateProgressDisplay(currentDisplayAmount);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        this.updateProgressDisplay(toAmount);
+                    }
+                };
+
+                animate();
+            }
+
+            updateProgressDisplay(amount = this.currentAmount) {
+                const percentage = Math.min((amount / this.config.targetAmount) * 100, 100);
+                const isComplete = percentage >= 100;
+
+                // อัปเดต progress bar
+                this.elements.progressBar.style.width = percentage + '%';
+
+                // อัปเดตข้อความ
+                this.elements.progressText.textContent = `${Math.round(amount)}฿ (${Math.round(percentage)}%)`;
+                this.elements.goalAmount.textContent = `${Math.round(amount)}฿ (${Math.round(percentage)}%) จากเป้าหมาย ${this.config.targetAmount}฿`;
+                this.elements.currentAmount.textContent = `${Math.round(amount)}฿`;
+                this.elements.targetAmount.textContent = `เป้าหมาย ${this.config.targetAmount}฿`;
+
+                // เอฟเฟกต์พิเศษเมื่อใกล้เป้าหมาย
+                if (percentage >= 90) {
+                    this.elements.progressBar.classList.add('pulsing');
+                } else {
+                    this.elements.progressBar.classList.remove('pulsing');
+                }
+
+                // ซ่อน widget ถ้าเป้าหมายสำเร็จ
+                if (isComplete && this.config.hideWhenComplete) {
+                    setTimeout(() => {
+                        this.elements.widget.classList.add('hidden');
+                    }, 4000);
+                }
+            }
+
+            updateDisplay() {
+                this.elements.goalTitle.textContent = this.config.goalTitle;
+                this.elements.targetAmount.textContent = `เป้าหมาย ${this.config.targetAmount}฿`;
+                this.updateProgressDisplay();
+            }
+
+            showRecentDonation(donorName, amount) {
+                this.elements.recentDonation.innerHTML = `
+                    <span class="donor-name">${donorName}</span> โดเนท <span class="donation-amount">${amount}฿</span>
+                `;
+                this.elements.recentDonation.classList.add('show');
+
+                setTimeout(() => {
+                    this.elements.recentDonation.classList.remove('show');
+                }, 4000);
+            }
+
+            checkMilestones(oldAmount, newAmount) {
+                const oldPercentage = (oldAmount / this.config.targetAmount) * 100;
+                const newPercentage = (newAmount / this.config.targetAmount) * 100;
+
+                this.config.milestones.forEach(milestone => {
+                    if (oldPercentage < milestone && newPercentage >= milestone && !this.recentMilestones.has(milestone)) {
+                        this.celebrateMilestone(milestone);
+                        this.recentMilestones.add(milestone);
+                    }
+                });
+            }
+
+            celebrateMilestone(percentage) {
+                console.log(`🎉 Milestone reached: ${percentage}%`);
+
+                const milestone = document.createElement('div');
+                milestone.className = 'milestone-popup';
+                milestone.textContent = `🎯 ${percentage}% แล้ว!`;
+                this.elements.widget.appendChild(milestone);
+
+                this.createConfetti(12);
+
+                setTimeout(() => {
+                    milestone.remove();
+                }, 3000);
+            }
+
+            celebrateGoalComplete() {
+                console.log('🎉 Goal completed!');
+                this.isComplete = true;
+
+                const completion = document.createElement('div');
+                completion.className = 'milestone-popup goal-complete-popup';
+                completion.textContent = '🎉 เป้าหมายสำเร็จ!';
+                this.elements.widget.appendChild(completion);
+
+                this.createConfetti(25);
+
+                setTimeout(() => {
+                    completion.remove();
+                }, 3000);
+            }
+
+            createConfetti(count = 15) {
+                const confettiEmojis = ['🎉', '🎊', '✨', '⭐', '💫', '🌟', '💖', '💎', '🔥'];
+
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                        confetti.style.left = Math.random() * 100 + '%';
+                        confetti.style.top = Math.random() * 30 + '%';
+                        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                        confetti.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+
+                        this.elements.celebration.appendChild(confetti);
+
+                        setTimeout(() => {
+                            confetti.remove();
+                        }, 4500);
+                    }, i * 100);
+                }
+            }
+
+            resetGoal() {
+                console.log('🔄 Resetting goal');
+                this.currentAmount = 0;
+                this.donationCount = 0;
+                this.recentMilestones.clear();
+                this.isComplete = false;
+                this.elements.widget.classList.remove('hidden');
+                this.updateProgressDisplay();
+                this.saveToServer();
+            }
+
+            setupAutoReset() {
+                if (this.config.resetPeriod === 'never') return;
+
+                const now = new Date();
+                let nextReset;
+
+                switch (this.config.resetPeriod) {
+                    case 'daily':
+                        nextReset = new Date(now);
+                        nextReset.setDate(now.getDate() + 1);
+                        nextReset.setHours(0, 0, 0, 0);
+                        break;
+                    case 'weekly':
+                        nextReset = new Date(now);
+                        nextReset.setDate(now.getDate() + (7 - now.getDay()));
+                        nextReset.setHours(0, 0, 0, 0);
+                        break;
+                    case 'monthly':
+                        nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                        break;
+                }
+
+                if (nextReset) {
+                    const timeUntilReset = nextReset.getTime() - now.getTime();
+                    setTimeout(() => {
+                        this.resetGoal();
+                        this.setupAutoReset();
+                    }, timeUntilReset);
+                }
+            }
+
+            updateConfig(newConfig) {
+                this.config = { ...this.config, ...newConfig };
+                this.setupPosition();
+                this.updateDisplay();
+            }
+
+            async saveToServer() {
+                try {
+                    const data = {
+                        currentAmount: this.currentAmount,
+                        donationCount: this.donationCount,
+                        milestones: Array.from(this.recentMilestones),
+                        isComplete: this.isComplete
+                    };
+
+                    await fetch(`/user/${this.config.username}/api/goal-data`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } catch (error) {
+                    console.warn('Could not save to server, using localStorage');
+                    this.saveToLocalStorage();
+                }
+            }
+
+            saveToLocalStorage() {
+                const data = {
+                    currentAmount: this.currentAmount,
+                    donationCount: this.donationCount,
+                    lastUpdate: Date.now(),
+                    milestones: Array.from(this.recentMilestones),
+                    isComplete: this.isComplete
+                };
+                localStorage.setItem(`goalData_${this.config.username}`, JSON.stringify(data));
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    const data = localStorage.getItem(`goalData_${this.config.username}`);
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        this.currentAmount = parsed.currentAmount || 0;
+                        this.donationCount = parsed.donationCount || 0;
+                        this.recentMilestones = new Set(parsed.milestones || []);
+                        this.isComplete = parsed.isComplete || false;
+
+                        const lastUpdate = new Date(parsed.lastUpdate || 0);
+                        const shouldReset = this.shouldResetBasedOnPeriod(lastUpdate);
+
+                        if (shouldReset) {
+                            this.resetGoal();
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not load goal data from localStorage:', error);
+                }
+            }
+
+            shouldResetBasedOnPeriod(lastUpdate) {
+                const now = new Date();
+
+                switch (this.config.resetPeriod) {
+                    case 'daily':
+                        return lastUpdate.toDateString() !== now.toDateString();
+                    case 'weekly':
+                        const weekStart = new Date(now);
+                        weekStart.setDate(now.getDate() - now.getDay());
+                        return lastUpdate < weekStart;
+                    case 'monthly':
+                        return lastUpdate.getMonth() !== now.getMonth() || lastUpdate.getFullYear() !== now.getFullYear();
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        // Initialize widget when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.goalWidget = new DonationGoalWidget();
+        });
+
+        // Test functions for development
+        window.testGoalDonation = function (amount = 25, name = 'ผู้ทดสอบ') {
+            if (window.goalWidget) {
+                window.goalWidget.addDonation(amount, name);
+            }
+        };
+
+        window.resetGoal = function () {
+            if (window.goalWidget) {
+                window.goalWidget.resetGoal();
+            }
+        };
+
+        // Auto-test for development
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            if (window.location.search.includes('test=true')) {
+                setTimeout(() => {
+                    window.testGoalDonation(75, 'ผู้ทดสอบ');
+                }, 6000);
+
+                setTimeout(() => {
+                    window.testGoalDonation(100, 'คนสุดท้าย');
+                }, 9000);
+            }
+        }
+    </script>
+</body>
+

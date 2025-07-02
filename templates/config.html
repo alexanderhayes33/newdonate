@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - {{ username }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,148 +15,325 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-primary: var(--glass-bg);
+            --bg-secondary: var(--bg-card);
+            --bg-tertiary: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.1);
+            --border-medium: rgba(255, 255, 255, 0.15);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-2xl: 20px;
+        }
+
         body {
-            font-family: 'Kanit', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Kanit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: gradientShift 20s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            position: relative;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--primary-gradient);
+            opacity: 0.6;
         }
 
         .header {
+            background: var(--primary-gradient);
+            color: white;
             text-align: center;
-            margin-bottom: 40px;
+            padding: 3rem 2rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) rotate(180deg);
+            }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header .username {
-            font-size: 1.5em;
-            color: #667eea;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
         }
 
-        .success-message {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            border: 1px solid #10b981;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
+        .header .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .success-banner {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--success-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem;
+            border-radius: var(--radius-lg);
             color: #065f46;
-            font-weight: 600;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .success-banner i {
+            color: var(--success-color);
+            font-size: 1.25rem;
+        }
+
+        .tabs-container {
+            padding: 0 1.5rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-light);
         }
 
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: #f3f4f6;
-            border-radius: 15px;
-            padding: 5px;
+            gap: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px 20px;
+            min-width: max-content;
+            padding: 1rem 1.5rem;
             border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
             background: transparent;
-            color: #6b7280;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 1rem;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .tab-btn i {
+            font-size: 1rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
         }
 
         .tab-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            font-weight: 600;
         }
 
         .tab-content {
             display: none;
+            padding: 2rem 1.5rem;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        .form-container {
-            background: #fafafa;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid #f0f0f0;
-        }
-
         .form-section {
-            margin-bottom: 30px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
         }
 
         .form-section h3 {
-            color: #374151;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-section h3 i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 0;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #374151;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
             font-weight: 600;
-            font-size: 15px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group label i {
+            color: var(--primary-color);
+            font-size: 0.875rem;
+            width: 16px;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 16px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
             font-family: 'Kanit', sans-serif;
-            transition: all 0.3s ease;
-            background: white;
-            color: #1f2937;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .form-group textarea {
@@ -163,199 +342,301 @@
         }
 
         .form-group .description {
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            line-height: 1.4;
         }
 
         .color-input {
             display: flex;
-            gap: 10px;
+            gap: 0.75rem;
             align-items: center;
         }
 
         .color-input input[type="color"] {
-            width: 60px;
+            width: 50px;
             height: 40px;
-            padding: 0;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            padding: 2px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
             cursor: pointer;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .color-input input[type="text"] {
+            flex: 1;
+        }
+
+        .range-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
         .range-input {
             display: flex;
-            gap: 15px;
+            gap: 1rem;
             align-items: center;
         }
 
         .range-input input[type="range"] {
             flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        .range-input .value {
-            background: #f3f4f6;
-            padding: 8px 12px;
-            border-radius: 8px;
+        .range-input input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+        }
+
+        .range-input input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .range-value {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
             font-weight: 600;
-            color: #374151;
+            color: var(--text-primary);
             min-width: 60px;
             text-align: center;
+            font-size: 0.875rem;
         }
 
         .preview-section {
-            background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-            border: 1px solid #d1d5db;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
         }
 
         .preview-section h4 {
-            color: #374151;
-            margin-bottom: 15px;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
             text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .preview-section h4 i {
+            color: var(--primary-color);
         }
 
         .preview-widget {
             background: #000;
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
             min-height: 200px;
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 1rem;
         }
 
         .preview-alert {
             text-align: center;
-            padding: 20px;
-            border-radius: 15px;
-            transform: scale(0.8);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            transform: scale(0.85);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
         }
 
         .save-btn {
             width: 100%;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 1rem 1.5rem;
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
             font-weight: 600;
             font-family: 'Kanit', sans-serif;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            margin: 2rem 1.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-lg);
         }
 
         .save-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-xl);
         }
 
         .links-section {
-            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
             border: 1px solid #93c5fd;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .links-section h3 {
             color: #1e40af;
-            margin-bottom: 20px;
-            font-size: 1.3em;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
             text-align: center;
+            font-weight: 700;
         }
 
         .links-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .link-card {
             background: white;
             border: 1px solid #bae6fd;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .link-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            box-shadow: var(--shadow-md);
         }
 
         .link-card a {
             color: #1e40af;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .link-card .desc {
-            color: #64748b;
-            font-size: 13px;
-            margin-top: 5px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
         }
 
         .url-section {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border: 1px solid #16a34a;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .url-section h4 {
             color: #166534;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .url-display {
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 14px;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-family: 'Kanit', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
             word-break: break-all;
             border: 1px solid #bbf7d0;
             color: #166534;
-            margin-bottom: 15px;
-        }
-
-        .copy-btn {
-            padding: 10px 20px;
-            background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .copy-btn:hover {
-            background: #15803d;
-            transform: translateY(-1px);
+            margin-bottom: 1rem;
+            line-height: 1.5;
         }
 
         .status-message {
-            padding: 15px 20px;
-            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-lg);
             text-align: center;
-            font-weight: 600;
-            margin-top: 20px;
+            font-weight: 500;
+            margin: 1.5rem;
             opacity: 0;
             transform: translateY(10px);
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
 
         .status-message.show {
@@ -364,58 +645,63 @@
         }
 
         .status-message.success {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
             border: 1px solid #10b981;
         }
 
         .status-message.error {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #dc2626;
             border: 1px solid #ef4444;
         }
 
-        /* Bank Settings Specific Styles */
         .bank-settings-group {
-            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
             border: 1px solid #81d4fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 15px;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-top: 1rem;
         }
 
-        .test-connection-btn {
-            width: 100%;
-            padding: 12px 20px;
-            background: #0277bd;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
+        .footer-nav {
+            text-align: center;
+            padding: 2rem 1.5rem 1rem;
+            border-top: 1px solid var(--border-light);
+            background: var(--bg-card);
+        }
+
+        .footer-nav a {
+            color: var(--primary-color);
+            text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
         }
 
-        .test-connection-btn:hover {
-            background: #01579b;
-            transform: translateY(-1px);
-        }
-
-        .test-connection-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
+        .footer-nav a:hover {
+            color: var(--primary-dark);
+            transform: translateX(-2px);
         }
 
         @media (max-width: 768px) {
+            .page-wrapper {
+                padding: 1rem 0.5rem;
+            }
+
             .container {
-                padding: 25px;
+                margin: 0;
+                border-radius: var(--radius-xl);
+            }
+
+            .header {
+                padding: 2rem 1.5rem 1.5rem;
             }
 
             .header h1 {
-                font-size: 2em;
+                font-size: 2rem;
             }
 
             .form-grid {
@@ -429,78 +715,192 @@
             .tabs {
                 flex-direction: column;
             }
+
+            .tab-btn {
+                justify-content: flex-start;
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+
+            .tab-btn.active {
+                border-left-color: var(--primary-color);
+                border-bottom-color: transparent;
+            }
+
+            .save-btn {
+                margin: 1rem;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Focus styles for accessibility */
+        .btn:focus,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚙️ Settings</h1>
-            <div class="username">{{ username }}</div>
-            <p>จัดการการตั้งค่าของคุณ</p>
-        </div>
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="header">
+                <div class="header-content">
+                    <h1>Settings</h1>
+                    <div class="username">{{ username }}</div>
+                    <p class="subtitle">จัดการการตั้งค่าของคุณ</p>
+                </div>
+            </div>
 
-        <!-- Success message for new users -->
-        <div class="success-message" style="display: {{ isNewUser }};">
-            🎉 สร้าง User สำเร็จแล้ว! กรุณาตรวจสอบและปรับแต่งการตั้งค่าด้านล่าง
-        </div>
+            <!-- Success message for new users -->
+            <div class="success-banner" style="display: {{ isNewUser }};">
+                <i class="fas fa-check-circle"></i>
+                <span>สร้าง User สำเร็จแล้ว! กรุณาตรวจสอบและปรับแต่งการตั้งค่าด้านล่าง</span>
+            </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'basic')">📱 การตั้งค่าพื้นฐาน</button>
-            <button class="tab-btn" onclick="switchTab(event, 'widget')">🎨 ปรับแต่ง Widget</button>
-            <button class="tab-btn" onclick="switchTab(event, 'advanced')">🔧 ขั้นสูง</button>
-            <button class="tab-btn" onclick="switchTab(event, 'links')">🔗 ลิงก์</button>
-        </div>
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'basic')">
+                        <i class="fas fa-cog"></i>
+                        การตั้งค่าพื้นฐาน
+                    </button>
+                    <button class="tab-btn" onclick="switchTab(event, 'widget')">
+                        <i class="fas fa-palette"></i>
+                        ปรับแต่ง Widget
+                    </button>
+                    <button class="tab-btn" onclick="switchTab(event, 'advanced')">
+                        <i class="fas fa-code"></i>
+                        ขั้นสูง
+                    </button>
+                    <button class="tab-btn" onclick="switchTab(event, 'links')">
+                        <i class="fas fa-link"></i>
+                        ลิงก์
+                    </button>
+                </div>
+            </div>
 
-        <!-- Basic Settings Tab -->
-        <div id="basic-tab" class="tab-content active">
-            <div class="form-container">
+            <!-- Basic Settings Tab -->
+            <div id="basic-tab" class="tab-content active">
                 <div class="form-section">
-                    <h3>การตั้งค่าหลัก</h3>
+                    <h3>
+                        <i class="fas fa-sliders-h"></i>
+                        การตั้งค่าหลัก
+                    </h3>
                     <form id="configForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="truewalletPhone">📱 เบอร์ TrueWallet</label>
+                                <label for="truewalletPhone">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    เบอร์ TrueWallet
+                                </label>
                                 <input type="tel" id="truewalletPhone" placeholder="0801234567" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="streamTitle">📺 ชื่อสตรีม</label>
+                                <label for="streamTitle">
+                                    <i class="fas fa-video"></i>
+                                    ชื่อสตรีม
+                                </label>
                                 <input type="text" id="streamTitle" placeholder="ชื่อสตรีมของคุณ" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="alertDuration">⏱️ ระยะเวลาแสดง Alert (มิลลิวินาที)</label>
+                                <label for="alertDuration">
+                                    <i class="fas fa-clock"></i>
+                                    ระยะเวลาแสดง Alert (มิลลิวินาที)
+                                </label>
                                 <input type="number" id="alertDuration" min="3000" max="15000" step="1000">
                             </div>
 
                             <div class="form-group">
-                                <label for="minTTSAmount">🗣️ ยอดขั้นต่ำสำหรับ TTS (บาท)</label>
+                                <label for="minTTSAmount">
+                                    <i class="fas fa-volume-up"></i>
+                                    ยอดขั้นต่ำสำหรับ TTS (บาท)
+                                </label>
                                 <input type="number" id="minTTSAmount" min="0" step="1">
                                 <div class="description">จำนวนเงินขั้นต่ำที่จะให้ระบบอ่านข้อความออกเสียง</div>
                             </div>
 
                             <div class="form-group">
-                                <label for="enableTTS">🔊 เปิดใช้งาน TTS (อ่านข้อความ)</label>
+                                <label for="enableTTS">
+                                    <i class="fas fa-microphone"></i>
+                                    เปิดใช้งาน TTS (อ่านข้อความ)
+                                </label>
                                 <select id="enableTTS">
                                     <option value="true">เปิดใช้งาน</option>
                                     <option value="false">ปิดใช้งาน</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="enableTTSName">👤 อ่านชื่อคนโดเนท</label>
+                                <label for="enableTTSName">
+                                    <i class="fas fa-user"></i>
+                                    อ่านชื่อคนโดเนท
+                                </label>
                                 <select id="enableTTSName">
                                     <option value="true">อ่านชื่อด้วย</option>
                                     <option value="false">ไม่อ่านชื่อ</option>
                                 </select>
                                 <div class="description">เมื่อเปิดใช้งาน TTS จะอ่านชื่อคนโดเนทด้วยหรือไม่</div>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="enableTTSMessage">💬 อ่านข้อความโดเนท</label>
+                                <label for="enableTTSMessage">
+                                    <i class="fas fa-comment"></i>
+                                    อ่านข้อความโดเนท
+                                </label>
                                 <select id="enableTTSMessage">
                                     <option value="true">อ่านข้อความด้วย</option>
                                     <option value="false">ไม่อ่านข้อความ</option>
@@ -509,7 +909,10 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="enableSound">🎵 เปิดใช้งานเสียงแจ้งเตือน</label>
+                                <label for="enableSound">
+                                    <i class="fas fa-bell"></i>
+                                    เปิดใช้งานเสียงแจ้งเตือน
+                                </label>
                                 <select id="enableSound">
                                     <option value="true">เปิดใช้งาน</option>
                                     <option value="false">ปิดใช้งาน</option>
@@ -521,10 +924,16 @@
 
                 <!-- Bank Settings Section -->
                 <div class="form-section">
-                    <h3>การตั้งค่าธนาคาร</h3>
+                    <h3>
+                        <i class="fas fa-university"></i>
+                        การตั้งค่าธนาคาร
+                    </h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="enableBankTransfer">🔄 เปิดใช้งานโอนธนาคาร</label>
+                            <label for="enableBankTransfer">
+                                <i class="fas fa-exchange-alt"></i>
+                                เปิดใช้งานโอนธนาคาร
+                            </label>
                             <select id="enableBankTransfer" onchange="toggleBankSettings()">
                                 <option value="false">ปิดใช้งาน</option>
                                 <option value="true">เปิดใช้งาน</option>
@@ -536,7 +945,10 @@
                     <div class="bank-settings-group" id="bankSettingsGroup" style="display: none;">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="bankName">🏦 ธนาคาร</label>
+                                <label for="bankName">
+                                    <i class="fas fa-building"></i>
+                                    ธนาคาร
+                                </label>
                                 <select id="bankName">
                                     <option value="">เลือกธนาคาร</option>
                                     <option value="ธนาคารกรุงเทพ">ธนาคารกรุงเทพ (BBL)</option>
@@ -559,39 +971,51 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="bankAccount">💳 เลขบัญชี</label>
+                                <label for="bankAccount">
+                                    <i class="fas fa-credit-card"></i>
+                                    เลขบัญชี
+                                </label>
                                 <input type="text" id="bankAccount" placeholder="xxx-x-xxxxx-x" maxlength="20">
                                 <div class="description">เลขบัญชีที่จะให้ผู้ชมโอนเงินเข้า (ใช้สำหรับตรวจสอบสลิป)</div>
                             </div>
 
                             <div class="form-group">
-                                <label for="bankAccountName">👤 ชื่อบัญชี</label>
+                                <label for="bankAccountName">
+                                    <i class="fas fa-id-card"></i>
+                                    ชื่อบัญชี
+                                </label>
                                 <input type="text" id="bankAccountName" placeholder="นาย/นาง ชื่อ นามสกุล"
                                     maxlength="50">
                                 <div class="description">ชื่อเจ้าของบัญชีที่ตรงกับธนาคาร</div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Widget Customization Tab -->
-        <div id="widget-tab" class="tab-content">
-            <div class="form-container">
+            <!-- Widget Customization Tab -->
+            <div id="widget-tab" class="tab-content">
                 <div class="form-section">
-                    <h3>รูปแบบการแสดงผล</h3>
+                    <h3>
+                        <i class="fas fa-edit"></i>
+                        รูปแบบการแสดงผล
+                    </h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="alertFormat">📝 รูปแบบข้อความ Alert</label>
+                            <label for="alertFormat">
+                                <i class="fas fa-font"></i>
+                                รูปแบบข้อความ Alert
+                            </label>
                             <input type="text" id="alertFormat" placeholder="{{user}} โดเนท {{amount}}">
                             <div class="description">ใช้ {{user}} สำหรับชื่อผู้โดเนท และ {{amount}} สำหรับจำนวนเงิน
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="showBackground">🎨 แสดงพื้นหลัง</label>
+                            <label for="showBackground">
+                                <i class="fas fa-image"></i>
+                                แสดงพื้นหลัง
+                            </label>
                             <select id="showBackground">
                                 <option value="true">แสดงพื้นหลัง</option>
                                 <option value="false">ไม่แสดงพื้นหลัง (โปร่งใส)</option>
@@ -599,7 +1023,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="showIcon">🎉 แสดงไอคอน</label>
+                            <label for="showIcon">
+                                <i class="fas fa-star"></i>
+                                แสดงไอคอน
+                            </label>
                             <select id="showIcon">
                                 <option value="true">แสดงไอคอน</option>
                                 <option value="false">ไม่แสดงไอคอน</option>
@@ -607,7 +1034,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="showSparkles">✨ แสดงเอฟเฟกต์ Sparkles</label>
+                            <label for="showSparkles">
+                                <i class="fas fa-sparkles"></i>
+                                แสดงเอฟเฟกต์ Sparkles
+                            </label>
                             <select id="showSparkles">
                                 <option value="true">แสดงเอฟเฟกต์</option>
                                 <option value="false">ไม่แสดงเอฟเฟกต์</option>
@@ -615,7 +1045,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="useCustomGif">🎬 ใช้ GIF แทนไอคอน</label>
+                            <label for="useCustomGif">
+                                <i class="fas fa-film"></i>
+                                ใช้ GIF แทนไอคอน
+                            </label>
                             <select id="useCustomGif">
                                 <option value="false">ใช้ไอคอนอีโมจิ</option>
                                 <option value="true">ใช้ GIF ที่กำหนด</option>
@@ -623,7 +1056,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="customGifUrl">🔗 URL ของ GIF</label>
+                            <label for="customGifUrl">
+                                <i class="fas fa-link"></i>
+                                URL ของ GIF
+                            </label>
                             <input type="url" id="customGifUrl" placeholder="https://example.com/animation.gif">
                             <div class="description">ใส่ลิงก์ GIF ที่ต้องการแสดงแทนไอคอน (ขนาดจะถูก resize อัตโนมัติ)
                             </div>
@@ -632,10 +1068,16 @@
                 </div>
 
                 <div class="form-section">
-                    <h3>สีและขนาด</h3>
+                    <h3>
+                        <i class="fas fa-palette"></i>
+                        สีและขนาด
+                    </h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="backgroundColor">🎨 สีพื้นหลัง</label>
+                            <label for="backgroundColor">
+                                <i class="fas fa-fill-drip"></i>
+                                สีพื้นหลัง
+                            </label>
                             <div class="color-input">
                                 <input type="color" id="backgroundColorPicker" value="#ffffff">
                                 <input type="text" id="backgroundColor" placeholder="rgba(255, 255, 255, 0.95)">
@@ -644,7 +1086,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="textColor">📝 สีข้อความ</label>
+                            <label for="textColor">
+                                <i class="fas fa-text-height"></i>
+                                สีข้อความ
+                            </label>
                             <div class="color-input">
                                 <input type="color" id="textColorPicker" value="#1f2937">
                                 <input type="text" id="textColor" placeholder="#1f2937">
@@ -652,7 +1097,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="donorColor">👤 สีชื่อผู้โดเนท</label>
+                            <label for="donorColor">
+                                <i class="fas fa-user-tag"></i>
+                                สีชื่อผู้โดเนท
+                            </label>
                             <div class="color-input">
                                 <input type="color" id="donorColorPicker" value="#667eea">
                                 <input type="text" id="donorColor" placeholder="#667eea">
@@ -660,7 +1108,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="amountColor">💰 สีจำนวนเงิน</label>
+                            <label for="amountColor">
+                                <i class="fas fa-dollar-sign"></i>
+                                สีจำนวนเงิน
+                            </label>
                             <div class="color-input">
                                 <input type="color" id="amountColorPicker" value="#f59e0b">
                                 <input type="text" id="amountColor" placeholder="#f59e0b">
@@ -668,7 +1119,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="messageColor">💬 สีข้อความโดเนท</label>
+                            <label for="messageColor">
+                                <i class="fas fa-comment-dots"></i>
+                                สีข้อความโดเนท
+                            </label>
                             <div class="color-input">
                                 <input type="color" id="messageColorPicker" value="#6b7280">
                                 <input type="text" id="messageColor" placeholder="#6b7280">
@@ -676,47 +1130,62 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="fontSize">📏 ขนาดตัวอักษร: <span id="fontSizeValue">42</span>px</label>
+                            <label for="fontSize">
+                                <i class="fas fa-text-width"></i>
+                                ขนาดตัวอักษร: <span id="fontSizeValue">42</span>px
+                            </label>
                             <div class="range-input">
                                 <input type="range" id="fontSize" min="12" max="100" value="42"
                                     oninput="updateRangeValue('fontSize', 'fontSizeValue')">
-                                <div class="value" id="fontSizeDisplay">42px</div>
+                                <div class="range-value" id="fontSizeDisplay">42px</div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="amountSize">💰 ขนาดตัวเลขเงิน: <span id="amountSizeValue">56</span>px</label>
+                            <label for="amountSize">
+                                <i class="fas fa-coins"></i>
+                                ขนาดตัวเลขเงิน: <span id="amountSizeValue">56</span>px
+                            </label>
                             <div class="range-input">
                                 <input type="range" id="amountSize" min="12" max="120" value="56"
                                     oninput="updateRangeValue('amountSize', 'amountSizeValue')">
-                                <div class="value" id="amountSizeDisplay">56px</div>
+                                <div class="range-value" id="amountSizeDisplay">56px</div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="borderRadius">🔲 ความโค้งมุม: <span id="borderRadiusValue">25</span>px</label>
+                            <label for="borderRadius">
+                                <i class="fas fa-shapes"></i>
+                                ความโค้งมุม: <span id="borderRadiusValue">25</span>px
+                            </label>
                             <div class="range-input">
                                 <input type="range" id="borderRadius" min="0" max="50" value="25"
                                     oninput="updateRangeValue('borderRadius', 'borderRadiusValue')">
-                                <div class="value" id="borderRadiusDisplay">25px</div>
+                                <div class="range-value" id="borderRadiusDisplay">25px</div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="animationSpeed">🎬 ความเร็ว Animation: <span
-                                    id="animationSpeedValue">1.2</span>x</label>
+                            <label for="animationSpeed">
+                                <i class="fas fa-running"></i>
+                                ความเร็ว Animation: <span id="animationSpeedValue">1.2</span>x
+                            </label>
                             <div class="range-input">
                                 <input type="range" id="animationSpeed" min="0.1" max="5" step="0.1" value="1.2"
                                     oninput="updateRangeValue('animationSpeed', 'animationSpeedValue')">
-                                <div class="value" id="animationSpeedDisplay">1.2x</div>
+                                <div class="range-value" id="animationSpeedDisplay">1.2x</div>
                             </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="messageSize">💬 ขนาดข้อความ: <span id="messageSizeValue">24</span>px</label>
+                            <label for="messageSize">
+                                <i class="fas fa-text-height"></i>
+                                ขนาดข้อความ: <span id="messageSizeValue">24</span>px
+                            </label>
                             <div class="range-input">
                                 <input type="range" id="messageSize" min="12" max="48" value="24"
                                     oninput="updateRangeValue('messageSize', 'messageSizeValue')">
-                                <div class="value" id="messageSizeDisplay">24px</div>
+                                <div class="range-value" id="messageSizeDisplay">24px</div>
                             </div>
                         </div>
                     </div>
@@ -724,7 +1193,10 @@
 
                 <!-- Preview Section -->
                 <div class="preview-section">
-                    <h4>🔍 ตัวอย่าง Widget</h4>
+                    <h4>
+                        <i class="fas fa-eye"></i>
+                        ตัวอย่าง Widget
+                    </h4>
                     <div class="preview-widget" id="previewWidget">
                         <div class="preview-alert" id="previewAlert">
                             <div style="font-size: 42px; margin-bottom: 10px;">
@@ -736,191 +1208,233 @@
                         </div>
                     </div>
                     <div style="text-align: center; margin-top: 15px;">
-                        <button type="button" onclick="updatePreview()"
-                            style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄
-                            อัปเดตตัวอย่าง</button>
+                        <button type="button" class="btn btn-secondary" onclick="updatePreview()">
+                            <i class="fas fa-sync"></i>
+                            อัปเดตตัวอย่าง
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Advanced Settings Tab -->
-        <div id="advanced-tab" class="tab-content">
-            <div class="form-container">
+            <!-- Advanced Settings Tab -->
+            <div id="advanced-tab" class="tab-content">
                 <div class="form-section">
-                    <h3>การตั้งค่าขั้นสูง</h3>
+                    <h3>
+                        <i class="fas fa-cogs"></i>
+                        การตั้งค่าขั้นสูง
+                    </h3>
                     <div class="form-group">
-                        <label for="customCSS">🎨 Custom CSS</label>
+                        <label for="customCSS">
+                            <i class="fas fa-code"></i>
+                            Custom CSS
+                        </label>
                         <textarea id="customCSS" placeholder="/* ใส่ CSS เพิ่มเติมที่นี่ */"></textarea>
                         <div class="description">CSS สำหรับปรับแต่ง Widget เพิ่มเติม</div>
                     </div>
 
                     <div class="form-group">
-                        <label for="welcomeMessage">💬 ข้อความต้อนรับ</label>
+                        <label for="welcomeMessage">
+                            <i class="fas fa-comments"></i>
+                            ข้อความต้อนรับ
+                        </label>
                         <textarea id="welcomeMessage" placeholder="ยินดีต้อนรับสู่สตรีมของฉัน!"></textarea>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Links Tab -->
-        <div id="links-tab" class="tab-content">
-            <div class="links-section">
-                <h3>🔗 ลิงก์สำหรับ {{ username }}</h3>
-                <div class="links-grid">
-                    <div class="link-card">
-                        <a href="/user/{{ username }}/donate" target="_blank">💝 Donate Page</a>
-                        <div class="desc">สำหรับผู้ชม</div>
+            <!-- Links Tab -->
+            <div id="links-tab" class="tab-content">
+                <div class="links-section">
+                    <h3>
+                        <i class="fas fa-external-link-alt"></i>
+                        ลิงก์สำหรับ {{ username }}
+                    </h3>
+                    <div class="links-grid">
+                        <div class="link-card">
+                            <a href="/user/{{ username }}/donate" target="_blank">
+                                <i class="fas fa-gift"></i>
+                                Donate Page
+                            </a>
+                            <div class="desc">สำหรับผู้ชม</div>
+                        </div>
+                        <div class="link-card">
+                            <a href="/user/{{ username }}/widget" target="_blank">
+                                <i class="fas fa-tv"></i>
+                                Alert Widget
+                            </a>
+                            <div class="desc">สำหรับ OBS</div>
+                        </div>
+                        <div class="link-card">
+                            <a href="/user/{{ username }}/control" target="_blank">
+                                <i class="fas fa-gamepad"></i>
+                                Control Panel
+                            </a>
+                            <div class="desc">ควบคุม Alert</div>
+                        </div>
+                        <div class="link-card">
+                            <a href="/user/{{ username }}/history" target="_blank">
+                                <i class="fas fa-history"></i>
+                                History
+                            </a>
+                            <div class="desc">ประวัติการสนับสนุน</div>
+                        </div>
                     </div>
-                    <div class="link-card">
-                        <a href="/user/{{ username }}/widget" target="_blank">📺 Alert Widget</a>
-                        <div class="desc">สำหรับ OBS</div>
-                    </div>
-                    <div class="link-card">
-                        <a href="/user/{{ username }}/control" target="_blank">🎮 Control Panel</a>
-                        <div class="desc">ควบคุม Alert</div>
-                    </div>
-                    <div class="link-card">
-                        <a href="/user/{{ username }}/history" target="_blank">📊 History</a>
-                        <div class="desc">ประวัติการสนับสนุน</div>
-                    </div>
-                </div>
 
-                <!-- OBS Widget URL -->
-                <div class="url-section">
-                    <h4>📋 URL สำหรับ OBS Browser Source:</h4>
-                    <div class="url-display" id="widgetUrl">{{ widgetUrl }}</div>
-                    <button class="copy-btn" onclick="copyUrl('widgetUrl')">📋 คัดลอก Widget URL</button>
-                </div>
+                    <!-- OBS Widget URL -->
+                    <div class="url-section">
+                        <h4>
+                            <i class="fas fa-clipboard"></i>
+                            URL สำหรับ OBS Browser Source:
+                        </h4>
+                        <div class="url-display" id="widgetUrl">{{ widgetUrl }}</div>
+                        <button class="btn btn-success" onclick="copyUrl('widgetUrl')">
+                            <i class="fas fa-copy"></i>
+                            คัดลอก Widget URL
+                        </button>
+                    </div>
 
-                <!-- Donate URL -->
-                <div class="url-section">
-                    <h4>💝 URL สำหรับการโดเนท:</h4>
-                    <div class="url-display" id="donateUrl">{{ donateUrl }}</div>
-                    <button class="copy-btn" onclick="copyUrl('donateUrl')">📋 คัดลอก Donate URL</button>
+                    <!-- Donate URL -->
+                    <div class="url-section">
+                        <h4>
+                            <i class="fas fa-heart"></i>
+                            URL สำหรับการโดเนท:
+                        </h4>
+                        <div class="url-display" id="donateUrl">{{ donateUrl }}</div>
+                        <button class="btn btn-success" onclick="copyUrl('donateUrl')">
+                            <i class="fas fa-copy"></i>
+                            คัดลอก Donate URL
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <!-- Save Button -->
+            <button type="submit" class="save-btn" onclick="saveConfig()">
+                <i class="fas fa-save"></i>
+                บันทึกการตั้งค่า
+            </button>
+
+            <div class="footer-nav">
+                <a href="/">
+                    <i class="fas fa-arrow-left"></i>
+                    กลับหน้าแรก
+                </a>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
         </div>
-
-        <!-- Save Button -->
-        <button type="submit" class="save-btn" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="/" style="color: #667eea; text-decoration: none; font-weight: 600;">← กลับหน้าแรก</a>
-        </div>
-
-        <div id="statusMessage" class="status-message"></div>
     </div>
 
     <script>
         let currentConfig = {};
+        let sessionErrorCount = 0;
 
         // Load current config
         document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        console.log('🔍 Initializing config page...');
-        
-        // ตรวจสอบ session ก่อนโหลดข้อมูล
-        const sessionCheckResponse = await fetch('/user/{{ username }}/api/session-status', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin'
-        });
+            try {
+                console.log('🔍 Initializing config page...');
 
-        if (sessionCheckResponse.status === 401) {
-            console.log('❌ Session not valid, redirecting to login...');
-            showStatus('🔒 กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน Settings', 'error');
-            
-            setTimeout(() => {
-                const returnUrl = encodeURIComponent(window.location.href);
-                window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
-            }, 2000);
-            return;
-        }
+                // ตรวจสอบ session ก่อนโหลดข้อมูล
+                const sessionCheckResponse = await fetch('/user/{{ username }}/api/session-status', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                });
 
-        console.log('✅ Session validation passed');
+                if (sessionCheckResponse.status === 401) {
+                    console.log('❌ Session not valid, redirecting to login...');
+                    showStatus('กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน Settings', 'error');
 
-        // โหลด config
-        let configLoaded = false;
-        
-        const configResponse = await fetch('/user/{{ username }}/api/config', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin'
-        });
-
-        if (configResponse.ok) {
-            const data = await configResponse.json();
-            if (data.success && data.config) {
-                currentConfig = data.config;
-                configLoaded = true;
-                console.log('✅ Config loaded from API:', currentConfig);
-            }
-        }
-
-        // Fallback to template data
-        if (!configLoaded) {
-            const configStr = `{{ config }}`.trim();
-            if (configStr && configStr !== '{{ config }}' && configStr !== '') {
-                try {
-                    const unescapedConfig = configStr
-                        .replace(/&quot;/g, '"')
-                        .replace(/&amp;/g, '&')
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&#039;/g, "'");
-
-                    currentConfig = JSON.parse(unescapedConfig);
-                    configLoaded = true;
-                    console.log('✅ Config loaded from template:', currentConfig);
-                } catch (e) {
-                    console.warn('Failed to parse config from template:', e);
+                    setTimeout(() => {
+                        const returnUrl = encodeURIComponent(window.location.href);
+                        window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                    }, 2000);
+                    return;
                 }
+
+                console.log('✅ Session validation passed');
+
+                // โหลด config
+                let configLoaded = false;
+
+                const configResponse = await fetch('/user/{{ username }}/api/config', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (configResponse.ok) {
+                    const data = await configResponse.json();
+                    if (data.success && data.config) {
+                        currentConfig = data.config;
+                        configLoaded = true;
+                        console.log('✅ Config loaded from API:', currentConfig);
+                    }
+                }
+
+                // Fallback to template data
+                if (!configLoaded) {
+                    const configStr = `{{ config }}`.trim();
+                    if (configStr && configStr !== '{{ config }}' && configStr !== '') {
+                        try {
+                            const unescapedConfig = configStr
+                                .replace(/&quot;/g, '"')
+                                .replace(/&amp;/g, '&')
+                                .replace(/&lt;/g, '<')
+                                .replace(/&gt;/g, '>')
+                                .replace(/&#039;/g, "'");
+
+                            currentConfig = JSON.parse(unescapedConfig);
+                            configLoaded = true;
+                            console.log('✅ Config loaded from template:', currentConfig);
+                        } catch (e) {
+                            console.warn('Failed to parse config from template:', e);
+                        }
+                    }
+                }
+
+                // Default config
+                if (!configLoaded) {
+                    console.log('⚠️ Using default config');
+                    currentConfig = getDefaultConfig();
+                }
+
+                // Setup UI
+                populateForm(currentConfig);
+                setupColorPickers();
+                updatePreview();
+
+                // เริ่ม session keep-alive
+                startSessionKeepAlive();
+
+                console.log('🎉 Config page loaded successfully');
+
+            } catch (error) {
+                console.error('💥 Error in config initialization:', error);
+
+                // ถ้าเป็น network error
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    showStatus('ไม่สามารถตรวจสอบสิทธิ์ได้ กำลังนำไปหน้าล็อกอิน...', 'error');
+                    setTimeout(() => {
+                        const returnUrl = encodeURIComponent(window.location.href);
+                        window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                    }, 2000);
+                    return;
+                }
+
+                // ใช้ default config และแสดง error
+                currentConfig = getDefaultConfig();
+                populateForm(currentConfig);
+                setupColorPickers();
+                updatePreview();
+
+                showStatus('โหลดการตั้งค่าไม่สำเร็จ ใช้ค่าเริ่มต้น', 'error');
             }
-        }
-
-        // Default config
-        if (!configLoaded) {
-            console.log('⚠️ Using default config');
-            currentConfig = getDefaultConfig();
-        }
-
-        // Setup UI
-        populateForm(currentConfig);
-        setupColorPickers();
-        updatePreview();
-
-        // เริ่ม session keep-alive
-        startSessionKeepAlive();
-
-        console.log('🎉 Config page loaded successfully');
-
-    } catch (error) {
-        console.error('💥 Error in config initialization:', error);
-        
-        // ถ้าเป็น network error
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            showStatus('🔒 ไม่สามารถตรวจสอบสิทธิ์ได้ กำลังนำไปหน้าล็อกอิน...', 'error');
-            setTimeout(() => {
-                const returnUrl = encodeURIComponent(window.location.href);
-                window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
-            }, 2000);
-            return;
-        }
-        
-        // ใช้ default config และแสดง error
-        currentConfig = getDefaultConfig();
-        populateForm(currentConfig);
-        setupColorPickers();
-        updatePreview();
-        
-        showStatus('⚠️ โหลดการตั้งค่าไม่สำเร็จ ใช้ค่าเริ่มต้น', 'error');
-    }
-});
+        });
 
         function getDefaultConfig() {
             return {
@@ -1189,143 +1703,117 @@
             }
         }
 
-        async function testSlipConnection() {
-            const testBtn = document.getElementById('testConnectionBtn');
-            const originalText = testBtn.textContent;
+        async function saveConfig() {
+            const config = {
+                truewalletPhone: document.getElementById('truewalletPhone').value,
+                streamTitle: document.getElementById('streamTitle').value,
+                alertDuration: parseInt(document.getElementById('alertDuration').value),
+                enableTTS: document.getElementById('enableTTS').value === 'true',
+                enableTTSName: document.getElementById('enableTTSName').value === 'true',
+                enableTTSMessage: document.getElementById('enableTTSMessage').value === 'true',
+                enableSound: document.getElementById('enableSound').value === 'true',
+                minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
 
-            testBtn.disabled = true;
-            testBtn.textContent = '🔄 กำลังทดสอบ...';
+                // Bank settings
+                enableBankTransfer: document.getElementById('enableBankTransfer').value === 'true',
+                bankName: document.getElementById('bankName').value,
+                bankAccount: document.getElementById('bankAccount').value,
+                bankAccountName: document.getElementById('bankAccountName').value,
+
+                // Widget customization
+                alertFormat: document.getElementById('alertFormat').value,
+                showBackground: document.getElementById('showBackground').value === 'true',
+                showIcon: document.getElementById('showIcon').value === 'true',
+                showSparkles: document.getElementById('showSparkles').value === 'true',
+                useCustomGif: document.getElementById('useCustomGif').value === 'true',
+                customGifUrl: document.getElementById('customGifUrl').value,
+                backgroundColor: document.getElementById('backgroundColor').value,
+                textColor: document.getElementById('textColor').value,
+                amountColor: document.getElementById('amountColor').value,
+                donorColor: document.getElementById('donorColor').value,
+                messageColor: document.getElementById('messageColor').value,
+                fontSize: parseInt(document.getElementById('fontSize').value),
+                amountSize: parseInt(document.getElementById('amountSize').value),
+                messageSize: parseInt(document.getElementById('messageSize').value),
+                borderRadius: parseInt(document.getElementById('borderRadius').value),
+                animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
+
+                // Advanced
+                customCSS: document.getElementById('customCSS').value,
+                welcomeMessage: document.getElementById('welcomeMessage').value
+            };
 
             try {
-                const response = await fetch('/user/{{ username }}/api/test-slip-connection');
-                const result = await response.json();
+                console.log('💾 Attempting to save config...');
 
-                if (result.success && result.connected) {
-                    showStatus('✅ เชื่อมต่อระบบตรวจสอบสลิปสำเร็จ!', 'success');
-                } else {
-                    showStatus('❌ ไม่สามารถเชื่อมต่อระบบตรวจสอบสลิปได้', 'error');
+                // ตรวจสอบ session ก่อนบันทึก
+                const sessionCheck = await fetch('/user/{{ username }}/api/session-status', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+
+                if (sessionCheck.status === 401) {
+                    throw new Error('SESSION_EXPIRED');
                 }
+
+                const response = await fetch('/user/{{ username }}/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(config)
+                });
+
+                console.log('📡 Save response status:', response.status);
+
+                // ตรวจสอบ Content-Type ก่อน parse
+                const contentType = response.headers.get('Content-Type');
+
+                if (!contentType || !contentType.includes('application/json')) {
+                    const responseText = await response.text();
+
+                    if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+                        throw new Error('SESSION_EXPIRED');
+                    } else {
+                        throw new Error(`Server returned unexpected content type: ${contentType}`);
+                    }
+                }
+
+                const result = await response.json();
+                console.log('📋 Save result:', result);
+
+                if (response.status === 401 || result.code === 'AUTH_REQUIRED') {
+                    throw new Error('SESSION_EXPIRED');
+                }
+
+                if (response.ok && result.success) {
+                    showStatus('บันทึกการตั้งค่าสำเร็จ!', 'success');
+                    currentConfig = config;
+
+                    // รีเซ็ต error counter หลังจากบันทึกสำเร็จ
+                    sessionErrorCount = 0;
+                } else {
+                    const errorMessage = result.message || `HTTP ${response.status}: ${response.statusText}`;
+                    showStatus('เกิดข้อผิดพลาด: ' + errorMessage, 'error');
+                }
+
             } catch (error) {
-                console.error('Error testing slip connection:', error);
-                showStatus('❌ เกิดข้อผิดพลาดในการทดสอบ', 'error');
-            } finally {
-                testBtn.disabled = false;
-                testBtn.textContent = originalText;
+                console.error('💥 Save config error:', error);
+
+                if (error.message === 'SESSION_EXPIRED') {
+                    showStatus('Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
+                    setTimeout(() => {
+                        window.location.href = `/user/{{ username }}/login?return=${encodeURIComponent(window.location.href)}`;
+                    }, 2000);
+                } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    showStatus('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+                } else {
+                    showStatus('เกิดข้อผิดพลาด: ' + error.message, 'error');
+                }
             }
         }
-
-        async function saveConfig() {
-    const config = {
-        // ... (config data same as before)
-        truewalletPhone: document.getElementById('truewalletPhone').value,
-        streamTitle: document.getElementById('streamTitle').value,
-        alertDuration: parseInt(document.getElementById('alertDuration').value),
-        enableTTS: document.getElementById('enableTTS').value === 'true',
-        enableTTSName: document.getElementById('enableTTSName').value === 'true',
-        enableTTSMessage: document.getElementById('enableTTSMessage').value === 'true',
-        enableSound: document.getElementById('enableSound').value === 'true',
-        minTTSAmount: parseInt(document.getElementById('minTTSAmount').value) || 0,
-
-        // Bank settings
-        enableBankTransfer: document.getElementById('enableBankTransfer').value === 'true',
-        bankName: document.getElementById('bankName').value,
-        bankAccount: document.getElementById('bankAccount').value,
-        bankAccountName: document.getElementById('bankAccountName').value,
-
-        // Widget customization
-        alertFormat: document.getElementById('alertFormat').value,
-        showBackground: document.getElementById('showBackground').value === 'true',
-        showIcon: document.getElementById('showIcon').value === 'true',
-        showSparkles: document.getElementById('showSparkles').value === 'true',
-        useCustomGif: document.getElementById('useCustomGif').value === 'true',
-        customGifUrl: document.getElementById('customGifUrl').value,
-        backgroundColor: document.getElementById('backgroundColor').value,
-        textColor: document.getElementById('textColor').value,
-        amountColor: document.getElementById('amountColor').value,
-        donorColor: document.getElementById('donorColor').value,
-        messageColor: document.getElementById('messageColor').value,
-        fontSize: parseInt(document.getElementById('fontSize').value),
-        amountSize: parseInt(document.getElementById('amountSize').value),
-        messageSize: parseInt(document.getElementById('messageSize').value),
-        borderRadius: parseInt(document.getElementById('borderRadius').value),
-        animationSpeed: parseFloat(document.getElementById('animationSpeed').value),
-
-        // Advanced
-        customCSS: document.getElementById('customCSS').value,
-        welcomeMessage: document.getElementById('welcomeMessage').value
-    };
-
-    try {
-        console.log('💾 Attempting to save config...');
-
-        // 🔧 ตรวจสอบ session ก่อนบันทึก
-        const sessionCheck = await fetch('/user/{{ username }}/api/session-status', {
-            method: 'GET',
-            credentials: 'same-origin'
-        });
-
-        if (sessionCheck.status === 401) {
-            throw new Error('SESSION_EXPIRED');
-        }
-
-        const response = await fetch('/user/{{ username }}/api/config', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(config)
-        });
-
-        console.log('📡 Save response status:', response.status);
-
-        // ตรวจสอบ Content-Type ก่อน parse
-        const contentType = response.headers.get('Content-Type');
-        
-        if (!contentType || !contentType.includes('application/json')) {
-            const responseText = await response.text();
-            
-            if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
-                throw new Error('SESSION_EXPIRED');
-            } else {
-                throw new Error(`Server returned unexpected content type: ${contentType}`);
-            }
-        }
-
-        const result = await response.json();
-        console.log('📋 Save result:', result);
-
-        if (response.status === 401 || result.code === 'AUTH_REQUIRED') {
-            throw new Error('SESSION_EXPIRED');
-        }
-
-        if (response.ok && result.success) {
-            showStatus('✅ บันทึกการตั้งค่าสำเร็จ!', 'success');
-            currentConfig = config;
-            
-            // รีเซ็ต error counter หลังจากบันทึกสำเร็จ
-            sessionErrorCount = 0;
-        } else {
-            const errorMessage = result.message || `HTTP ${response.status}: ${response.statusText}`;
-            showStatus('❌ เกิดข้อผิดพลาด: ' + errorMessage, 'error');
-        }
-
-    } catch (error) {
-        console.error('💥 Save config error:', error);
-        
-        if (error.message === 'SESSION_EXPIRED') {
-            showStatus('🔒 Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
-            setTimeout(() => {
-                window.location.href = `/user/{{ username }}/login?return=${encodeURIComponent(window.location.href)}`;
-            }, 2000);
-        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            showStatus('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
-        } else {
-            showStatus('❌ เกิดข้อผิดพลาด: ' + error.message, 'error');
-        }
-    }
-}
 
         function copyUrl(elementId) {
             const urlElement = document.getElementById(elementId);
@@ -1333,7 +1821,7 @@
 
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(() => {
-                    showStatus('📋 คัดลอก URL สำเร็จ!', 'success');
+                    showStatus('คัดลอก URL สำเร็จ!', 'success');
                 }).catch(err => {
                     console.error('Error copying URL:', err);
                     fallbackCopy(url);
@@ -1351,10 +1839,10 @@
 
             try {
                 document.execCommand('copy');
-                showStatus('📋 คัดลอก URL สำเร็จ!', 'success');
+                showStatus('คัดลอก URL สำเร็จ!', 'success');
             } catch (err) {
                 console.error('Fallback copy failed:', err);
-                showStatus('❌ ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง', 'error');
+                showStatus('ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง', 'error');
             }
 
             document.body.removeChild(textarea);
@@ -1362,7 +1850,10 @@
 
         function showStatus(message, type) {
             const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = message;
+            statusMessage.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+            `;
             statusMessage.className = `status-message ${type} show`;
 
             setTimeout(() => {
@@ -1376,10 +1867,10 @@
             const isValid = /^[0-9]{10}$/.test(phone);
 
             if (phone.length > 0 && !isValid) {
-                e.target.style.borderColor = '#ef4444';
-                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+                e.target.style.borderColor = 'var(--error-color)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
             } else {
-                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.borderColor = 'var(--border-light)';
                 e.target.style.boxShadow = 'none';
             }
         });
@@ -1395,15 +1886,14 @@
             const isValid = /^[\d-]{0,20}$/.test(cleaned);
 
             if (cleaned.length > 0 && !isValid) {
-                e.target.style.borderColor = '#ef4444';
-                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+                e.target.style.borderColor = 'var(--error-color)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
             } else {
-                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.borderColor = 'var(--border-light)';
                 e.target.style.boxShadow = 'none';
             }
         });
 
-        
         // Bank account name validation
         document.getElementById('bankAccountName').addEventListener('input', function (e) {
             const name = e.target.value;
@@ -1411,10 +1901,10 @@
             const isValid = /^[a-zA-Zก-๙\s]*$/.test(name);
 
             if (name.length > 0 && !isValid) {
-                e.target.style.borderColor = '#ef4444';
-                e.target.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.1)';
+                e.target.style.borderColor = 'var(--error-color)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
             } else {
-                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.borderColor = 'var(--border-light)';
                 e.target.style.boxShadow = 'none';
             }
         });
@@ -1426,80 +1916,72 @@
             }
         });
 
+        // Session keep-alive
+        function startSessionKeepAlive() {
+            // ตรวจสอบ session ทุก 2 นาที
+            const keepAliveInterval = setInterval(async () => {
+                try {
+                    console.log('🔄 Checking session status...');
+
+                    const response = await fetch('/user/{{ username }}/api/session-status', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (response.status === 401) {
+                        console.log('❌ Session expired during keep-alive');
+                        clearInterval(keepAliveInterval);
+                        showStatus('Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
+
+                        setTimeout(() => {
+                            const returnUrl = encodeURIComponent(window.location.href);
+                            window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                        }, 2000);
+                        return;
+                    }
+
+                    if (response.ok) {
+                        const sessionInfo = await response.json();
+                        if (sessionInfo.authenticated) {
+                            console.log('✅ Session is valid, time remaining:', Math.round(sessionInfo.timeRemaining / 1000 / 60), 'minutes');
+                            sessionErrorCount = 0; // Reset error count
+                        } else {
+                            throw new Error('Session not authenticated');
+                        }
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                } catch (error) {
+                    console.error('💥 Session keep-alive error:', error);
+
+                    sessionErrorCount = (sessionErrorCount || 0) + 1;
+                    if (sessionErrorCount >= 3) {
+                        console.log('❌ Too many session errors, redirecting to login');
+                        clearInterval(keepAliveInterval);
+                        showStatus('เกิดปัญหากับ Session กำลังนำไปหน้าล็อกอิน...', 'error');
+
+                        setTimeout(() => {
+                            const returnUrl = encodeURIComponent(window.location.href);
+                            window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
+                        }, 2000);
+                    }
+                }
+            }, 2 * 60 * 1000); // ทุก 2 นาที
+
+            // หยุด keep-alive เมื่อออกจากหน้า
+            window.addEventListener('beforeunload', () => {
+                clearInterval(keepAliveInterval);
+            });
+        }
+
         // Initialize preview on load
         window.addEventListener('load', () => {
             updatePreview();
         });
-
-        let sessionKeepAliveInterval;
-        
-        // ตรวจสอบและต่ออายุ session ทุก 5 นาที
-        function startSessionKeepAlive() {
-    // ตรวจสอบ session ทุก 2 นาที
-    sessionKeepAliveInterval = setInterval(async () => {
-        try {
-            console.log('🔄 Checking session status...');
-            
-            const response = await fetch('/user/{{ username }}/api/session-status', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-                credentials: 'same-origin'
-            });
-
-            if (response.status === 401) {
-                console.log('❌ Session expired during keep-alive');
-                clearInterval(sessionKeepAliveInterval);
-                showStatus('🔒 Session หมดอายุ กำลังนำไปหน้าล็อกอิน...', 'error');
-                
-                setTimeout(() => {
-                    const returnUrl = encodeURIComponent(window.location.href);
-                    window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
-                }, 2000);
-                return;
-            }
-
-            if (response.ok) {
-                const sessionInfo = await response.json();
-                if (sessionInfo.authenticated) {
-                    console.log('✅ Session is valid, time remaining:', Math.round(sessionInfo.timeRemaining / 1000 / 60), 'minutes');
-                } else {
-                    throw new Error('Session not authenticated');
-                }
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
-        } catch (error) {
-            console.error('💥 Session keep-alive error:', error);
-            
-            // ถ้าเกิด error 3 ครั้งติดต่อกัน ให้ redirect ไปหน้า login
-            sessionErrorCount = (sessionErrorCount || 0) + 1;
-            if (sessionErrorCount >= 3) {
-                console.log('❌ Too many session errors, redirecting to login');
-                clearInterval(sessionKeepAliveInterval);
-                showStatus('🔒 เกิดปัญหากับ Session กำลังนำไปหน้าล็อกอิน...', 'error');
-                
-                setTimeout(() => {
-                    const returnUrl = encodeURIComponent(window.location.href);
-                    window.location.href = `/user/{{ username }}/login?return=${returnUrl}`;
-                }, 2000);
-            }
-        }
-    }, 2 * 60 * 1000); // ทุก 2 นาที
-}
-        
-        // เริ่ม keep-alive เมื่อโหลดหน้า
-        startSessionKeepAlive();
-        
-        // หยุด keep-alive เมื่อออกจากหน้า
-        window.addEventListener('beforeunload', () => {
-    if (sessionKeepAliveInterval) {
-        clearInterval(sessionKeepAliveInterval);
-    }
-});
-
     </script>
 </body>
 
