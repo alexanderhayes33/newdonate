@@ -1,13 +1,13 @@
 {
   "username": "test1",
   "createdAt": 1751462930011,
-  "lastActiveAt": 1751502878551,
+  "lastActiveAt": 1751499623470,
   "config": {
     "truewalletPhone": "",
-    "enableBankTransfer": true,
-    "bankName": "ธนาคารกสิกรไทย",
-    "bankAccount": "0538749281",
-    "bankAccountName": "เกียรติศักดิ์ ชนะพล",
+    "enableBankTransfer": false,
+    "bankName": "",
+    "bankAccount": "",
+    "bankAccountName": "",
     "streamTitle": "test1's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
@@ -94,8 +94,8 @@
     }
   },
   "auth": {
-    "hashedPassword": "$2b$10$CeMi8/E/VVEA8LSvnQtHsu4Jhww.eyqgLeu300k605XY07a4XH5Ka",
-    "lastLoginAt": 1751502878551,
+    "hashedPassword": "$2b$10$1UD3O6igWmsS7lukPDI3reg6tRNJslMZ1mptO09kDvn7DVKiDcOh2",
+    "lastLoginAt": 1751499623470,
     "loginAttempts": 0,
     "lockedUntil": null
   }

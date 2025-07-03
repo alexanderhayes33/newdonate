@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support {{ streamTitle }} | Donation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="shortcut icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png" type="image/png">
+    <link rel="icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png" type="image/png">
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -169,13 +172,16 @@
             font-size: 3rem;
             box-shadow: var(--shadow-lg);
             position: relative;
+            overflow: hidden;
         }
-.creator-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 2rem;
-}
+
+        .creator-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 2rem;
+        }
+
         .creator-avatar::after {
             content: '';
             position: absolute;
@@ -330,7 +336,7 @@
             }
         }
 
-        /* Bank Info Display */
+        /* Bank Info Display - แก้ไขให้แสดงในมือถือได้ดีขึ้น */
         .bank-info {
             background: rgba(16, 185, 129, 0.05);
             border: 1px solid rgba(16, 185, 129, 0.1);
@@ -339,6 +345,9 @@
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            /* เพิ่มเพื่อให้มั่นใจว่าจะแสดงใน mobile */
+            min-height: auto !important;
+            display: block !important;
         }
 
         .bank-info::before {
@@ -372,9 +381,11 @@
         .bank-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 1rem;
             padding: 0.75rem 0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .bank-row:last-child {
@@ -386,6 +397,15 @@
             font-weight: 600;
             color: var(--text-secondary);
             font-size: 0.9rem;
+            min-width: 80px;
+        }
+
+        .bank-value-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
         }
 
         .bank-value {
@@ -396,6 +416,8 @@
             border-radius: 0.5rem;
             font-weight: 600;
             border: 1px solid rgba(16, 185, 129, 0.2);
+            word-break: break-all;
+            flex: 1;
         }
 
         .copy-btn {
@@ -408,13 +430,45 @@
             font-family: 'Kanit', sans-serif;
             font-size: 0.8rem;
             font-weight: 600;
-            margin-left: 0.75rem;
             transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .copy-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Loading indicator for bank info */
+        .bank-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .bank-loading .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        .bank-error {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: #ef4444;
+            text-align: center;
+            font-family: 'Kanit', sans-serif;
+            margin-bottom: 2rem;
         }
 
         /* Form Styles */
@@ -638,10 +692,7 @@
             }
         }
 
-        /* Responsive Design */
-        .creator-avatar img {
-    border-radius: 1.5rem;
-}
+        /* Responsive Design - แก้ไขเพิ่มเติม */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -659,13 +710,6 @@
                 border-radius: 1.5rem;
             }
 
-            .creator-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 2rem;
-}
-
             .header h1 {
                 font-size: 1.75rem;
             }
@@ -674,14 +718,39 @@
                 flex-direction: column;
             }
 
+            /* แก้ไข bank-row ใน mobile */
             .bank-row {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.5rem;
+                gap: 0.75rem;
+            }
+
+            .bank-value-container {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+
+            .bank-value {
+                text-align: center;
+            }
+
+            .copy-btn {
+                align-self: center;
+                min-width: 120px;
             }
 
             .file-upload-area {
                 padding: 2rem 1rem;
+            }
+
+            /* ให้แน่ใจว่า bank-info แสดงใน mobile */
+            .bank-info {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                padding: 1.5rem !important;
             }
         }
 
@@ -697,6 +766,14 @@
             .form-container {
                 padding: 1.5rem;
             }
+
+            .bank-info {
+                padding: 1.25rem !important;
+            }
+
+            .bank-details {
+                padding: 1rem;
+            }
         }
 
         /* Toast Styles */
@@ -706,10 +783,31 @@
             border-radius: 1rem !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
         }
+
+        /* Debug styles - เอาออกได้เมื่อแก้เสร็จ */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            display: none;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Debug info -->
+    <div class="debug-info" id="debugInfo">
+        <div>Screen: <span id="screenSize"></span></div>
+        <div>Bank Info Loaded: <span id="bankInfoStatus">No</span></div>
+        <div>API Status: <span id="apiStatus">Waiting</span></div>
+    </div>
+
     <!-- Floating Particles -->
     <div class="particles">
         <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
@@ -728,8 +826,9 @@
             <!-- Header -->
             <div class="header">
                 <div class="creator-avatar">
-    <img src="https://img2.pic.in.th/pic/8c4d7bfc-7e12-4cb3-81fa-bb64e1e6e07d.jpg" alt="Creator Avatar" />
-</div>
+                    <img src="https://img2.pic.in.th/pic/8c4d7bfc-7e12-4cb3-81fa-bb64e1e6e07d.jpg"
+                        alt="Creator Avatar" />
+                </div>
                 <h1>Support {{ username }}</h1>
                 <p class="subtitle">{{ streamTitle }}</p>
             </div>
@@ -783,24 +882,43 @@
 
             <!-- Bank Transfer Tab -->
             <div id="bank-tab" class="tab-content">
+                <!-- Bank Loading State -->
+                <div class="bank-loading" id="bankLoading">
+                    <div class="spinner"></div>
+                    <span>กำลังโหลดข้อมูลบัญชี...</span>
+                </div>
+
                 <!-- Bank Info Display -->
                 <div class="bank-info" id="bankInfo" style="display: none;">
                     <h3>📋 ข้อมูลการโอนเงิน</h3>
                     <div class="bank-details">
                         <div class="bank-row">
                             <span class="bank-label">ธนาคาร:</span>
-                            <span class="bank-value" id="bankName">-</span>
+                            <div class="bank-value-container">
+                                <span class="bank-value" id="bankName">-</span>
+                            </div>
                         </div>
                         <div class="bank-row">
                             <span class="bank-label">เลขบัญชี:</span>
-                            <span class="bank-value" id="bankAccount">-</span>
-                            <button class="copy-btn" onclick="copyBankAccount()">📋 คัดลอก</button>
+                            <div class="bank-value-container">
+                                <span class="bank-value" id="bankAccount">-</span>
+                                <button class="copy-btn" onclick="copyBankAccount()">📋 คัดลอก</button>
+                            </div>
                         </div>
                         <div class="bank-row">
                             <span class="bank-label">ชื่อบัญชี:</span>
-                            <span class="bank-value" id="bankAccountName">-</span>
+                            <div class="bank-value-container">
+                                <span class="bank-value" id="bankAccountName">-</span>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Bank Error State -->
+                <div class="bank-error" id="bankError" style="display: none;">
+                    <p>⚠️ ไม่สามารถโหลดข้อมูลบัญชีได้</p>
+                    <button onclick="retryLoadBankInfo()"
+                        style="background: var(--danger-gradient); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-top: 1rem; cursor: pointer;">ลองใหม่</button>
                 </div>
 
                 <div class="form-container">
@@ -852,10 +970,36 @@
             constructor() {
                 this.username = '{{ username }}';
                 this.selectedFile = null;
+                this.bankInfoLoaded = false;
                 this.setupSocket();
                 this.setupEventListeners();
                 this.loadBankInfo();
                 this.createParticles();
+                this.setupDebugInfo();
+            }
+
+            setupDebugInfo() {
+                // Debug info - เอาออกได้เมื่อไม่ต้องการ debug
+                const debugInfo = document.getElementById('debugInfo');
+                const screenSize = document.getElementById('screenSize');
+                const bankInfoStatus = document.getElementById('bankInfoStatus');
+                const apiStatus = document.getElementById('apiStatus');
+
+                const updateDebug = () => {
+                    screenSize.textContent = `${window.innerWidth}x${window.innerHeight}`;
+                    bankInfoStatus.textContent = this.bankInfoLoaded ? 'Yes' : 'No';
+                };
+
+                updateDebug();
+                window.addEventListener('resize', updateDebug);
+
+                // แสดง debug info เมื่อกด Ctrl+D
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
             }
 
             createParticles() {
@@ -976,25 +1120,85 @@
             }
 
             async loadBankInfo() {
+                const bankLoading = document.getElementById('bankLoading');
+                const bankInfo = document.getElementById('bankInfo');
+                const bankError = document.getElementById('bankError');
+                const apiStatus = document.getElementById('apiStatus');
+
                 try {
-                    const response = await fetch(`/user/${this.username}/api/config`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.config.bankAccount) {
-                            this.displayBankInfo(data.config);
-                        }
+                    bankLoading.style.display = 'flex';
+                    bankInfo.style.display = 'none';
+                    bankError.style.display = 'none';
+
+                    if (apiStatus) apiStatus.textContent = 'Loading...';
+
+                    console.log('Loading bank info for username:', this.username);
+
+                    const response = await fetch(`/user/${this.username}/api/bank-info`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        cache: 'no-cache'
+                    });
+
+                    console.log('Bank info response status:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
+
+                    const data = await response.json();
+                    console.log('Bank info data:', data);
+
+                    if (apiStatus) apiStatus.textContent = 'Success';
+
+                    if (data.success && data.config) {
+                        this.displayBankInfo(data.config);
+                        this.bankInfoLoaded = true;
+
+                        // Update debug info
+                        const bankInfoStatus = document.getElementById('bankInfoStatus');
+                        if (bankInfoStatus) bankInfoStatus.textContent = 'Yes';
+                    } else {
+                        throw new Error('Invalid response format');
+                    }
+
                 } catch (error) {
                     console.error('Error loading bank info:', error);
+
+                    if (apiStatus) apiStatus.textContent = 'Error: ' + error.message;
+
+                    bankLoading.style.display = 'none';
+                    bankError.style.display = 'block';
+
+                    // แสดง error แต่ไม่ toast เพื่อไม่ให้รบกวน user
+                    console.error('Failed to load bank info:', error.message);
                 }
             }
 
             displayBankInfo(config) {
+                const bankLoading = document.getElementById('bankLoading');
+                const bankInfo = document.getElementById('bankInfo');
+                const bankError = document.getElementById('bankError');
+
+                console.log('Displaying bank info:', config);
+
                 if (config.bankAccount && config.bankName && config.bankAccountName) {
                     document.getElementById('bankName').textContent = config.bankName;
                     document.getElementById('bankAccount').textContent = config.bankAccount;
                     document.getElementById('bankAccountName').textContent = config.bankAccountName;
-                    document.getElementById('bankInfo').style.display = 'block';
+
+                    bankLoading.style.display = 'none';
+                    bankError.style.display = 'none';
+                    bankInfo.style.display = 'block';
+
+                    console.log('Bank info displayed successfully');
+                } else {
+                    console.log('Incomplete bank info:', config);
+                    bankLoading.style.display = 'none';
+                    bankError.style.display = 'block';
                 }
             }
 
@@ -1079,7 +1283,7 @@
                         throw new Error('ไม่พบ QR Code ในสลิป กรุณาตรวจสอบรูปภาพ');
                     }
 
-                    // ส่งไปตรวจสอบกับ API (ไม่ส่ง expected_amount)
+                    // ส่งไปตรวจสอบกับ API
                     const verifyResponse = await fetch(`/user/${this.username}/api/verify-slip`, {
                         method: 'POST',
                         headers: {
@@ -1159,7 +1363,7 @@
 
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                text.textContent = type === 'truewallet' ? '✨ ส่งการสนับสนุน' : '🔍 ตรวจสอบและส่งการสนับสนุน';
+                text.textContent = 'โดเนท';
             }
 
             resetForm(type) {
@@ -1288,6 +1492,14 @@
             }
         }
 
+        // Retry function for bank info loading
+        function retryLoadBankInfo() {
+            const widget = window.donateWidget;
+            if (widget) {
+                widget.loadBankInfo();
+            }
+        }
+
         // Add floating animation for hearts
         const style = document.createElement('style');
         style.textContent = `
@@ -1310,7 +1522,7 @@
 
         // Initialize widget when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new ModernDonateWidget();
+            window.donateWidget = new ModernDonateWidget();
         });
     </script>
 </body>

@@ -1725,6 +1725,39 @@ app.get('/user/:username/api/used-slips', (req, res) => {
     }
 });
 
+app.get('/user/:username/api/bank-info', (req, res) => {
+    try {
+        const userData = userManager.loadUserData(req.username);
+        
+        // ส่งเฉพาะข้อมูลธนาคารที่จำเป็นสำหรับหน้า donate
+        const bankInfo = {
+            enableBankTransfer: userData.config.enableBankTransfer,
+            bankName: userData.config.bankName || '',
+            bankAccount: userData.config.bankAccount || '',
+            bankAccountName: userData.config.bankAccountName || ''
+        };
+        
+        // ซ่อนข้อมูลธนาคารถ้าไม่ได้เปิดใช้งาน
+        if (!bankInfo.enableBankTransfer) {
+            bankInfo.bankName = '';
+            bankInfo.bankAccount = '';
+            bankInfo.bankAccountName = '';
+        }
+        
+        res.json({ 
+            success: true, 
+            config: bankInfo 
+        });
+        
+    } catch (error) {
+        console.error(`Error getting bank info for ${req.username}:`, error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+});
+
 // เพิ่ม API สำหรับ admin ดูสถิติการใช้สลิป
 app.get('/api/admin/slip-usage-stats', (req, res) => {
     try {

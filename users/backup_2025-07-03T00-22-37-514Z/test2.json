@@ -1,22 +1,20 @@
 {
-  "username": "test1",
-  "createdAt": 1751462930011,
-  "lastActiveAt": 1751502878551,
+  "username": "test2",
+  "createdAt": 1751458606432,
+  "lastActiveAt": 1751458684063,
   "config": {
-    "truewalletPhone": "",
-    "enableBankTransfer": true,
-    "bankName": "ธนาคารกสิกรไทย",
-    "bankAccount": "0538749281",
-    "bankAccountName": "เกียรติศักดิ์ ชนะพล",
-    "streamTitle": "test1's Stream",
+    "truewalletPhone": "0928707912",
+    "enableBankTransfer": false,
+    "bankName": "",
+    "bankAccount": "",
+    "bankAccountName": "",
+    "streamTitle": "test2's Stream",
     "alertDuration": 5000,
     "enableTTS": true,
-    "enableTTSName": true,
-    "enableTTSMessage": true,
     "enableSound": true,
     "alertPosition": "top",
     "customCSS": "",
-    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test1!",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test2!",
     "alertFormat": "{{user}} โดเนท {{amount}}",
     "minTTSAmount": 50,
     "showBackground": false,
@@ -24,22 +22,20 @@
     "textColor": "#1f2937",
     "amountColor": "#f59e0b",
     "donorColor": "#667eea",
-    "messageColor": "#ffffff",
     "fontSize": 42,
-    "amountSize": 106,
-    "messageSize": 48,
-    "borderRadius": 23,
+    "amountSize": 56,
+    "borderRadius": 25,
     "showIcon": true,
     "showSparkles": true,
-    "animationSpeed": 1.3,
+    "animationSpeed": 1.2,
     "customGifUrl": "",
     "useCustomGif": false
   },
   "donations": [
     {
-      "id": 1751462942778,
-      "timestamp": 1751462942553,
-      "bangkokTime": "02/07/2568 20:29:02",
+      "id": 1751458684082,
+      "timestamp": 1751458684046,
+      "bangkokTime": "02/07/2568 19:18:04",
       "name": "alex",
       "amount": 100,
       "message": "test ทดสอบ",
@@ -63,7 +59,7 @@
     "highestDonation": 100,
     "uniqueDonors": 1,
     "thisMonthAmount": 100,
-    "lastDonationAt": 1751462942553,
+    "lastDonationAt": 1751458684046,
     "paymentMethods": {
       "truewallet": {
         "count": 0,
@@ -92,11 +88,5 @@
       "maxRetries": 3,
       "timeoutMs": 30000
     }
-  },
-  "auth": {
-    "hashedPassword": "$2b$10$CeMi8/E/VVEA8LSvnQtHsu4Jhww.eyqgLeu300k605XY07a4XH5Ka",
-    "lastLoginAt": 1751502878551,
-    "loginAttempts": 0,
-    "lockedUntil": null
   }
 }
