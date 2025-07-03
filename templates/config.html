@@ -757,6 +757,32 @@
                 font-size: 16px; /* ป้องกัน zoom ใน iOS */
             }
         }
+
+            .history-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-card .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .history-table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
         .footer-nav {
             text-align: center;
             padding: 2rem 1.5rem 1rem;
@@ -882,6 +908,176 @@
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
+
+        /* History Tab Styles */
+.history-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--success-gradient);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
+}
+
+.stat-card:hover {
+    border-color: var(--success-color);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-card .stat-icon {
+    color: var(--success-color);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: var(--success-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.history-table {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+}
+
+.history-table-header {
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-table-header h4 {
+    color: var(--text-primary);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.history-table-header h4 i {
+    color: var(--primary-color);
+}
+
+.history-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.history-table th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.history-table tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.history-amount {
+    font-weight: 700;
+    background: var(--success-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.history-message {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.history-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.history-loading::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--text-muted);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.history-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
     </style>
 </head>
 
@@ -912,6 +1108,10 @@
                     <button class="tab-btn" onclick="switchTab(event, 'widget')">
                         <i class="fas fa-palette"></i>
                         ปรับแต่ง Widget
+                    </button>
+                    <button class="tab-btn" onclick="switchTab(event, 'history')">
+                        <i class="fas fa-history"></i>
+                        ประวัติโดเนท
                     </button>
                     <button class="tab-btn" onclick="switchTab(event, 'advanced')">
                         <i class="fas fa-code"></i>
@@ -1309,6 +1509,86 @@
                 </div>
             </div>
 
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content">
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-chart-line"></i>
+                        สถิติการสนับสนุน
+                    </h3>
+                    <div class="history-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="stat-value" id="historyTotalDonations">-</div>
+                            <div class="stat-label">การสนับสนุนทั้งหมด</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-value" id="historyTotalAmount">-</div>
+                            <div class="stat-label">จำนวนเงินรวม (บาท)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="stat-value" id="historyAverageAmount">-</div>
+                            <div class="stat-label">เฉลี่ยต่อรายการ (บาท)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-value" id="historyTodayDonations">-</div>
+                            <div class="stat-label">รายการวันนี้</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-value" id="historyTodayAmount">-</div>
+                            <div class="stat-label">ยอดวันนี้ (บาท)</div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="history-table">
+                    <div class="history-table-header">
+                        <h4>
+                            <i class="fas fa-list"></i>
+                            รายการล่าสุด (10 รายการ)
+                        </h4>
+                        <div class="history-controls">
+                            <button type="button" class="btn btn-secondary" onclick="loadHistoryData()">
+                                <i class="fas fa-sync-alt"></i>
+                                รีเฟรช
+                            </button>
+                            <a href="/user/{{ username }}/history" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-external-link-alt"></i>
+                                ดูทั้งหมด
+                            </a>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar"></i> วันที่/เวลา</th>
+                                <th><i class="fas fa-user"></i> ชื่อ</th>
+                                <th><i class="fas fa-money-bill-wave"></i> จำนวนเงิน</th>
+                                <th><i class="fas fa-comment"></i> ข้อความ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="4" class="history-loading">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <!-- Advanced Settings Tab -->
             <div id="advanced-tab" class="tab-content">
                 <div class="form-section">
@@ -1500,6 +1780,7 @@
                 populateForm(currentConfig);
                 setupColorPickers();
                 updatePreview();
+                loadHistoryData();
 
                 // เริ่ม session keep-alive
                 startSessionKeepAlive();
@@ -1704,18 +1985,23 @@
         }
 
         function switchTab(event, tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
 
-            // Show selected tab
-            document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
-        }
+                // Show selected tab
+                document.getElementById(tabName + '-tab').classList.add('active');
+                event.target.classList.add('active');
+
+                // Load history data when switching to history tab
+                if (tabName === 'history') {
+                    loadHistoryData();
+                }
+            }
 
         function updateRangeValue(rangeId, valueId) {
             const range = document.getElementById(rangeId);
@@ -2008,6 +2294,120 @@
                 updatePreview();
             }
         });
+
+        // History functionality
+            async function loadHistoryData() {
+                try {
+                    console.log('📊 Loading history data...');
+
+                    // Show loading state
+                    document.getElementById('historyTableBody').innerHTML =
+                        '<tr><td colspan="4" class="history-loading">กำลังโหลดข้อมูล...</td></tr>';
+
+                    // Load stats and recent donations
+                    const response = await fetch(`/user/{{ username }}/api/donations?limit=10`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('📊 History data received:', data);
+
+                    if (data.success) {
+                        renderHistoryStats(data.userStats || data.stats);
+                        renderHistoryTable(data.data);
+                    } else {
+                        throw new Error(data.message || 'Failed to load history');
+                    }
+
+                } catch (error) {
+                    console.error('💥 Error loading history:', error);
+
+                    // Show error in table
+                    document.getElementById('historyTableBody').innerHTML =
+                        '<tr><td colspan="4" class="history-empty">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+
+                    // Reset stats
+                    const statElements = [
+                        'historyTotalDonations', 'historyTotalAmount', 'historyAverageAmount',
+                        'historyTodayDonations', 'historyTodayAmount'
+                    ];
+                    statElements.forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) element.textContent = '-';
+                    });
+                }
+            }
+
+            function renderHistoryStats(stats) {
+                const safeStats = {
+                    totalDonations: stats?.totalDonations || 0,
+                    totalAmount: stats?.totalAmount || 0,
+                    averageAmount: stats?.averageAmount || 0,
+                    todayDonations: stats?.todayDonations || 0,
+                    todayAmount: stats?.todayAmount || 0
+                };
+
+                console.log('📊 Rendering history stats:', safeStats);
+
+                const elements = {
+                    historyTotalDonations: document.getElementById('historyTotalDonations'),
+                    historyTotalAmount: document.getElementById('historyTotalAmount'),
+                    historyAverageAmount: document.getElementById('historyAverageAmount'),
+                    historyTodayDonations: document.getElementById('historyTodayDonations'),
+                    historyTodayAmount: document.getElementById('historyTodayAmount')
+                };
+
+                if (elements.historyTotalDonations) elements.historyTotalDonations.textContent = safeStats.totalDonations.toLocaleString();
+                if (elements.historyTotalAmount) elements.historyTotalAmount.textContent = safeStats.totalAmount.toLocaleString();
+                if (elements.historyAverageAmount) elements.historyAverageAmount.textContent = Math.round(safeStats.averageAmount).toLocaleString();
+                if (elements.historyTodayDonations) elements.historyTodayDonations.textContent = safeStats.todayDonations.toLocaleString();
+                if (elements.historyTodayAmount) elements.historyTodayAmount.textContent = safeStats.todayAmount.toLocaleString();
+            }
+
+            function renderHistoryTable(donations) {
+                const tbody = document.getElementById('historyTableBody');
+
+                if (donations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="history-empty"><i class="fas fa-search"></i> ยังไม่มีข้อมูลการสนับสนุน</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = donations.map(donation => `
+        <tr>
+            <td>${donation.bangkokTime || new Date(donation.timestamp).toLocaleString('th-TH', {
+                    timeZone: 'Asia/Bangkok',
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}</td>
+            <td><strong>${escapeHtml(donation.name)}</strong></td>
+            <td class="history-amount">฿${donation.amount.toLocaleString()}</td>
+            <td class="history-message" title="${escapeHtml(donation.message || '')}">
+                ${donation.message ? escapeHtml(donation.message) : '-'}
+            </td>
+        </tr>
+    `).join('');
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
 
         // Session keep-alive
         function startSessionKeepAlive() {

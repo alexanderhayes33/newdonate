@@ -1,0 +1,102 @@
+{
+  "username": "test1",
+  "createdAt": 1751462930011,
+  "lastActiveAt": 1751502878551,
+  "config": {
+    "truewalletPhone": "",
+    "enableBankTransfer": true,
+    "bankName": "ธนาคารกสิกรไทย",
+    "bankAccount": "0538749281",
+    "bankAccountName": "เกียรติศักดิ์ ชนะพล",
+    "streamTitle": "test1's Stream",
+    "alertDuration": 5000,
+    "enableTTS": true,
+    "enableTTSName": true,
+    "enableTTSMessage": true,
+    "enableSound": true,
+    "alertPosition": "top",
+    "customCSS": "",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ test1!",
+    "alertFormat": "{{user}} โดเนท {{amount}}",
+    "minTTSAmount": 50,
+    "showBackground": false,
+    "backgroundColor": "rgba(255, 255, 255, 0.95)",
+    "textColor": "#1f2937",
+    "amountColor": "#f59e0b",
+    "donorColor": "#667eea",
+    "messageColor": "#ffffff",
+    "fontSize": 42,
+    "amountSize": 106,
+    "messageSize": 48,
+    "borderRadius": 23,
+    "showIcon": true,
+    "showSparkles": true,
+    "animationSpeed": 1.3,
+    "customGifUrl": "",
+    "useCustomGif": false
+  },
+  "donations": [
+    {
+      "id": 1751462942778,
+      "timestamp": 1751462942553,
+      "bangkokTime": "02/07/2568 20:29:02",
+      "name": "alex",
+      "amount": 100,
+      "message": "test ทดสอบ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    }
+  ],
+  "stats": {
+    "totalDonations": 1,
+    "totalAmount": 100,
+    "averageAmount": 100,
+    "highestDonation": 100,
+    "uniqueDonors": 1,
+    "thisMonthAmount": 100,
+    "lastDonationAt": 1751462942553,
+    "paymentMethods": {
+      "truewallet": {
+        "count": 0,
+        "amount": 0
+      },
+      "bank_transfer": {
+        "count": 0,
+        "amount": 0
+      },
+      "manual": {
+        "count": 1,
+        "amount": 100
+      }
+    }
+  },
+  "advanced": {
+    "webhookUrl": "",
+    "discordWebhook": "",
+    "customAlerts": {
+      "milestone100": true,
+      "milestone500": true,
+      "milestone1000": true
+    },
+    "slipApiSettings": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutMs": 30000
+    }
+  },
+  "auth": {
+    "hashedPassword": "$2b$10$CeMi8/E/VVEA8LSvnQtHsu4Jhww.eyqgLeu300k605XY07a4XH5Ka",
+    "lastLoginAt": 1751502878551,
+    "loginAttempts": 0,
+    "lockedUntil": null
+  }
+}

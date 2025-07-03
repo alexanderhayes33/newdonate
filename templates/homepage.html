@@ -216,7 +216,7 @@
 
         .form-container {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
+            grid-template-columns: 1fr 1fr 1fr auto;
             gap: 20px;
             align-items: end;
         }
@@ -654,8 +654,12 @@
                 </div>
                 <div class="input-group">
                     <label for="phone">📱 เบอร์ TrueWallet</label>
-                    <input type="tel" id="phone" name="phone" placeholder="0801234567" pattern="[0-9]{10}"
-                        title="เบอร์โทรศัพท์ 10 หลัก" required>
+                    <input type="tel" id="phone" name="phone" placeholder="0801234567" pattern="[0-9]{10}" title="เบอร์โทรศัพท์ 10 หลัก"
+                        required>
+                </div>
+                <div class="input-group">
+                    <label for="rentalDays">📅 จำนวนวันให้เช่า</label>
+                    <input type="number" id="rentalDays" name="rentalDays" placeholder="30" min="1" max="365" value="30" required>
                 </div>
                 <button type="submit" class="create-btn">สร้างบัญชี</button>
             </div>

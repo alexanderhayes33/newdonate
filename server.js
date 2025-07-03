@@ -99,46 +99,45 @@ function validateBankAccountPattern(userAccount, apiAccountValue) {
             return false;
         }
 
-        // เช็คหลายรูปแบบ
-        const checks = [
-            // 1. เลขบัญชีเต็ม
-            apiNumbers.includes(userNumbers),
-            
-            // 2. เลขบัญชีไม่รวมหลักสุดท้าย (เผื่อ check digit)
-            userNumbers.length > 1 && apiNumbers.includes(userNumbers.slice(0, -1)),
-            
-            // 3. เลขบัญชีส่วนกลาง (ตัดหน้า 2 หลัง หลัง 1 หลัก)
-            userNumbers.length > 4 && apiNumbers.includes(userNumbers.slice(2, -1)),
-            
-            // 4. เลขบัญชี 8 หลักสุดท้าย
-            userNumbers.length >= 6 && apiNumbers.includes(userNumbers.slice(-8)),
-            
-            // 5. เลขบัญชี 6 หลักสุดท้าย
-            userNumbers.length >= 6 && apiNumbers.includes(userNumbers.slice(-6)),
-            
-            // 6. เลขบัญชี 4 หลักสุดท้าย (สำหรับกรณีพิเศษ)
-            userNumbers.length >= 4 && apiNumbers.includes(userNumbers.slice(-4))
-        ];
-        
-        const isValid = checks.some(check => check);
-        
         console.log('🔍 Enhanced Account validation:', {
             userAccount: userAccount,
             userNumbers: userNumbers,
             apiPattern: apiAccountValue,
-            apiNumbers: apiNumbers,
-            checks: {
-                fullMatch: checks[0],
-                withoutLastDigit: checks[1], 
-                middlePart: checks[2],
-                last8Digits: checks[3],
-                last6Digits: checks[4],
-                last4Digits: checks[5]
-            },
-            result: isValid
+            apiNumbers: apiNumbers
         });
+
+        // 🔥 Algorithm ใหม่: เช็คทุก substring ที่เป็นไปได้
+        const apiLength = apiNumbers.length;
         
-        return isValid;
+        // เช็คทุกตำแหน่งในเลขบัญชี user
+        for (let i = 0; i <= userNumbers.length - apiLength; i++) {
+            const userSubstring = userNumbers.substring(i, i + apiLength);
+            if (userSubstring === apiNumbers) {
+                console.log(`✅ Match found: "${apiNumbers}" at position ${i} in "${userNumbers}"`);
+                console.log(`✅ Substring: "${userSubstring}" === "${apiNumbers}"`);
+                return true;
+            }
+        }
+        
+        // ถ้าไม่เจอ ลองเช็คแบบเดิมเผื่อกรณีพิเศษ
+        const fallbackChecks = [
+            // เช็คหลักท้าย
+            userNumbers.endsWith(apiNumbers),
+            // เช็คหลักหน้า  
+            userNumbers.startsWith(apiNumbers),
+            // เช็ครวมทั้งหมด (กรณี API ส่งมาครบ)
+            userNumbers.includes(apiNumbers)
+        ];
+        
+        const fallbackResult = fallbackChecks.some(check => check);
+        
+        if (fallbackResult) {
+            console.log(`✅ Fallback validation passed for: "${apiNumbers}"`);
+            return true;
+        }
+        
+        console.log(`❌ No match found: "${apiNumbers}" not found in "${userNumbers}"`);
+        return false;
         
     } catch (error) {
         console.error('Error in bank account validation:', error);
@@ -786,34 +785,36 @@ io.on('connection', (socket) => {
         }
         
         try {
-            const donationData = {
+            // 🔧 เปลี่ยนจากเดิม: ไม่บันทึกลงฐานข้อมูล แค่ส่ง alert อย่างเดียว
+            const testAlert = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
                 name: data.name,
                 amount: parseInt(data.amount),
                 message: data.message || '',
-                paymentMethod: 'manual',
-                ip: socket.handshake.address,
-                userAgent: socket.handshake.headers['user-agent']
+                timestamp: Date.now(),
+                isTest: true // 🔧 เพิ่ม flag ระบุว่าเป็นการทดสอบ
             };
             
-            const donation = userManager.addDonation(data.username, donationData);
-            
+            // ส่ง alert ไปยัง widget โดยไม่บันทึกลงฐานข้อมูล
             io.to(`user-${data.username}`).emit('new-alert', {
-                id: donation.id,
-                name: donation.name,
-                amount: donation.amount,
-                message: donation.message,
-                timestamp: donation.timestamp
+                id: testAlert.id,
+                name: testAlert.name,
+                amount: testAlert.amount,
+                message: testAlert.message,
+                timestamp: testAlert.timestamp,
+                isTest: true // 🔧 ระบุว่าเป็น test alert
             });
             
             socket.emit('alert-sent', { 
                 success: true, 
-                donation: donation 
+                message: 'Test alert sent successfully (not saved to database)',
+                testAlert: testAlert 
             });
             
-            console.log(`📢 Manual alert sent for ${data.username}: ${donation.name} - ฿${donation.amount}`);
+            console.log(`🧪 Test alert sent for ${data.username}: ${testAlert.name} - ฿${testAlert.amount} (NOT SAVED)`);
             
         } catch (error) {
-            console.error('Error sending manual alert:', error);
+            console.error('Error sending test alert:', error);
             socket.emit('alert-error', { message: error.message });
         }
     });
@@ -826,6 +827,740 @@ io.on('connection', (socket) => {
 // ===============================
 // Routes
 // ===============================
+
+// 🛠️ หน้า Admin Management
+app.get('/admin', (req, res) => {
+    const html = `
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🛠️ Admin Management - User Rental System</title>
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Kanit', sans-serif;
+                background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+                color: #ffffff;
+                min-height: 100vh;
+                padding: 20px;
+            }
+            
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            
+            .header {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 10px;
+            }
+            
+            .header p {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 1.1em;
+            }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .stat-card {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 25px;
+                text-align: center;
+            }
+            
+            .stat-value {
+                font-size: 2.5em;
+                font-weight: 800;
+                background: linear-gradient(135deg, #10b981, #34d399);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 10px;
+            }
+            
+            .stat-label {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 1em;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            
+            .actions-bar {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 25px;
+                margin-bottom: 30px;
+                display: flex;
+                gap: 15px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+            }
+            
+            .btn-success {
+                background: linear-gradient(135deg, #10b981, #34d399);
+                color: white;
+            }
+            
+            .btn-warning {
+                background: linear-gradient(135deg, #f59e0b, #f97316);
+                color: white;
+            }
+            
+            .btn-danger {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+            }
+            
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            }
+            
+            .users-table {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                overflow: hidden;
+            }
+            
+            .table-header {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .table-header h2 {
+                font-size: 1.5em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .loading {
+                text-align: center;
+                padding: 50px;
+                color: rgba(255, 255, 255, 0.7);
+            }
+            
+            .user-row {
+                display: grid;
+                grid-template-columns: auto 1fr auto auto auto auto;
+                gap: 20px;
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                align-items: center;
+            }
+            
+            .user-row:last-child {
+                border-bottom: none;
+            }
+            
+            .user-row:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .user-avatar {
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                font-weight: 700;
+                color: white;
+            }
+            
+            .user-info h3 {
+                font-size: 1.2em;
+                margin-bottom: 5px;
+            }
+            
+            .user-info .details {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 0.9em;
+                line-height: 1.4;
+            }
+            
+            .rental-status {
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.9em;
+                font-weight: 600;
+                text-align: center;
+                min-width: 120px;
+            }
+            
+            .status-rental-active {
+                background: rgba(16, 185, 129, 0.2);
+                color: #34d399;
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+            
+            .status-rental-warning {
+                background: rgba(245, 158, 11, 0.2);
+                color: #fbbf24;
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+            
+            .status-rental-expired {
+                background: rgba(239, 68, 68, 0.2);
+                color: #fca5a5;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            
+            .status-permanent {
+                background: rgba(102, 126, 234, 0.2);
+                color: #a5b4fc;
+                border: 1px solid rgba(102, 126, 234, 0.3);
+            }
+            
+            .user-actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            
+            .btn-sm {
+                padding: 8px 16px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+            
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .modal-content {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 500px;
+                width: 90%;
+                color: white;
+            }
+            
+            .modal h3 {
+                margin-bottom: 20px;
+                font-size: 1.5em;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+            
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                color: white;
+                font-family: 'Kanit', sans-serif;
+            }
+            
+            .form-group input:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: #667eea;
+                background: rgba(255, 255, 255, 0.15);
+            }
+            
+            .modal-actions {
+                display: flex;
+                gap: 15px;
+                justify-content: flex-end;
+                margin-top: 25px;
+            }
+            
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 12px;
+                font-weight: 600;
+                z-index: 1001;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .notification.show {
+                transform: translateX(0);
+            }
+            
+            .notification.success {
+                background: linear-gradient(135deg, #10b981, #34d399);
+                color: white;
+            }
+            
+            .notification.error {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+            }
+            
+            @media (max-width: 768px) {
+                .actions-bar {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                
+                .user-row {
+                    grid-template-columns: 1fr;
+                    gap: 15px;
+                    text-align: center;
+                }
+                
+                .user-actions {
+                    justify-content: center;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1>🛠️ Admin Management</h1>
+                <p>จัดการ Users และระบบ Rental</p>
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">-</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="rentalUsers">-</div>
+                    <div class="stat-label">Rental Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="expiredUsers">-</div>
+                    <div class="stat-label">Expired Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="permanentUsers">-</div>
+                    <div class="stat-label">Permanent Users</div>
+                </div>
+            </div>
+            
+            <!-- Actions Bar -->
+            <div class="actions-bar">
+                <button class="btn btn-primary" onclick="refreshData()">
+                    🔄 Refresh Data
+                </button>
+                <button class="btn btn-success" onclick="checkExpiredUsers()">
+                    🔍 Check Expired Users
+                </button>
+                <button class="btn btn-warning" onclick="cleanupExpiredUsers()">
+                    🗑️ Cleanup Expired Users
+                </button>
+                <a href="/" class="btn btn-primary">
+                    🏠 Back to Homepage
+                </a>
+            </div>
+            
+            <!-- Users Table -->
+            <div class="users-table">
+                <div class="table-header">
+                    <h2>👥 Users Management</h2>
+                </div>
+                <div id="usersContainer">
+                    <div class="loading">
+                        <p>🔄 Loading users...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Convert to Rental Modal -->
+        <div class="modal" id="convertModal">
+            <div class="modal-content">
+                <h3>🔄 Convert to Rental User</h3>
+                <form id="convertForm">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="convertUsername" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>จำนวนวันให้เช่า:</label>
+                        <input type="number" id="convertDays" min="1" max="365" value="30" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn" onclick="closeModal('convertModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-success">แปลงเป็น Rental</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Extend Rental Modal -->
+        <div class="modal" id="extendModal">
+            <div class="modal-content">
+                <h3>📅 Extend Rental Period</h3>
+                <form id="extendForm">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="extendUsername" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>เพิ่มจำนวนวัน:</label>
+                        <input type="number" id="extendDays" min="1" max="365" value="30" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn" onclick="closeModal('extendModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-success">ต่ออายุ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Notification -->
+        <div class="notification" id="notification"></div>
+        
+        <script>
+            let usersData = [];
+            
+            // Load data when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                refreshData();
+            });
+            
+            // Refresh all data
+            async function refreshData() {
+                try {
+                    const response = await fetch('/api/admin/users');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        usersData = data.users;
+                        updateStats();
+                        renderUsers();
+                    } else {
+                        showNotification('error', 'ไม่สามารถโหลดข้อมูลได้');
+                    }
+                } catch (error) {
+                    console.error('Error refreshing data:', error);
+                    showNotification('error', 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                }
+            }
+            
+            // Update statistics
+            function updateStats() {
+                const totalUsers = usersData.length;
+                const rentalUsers = usersData.filter(u => u.rental.isRental && !u.rental.isExpired).length;
+                const expiredUsers = usersData.filter(u => u.rental.isRental && u.rental.isExpired).length;
+                const permanentUsers = usersData.filter(u => !u.rental.isRental).length;
+                
+                document.getElementById('totalUsers').textContent = totalUsers;
+                document.getElementById('rentalUsers').textContent = rentalUsers;
+                document.getElementById('expiredUsers').textContent = expiredUsers;
+                document.getElementById('permanentUsers').textContent = permanentUsers;
+            }
+            
+            // Render users table
+            function renderUsers() {
+                const container = document.getElementById('usersContainer');
+                
+                if (usersData.length === 0) {
+                    container.innerHTML = '<div class="loading"><p>ไม่มี Users ในระบบ</p></div>';
+                    return;
+                }
+                
+                let html = '';
+                
+                usersData.forEach(user => {
+                    const avatar = user.username.charAt(0).toUpperCase();
+                    
+                    let statusHtml = '';
+                    let actionsHtml = '';
+                    
+                    if (user.rental.isRental) {
+                        if (user.rental.isExpired) {
+                            statusHtml = '<div class="rental-status status-rental-expired">🚫 หมดอายุแล้ว</div>';
+                            actionsHtml = \`
+                                <button class="btn btn-success btn-sm" onclick="extendRental('\${user.username}')">
+                                    📅 ต่ออายุ
+                                </button>
+                            \`;
+                        } else {
+                            const statusClass = user.rental.daysLeft <= 3 ? 'status-rental-warning' : 'status-rental-active';
+                            const icon = user.rental.daysLeft <= 3 ? '⚠️' : '📅';
+                            statusHtml = \`<div class="rental-status \${statusClass}">\${icon} เหลือ \${user.rental.daysLeft} วัน</div>\`;
+                            actionsHtml = \`
+                                <button class="btn btn-success btn-sm" onclick="extendRental('\${user.username}')">
+                                    📅 ต่ออายุ
+                                </button>
+                            \`;
+                        }
+                    } else {
+                        statusHtml = '<div class="rental-status status-permanent">♾️ Permanent</div>';
+                        actionsHtml = \`
+                            <button class="btn btn-warning btn-sm" onclick="convertToRental('\${user.username}')">
+                                🔄 Convert to Rental
+                            </button>
+                        \`;
+                    }
+                    
+                    html += \`
+                        <div class="user-row">
+                            <div class="user-avatar">\${avatar}</div>
+                            <div class="user-info">
+                                <h3>\${user.username}</h3>
+                                <div class="details">
+                                    📺 \${user.streamTitle}<br>
+                                    💰 \${user.totalDonations} donations (฿\${user.totalAmount.toLocaleString()})<br>
+                                    🕒 Last Active: \${user.lastActiveFormatted}
+                                    \${user.rental.isRental ? \`<br>📅 Expires: \${user.rental.expiresAtFormatted || 'N/A'}\` : ''}
+                                </div>
+                            </div>
+                            \${statusHtml}
+                            <div class="user-actions">
+                                \${actionsHtml}
+                                <a href="/user/\${user.username}/config" class="btn btn-primary btn-sm" target="_blank">
+                                    ⚙️ Settings
+                                </a>
+                            </div>
+                        </div>
+                    \`;
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            // Convert user to rental
+            function convertToRental(username) {
+                document.getElementById('convertUsername').value = username;
+                showModal('convertModal');
+            }
+            
+            // Extend rental
+            function extendRental(username) {
+                document.getElementById('extendUsername').value = username;
+                showModal('extendModal');
+            }
+            
+            // Show modal
+            function showModal(modalId) {
+                document.getElementById(modalId).style.display = 'flex';
+            }
+            
+            // Close modal
+            function closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+            
+            // Handle convert form
+            document.getElementById('convertForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('convertUsername').value;
+                const days = document.getElementById('convertDays').value;
+                
+                try {
+                    const response = await fetch('/api/admin/convert-to-rental', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            rentalDays: parseInt(days)
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showNotification('success', \`แปลง \${username} เป็น rental user สำเร็จ!\`);
+                        closeModal('convertModal');
+                        refreshData();
+                    } else {
+                        showNotification('error', data.message || 'เกิดข้อผิดพลาด');
+                    }
+                } catch (error) {
+                    console.error('Error converting user:', error);
+                    showNotification('error', 'เกิดข้อผิดพลาดในการแปลง user');
+                }
+            });
+            
+            // Handle extend form
+            document.getElementById('extendForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('extendUsername').value;
+                const days = document.getElementById('extendDays').value;
+                
+                try {
+                    const response = await fetch('/api/admin/extend-user-rental', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            additionalDays: parseInt(days)
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showNotification('success', \`ต่ออายุ \${username} สำเร็จ!\`);
+                        closeModal('extendModal');
+                        refreshData();
+                    } else {
+                        showNotification('error', data.message || 'เกิดข้อผิดพลาด');
+                    }
+                } catch (error) {
+                    console.error('Error extending rental:', error);
+                    showNotification('error', 'เกิดข้อผิดพลาดในการต่ออายุ');
+                }
+            });
+            
+            // Check expired users
+            async function checkExpiredUsers() {
+                try {
+                    const response = await fetch('/api/admin/check-expired-users');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showNotification('success', \`ตรวจสอบเสร็จ: \${data.expired} expired, \${data.aboutToExpire} about to expire\`);
+                        refreshData();
+                    } else {
+                        showNotification('error', 'ไม่สามารถตรวจสอบได้');
+                    }
+                } catch (error) {
+                    console.error('Error checking expired users:', error);
+                    showNotification('error', 'เกิดข้อผิดพลาดในการตรวจสอบ');
+                }
+            }
+            
+            // Cleanup expired users
+            async function cleanupExpiredUsers() {
+                if (!confirm('คุณแน่ใจหรือไม่ที่จะลบ users ที่หมดอายุ? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/admin/cleanup-expired-users', {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showNotification('success', \`ลบ users หมดอายุสำเร็จ: \${data.deletedCount} users\`);
+                        refreshData();
+                    } else {
+                        showNotification('error', 'ไม่สามารถลบได้');
+                    }
+                } catch (error) {
+                    console.error('Error cleaning up expired users:', error);
+                    showNotification('error', 'เกิดข้อผิดพลาดในการลบ');
+                }
+            }
+            
+            // Show notification
+            function showNotification(type, message) {
+                const notification = document.getElementById('notification');
+                notification.className = \`notification \${type}\`;
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        </script>
+    </body>
+    </html>
+    `;
+    
+    res.send(html);
+});
 
 // 🏠 หน้าแรก
 app.get('/', (req, res) => {
@@ -859,6 +1594,26 @@ app.get('/', (req, res) => {
                 if (user.enableBankTransfer) paymentMethods.push('โอนธนาคาร');
                 if (paymentMethods.length === 0) paymentMethods.push('Manual');
                 
+                // ตรวจสอบสถานะ rental
+                const userData = userManager.loadUserData(user.username);
+                let rentalInfo = {
+                    isRental: false,
+                    isExpired: false,
+                    daysLeft: 0
+                };
+                
+                if (userData.rental && userData.rental.isRental) {
+                    const now = Date.now();
+                    const isExpired = now > userData.rental.expiresAt;
+                    const daysLeft = Math.ceil((userData.rental.expiresAt - now) / (24 * 60 * 60 * 1000));
+                    
+                    rentalInfo = {
+                        isRental: true,
+                        isExpired: isExpired,
+                        daysLeft: isExpired ? 0 : daysLeft
+                    };
+                }
+                
                 usersList += `
                     <div class="streamer-card">
                         <div class="card-header">
@@ -868,6 +1623,14 @@ app.get('/', (req, res) => {
                                     <h3>${user.username}</h3>
                                     <div class="stream-title">${user.streamTitle}</div>
                                     <div class="payment-methods">💳 ${paymentMethods.join(', ')}</div>
+                                    ${rentalInfo.isRental ? 
+                                        rentalInfo.isExpired ? 
+                                            `<div class="rental-status expired">🚫 หมดอายุแล้ว</div>` :
+                                            rentalInfo.daysLeft <= 3 ?
+                                                `<div class="rental-status warning">⚠️ เหลือ ${rentalInfo.daysLeft} วัน</div>` :
+                                                `<div class="rental-status active">📅 เหลือ ${rentalInfo.daysLeft} วัน</div>`
+                                        : ''
+                                    }
                                 </div>
                             </div>
                             <div class="status-badge ${statusClass}">${statusText}</div>
@@ -961,16 +1724,16 @@ app.post('/user/create', async (req, res) => {
     try {
         console.log('📝 Create user request:', req.body);
         
-        const { username, phone } = req.body;
+        const { username, phone, rentalDays } = req.body;
         
-        if (!username || !phone) {
-            console.log('❌ Missing data:', { username, phone });
+        if (!username || !phone || !rentalDays) {
+            console.log('❌ Missing data:', { username, phone, rentalDays });
             return res.status(400).send(`
                 <!DOCTYPE html>
                 <html><head><meta charset="UTF-8"><title>Error</title></head>
                 <body style="font-family: Arial; text-align: center; padding: 50px;">
                     <h1>❌ ข้อมูลไม่ครบถ้วน</h1>
-                    <p>กรุณากรอก Username และเบอร์โทรศัพท์</p>
+                    <p>กรุณากรอก Username, เบอร์โทรศัพท์ และจำนวนวันให้เช่า</p>
                     <button onclick="history.back()">← กลับไป</button>
                 </body></html>
             `);
@@ -1016,9 +1779,24 @@ app.post('/user/create', async (req, res) => {
             `);
         }
         
+        const days = parseInt(rentalDays);
+        if (isNaN(days) || days < 1 || days > 365) {
+            console.log('❌ Invalid rental days:', rentalDays);
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html><head><meta charset="UTF-8"><title>Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ จำนวนวันไม่ถูกต้อง</h1>
+                    <p>จำนวนวันต้องเป็นตัวเลข 1-365 วัน</p>
+                    <button onclick="history.back()">← กลับไป</button>
+                </body></html>
+            `);
+        }
+
         const result = await userManager.createUser(username, {
             truewalletPhone: phone,
-            streamTitle: `${username}'s Stream`
+            streamTitle: `${username}'s Stream`,
+            rentalDays: days
         });
         
         console.log(`✅ New user created: ${username} with password: ${result.defaultPassword}`);
@@ -1162,6 +1940,8 @@ app.post('/user/create', async (req, res) => {
                     <div class="info-section">
                         <h3 style="margin-bottom: 15px; text-align: center;">📋 ข้อมูลสำหรับลูกค้า</h3>
                         <div class="info-content" id="customerInfo">ใช้รหัสผ่าน : ${result.defaultPassword}
+📅 วันหมดอายุ : ${result.userData.rental.expiresAtFormatted}
+📊 จำนวนวันที่เช่า : ${days} วัน
 ในการเข้าตั้งค่า : https://chatmateth.chat/user/${username}/config 
 หน้าconfig 
 https://chatmateth.chat/user/${username}/config
@@ -1265,6 +2045,172 @@ https://chatmateth.chat/user/${username}/donate
         `);
     }
 });
+
+// ===============================
+// 🔐 API Key Configuration (เพิ่มใหม่)
+// ===============================
+const API_KEY = process.env.API_KEY || 'Ba225teW'; // 🔒 เปลี่ยนเป็น key ที่ปลอดภัย
+
+// Middleware ตรวจสอบ API Key
+function requireApiKey(req, res, next) {
+    const apiKey = req.headers['x-api-key'] || req.query.apikey || req.body.apikey;
+    
+    if (!apiKey) {
+        return res.status(401).json({
+            success: false,
+            error: 'API_KEY_REQUIRED',
+            message: 'API Key is required. Use x-api-key header or apikey parameter.'
+        });
+    }
+    
+    if (apiKey !== API_KEY) {
+        console.log(`❌ Invalid API Key attempt from IP: ${req.ip}`);
+        return res.status(401).json({
+            success: false,
+            error: 'INVALID_API_KEY',
+            message: 'Invalid API Key provided.'
+        });
+    }
+    
+    console.log(`✅ Valid API Key from IP: ${req.ip}`);
+    next();
+}
+
+// ===============================
+// 🆕 API สร้าง User (Protected with API Key) - เพิ่มใหม่
+// ===============================
+app.post('/api/user/create', requireApiKey, async (req, res) => {
+    try {
+        console.log('🔧 API Create user request:', req.body);
+        
+        // รับพารามิเตอร์
+        const { username, walletnumber, day, streamtitle } = req.body;
+        
+        // ตรวจสอบข้อมูลที่จำเป็น
+        if (!username || !walletnumber || !day) {
+            console.log('❌ Missing required data:', { username, walletnumber, day });
+            return res.status(400).json({
+                success: false,
+                error: 'MISSING_REQUIRED_DATA',
+                message: 'Missing required parameters: username, walletnumber, day',
+                required: ['username', 'walletnumber', 'day'],
+                optional: ['streamtitle', 'apikey']
+            });
+        }
+        
+        // ตรวจสอบ username
+        const usernameValidation = userManager.validateUsername(username);
+        if (!usernameValidation.isValid) {
+            console.log('❌ Invalid username:', username, usernameValidation.errors);
+            return res.status(400).json({
+                success: false,
+                error: 'INVALID_USERNAME',
+                message: 'Invalid username format',
+                details: usernameValidation.errors,
+                rules: 'Username must be 3-20 characters (letters, numbers, _, -)'
+            });
+        }
+        
+        // ตรวจสอบเบอร์ TrueWallet
+        if (!/^[0-9]{10}$/.test(walletnumber)) {
+            console.log('❌ Invalid wallet number:', walletnumber);
+            return res.status(400).json({
+                success: false,
+                error: 'INVALID_WALLET_NUMBER',
+                message: 'Wallet number must be 10 digits',
+                example: '0812345678'
+            });
+        }
+        
+        // ตรวจสอบว่า user มีอยู่แล้วหรือไม่
+        if (userManager.userExists(username)) {
+            console.log('❌ User already exists:', username);
+            return res.status(409).json({
+                success: false,
+                error: 'USER_EXISTS',
+                message: `User '${username}' already exists`,
+                suggestion: 'Please choose a different username'
+            });
+        }
+        
+        // ตรวจสอบจำนวนวัน
+        const days = parseInt(day);
+        if (isNaN(days) || days < 1 || days > 365) {
+            console.log('❌ Invalid rental days:', day);
+            return res.status(400).json({
+                success: false,
+                error: 'INVALID_DAY_COUNT',
+                message: 'Day count must be between 1-365',
+                provided: day,
+                range: { min: 1, max: 365 }
+            });
+        }
+
+        // สร้าง user ด้วยฟังก์ชันเดียวกันกับหน้าเว็บ
+        const result = await userManager.createUser(username, {
+            truewalletPhone: walletnumber,
+            streamTitle: streamtitle || `${username}'s Stream`,
+            rentalDays: days
+        });
+        
+        console.log(`✅ API: New user created: ${username} with password: ${result.defaultPassword}`);
+        
+        // ส่งข้อมูลกลับในรูปแบบ JSON
+        const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+        const response = {
+            success: true,
+            message: 'User created successfully',
+            data: {
+                username: username,
+                password: result.defaultPassword,
+                streamTitle: result.userData.config.streamTitle,
+                walletNumber: walletnumber,
+                rentalDays: days,
+                expiresAt: result.userData.rental.expiresAt,
+                expiresAtFormatted: result.userData.rental.expiresAtFormatted,
+                createdAt: result.userData.createdAt,
+                
+                // URLs สำหรับใช้งาน
+                urls: {
+                    config: `${protocol}://${req.get('host')}/user/${username}/config`,
+                    history: `${protocol}://${req.get('host')}/user/${username}/history`,
+                    control: `${protocol}://${req.get('host')}/user/${username}/control`,
+                    donate: `${protocol}://${req.get('host')}/user/${username}/donate`,
+                    widget: `${protocol}://${req.get('host')}/user/${username}/widget`
+                }
+            },
+            
+            // ข้อมูลสำหรับส่งลูกค้า (เหมือนหน้าเว็บ)
+            customerInfo: {
+                copyText: `ใช้รหัสผ่าน : ${result.defaultPassword}\n📅 วันหมดอายุ : ${result.userData.rental.expiresAtFormatted}\n📊 จำนวนวันที่เช่า : ${days} วัน\nในการเข้าตั้งค่า : ${protocol}://${req.get('host')}/user/${username}/config\nหน้าconfig\n${protocol}://${req.get('host')}/user/${username}/config\nหน้าประวัติ\n${protocol}://${req.get('host')}/user/${username}/history\nหน้าเทส alert\n${protocol}://${req.get('host')}/user/${username}/control\nหน้าโดเนท\n${protocol}://${req.get('host')}/user/${username}/donate\nลองใช้งานได้เลยครับ ติดตรงไหนสอบถามได้เลยครับ หากพบปัญหาหรือมีข้อเสนอตรงไหนแจ้งได้เลยครับ`
+            }
+        };
+        
+        res.status(201).json(response);
+        
+    } catch (error) {
+        console.error('❌ API Error creating user:', error);
+        res.status(500).json({
+            success: false,
+            error: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to create user',
+            details: error.message
+        });
+    }
+});
+
+// ===============================
+// 🔍 API ตรวจสอบสถานะ API Key (เพิ่มใหม่)
+// ===============================
+app.get('/api/auth/check', requireApiKey, (req, res) => {
+    res.json({
+        success: true,
+        message: 'API Key is valid',
+        timestamp: new Date().toISOString(),
+        ip: req.ip
+    });
+});
+
 
 // 💝 หน้าโดเนท
 app.get('/user/:username/donate', (req, res) => {
@@ -1930,14 +2876,36 @@ app.get('/user/:username/api/donations', requireUserAuth, (req, res) => {
                 Math.round(donations.reduce((sum, d) => sum + d.amount, 0) / donations.length) : 0
         };
         
-        // คำนวณสถิติวันนี้
-        const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const todayDonations = req.userData.donations.filter(d => new Date(d.timestamp) >= startOfDay);
+        // 🔧 แก้ไขการคำนวณสถิติวันนี้ให้ใช้ Thailand timezone
+        const now = new Date();
+        
+        // สร้างวันที่เริ่มต้นของวันนี้ในเขตเวลาไทย
+        const bangkokTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"}));
+        const todayStart = new Date(bangkokTime.getFullYear(), bangkokTime.getMonth(), bangkokTime.getDate());
+        const todayEnd = new Date(todayStart.getTime() + (24 * 60 * 60 * 1000) - 1);
+        
+        console.log(`🔍 Today range (Bangkok): ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
+        
+        // กรองข้อมูลวันนี้
+        const todayDonations = req.userData.donations.filter(d => {
+            const donationTime = new Date(d.timestamp);
+            const isToday = donationTime >= todayStart && donationTime <= todayEnd;
+            
+            if (isToday) {
+                console.log(`📊 Today donation: ${d.name} - ฿${d.amount} at ${d.bangkokTime}`);
+            }
+            
+            return isToday;
+        });
+        
+        const todayAmount = todayDonations.reduce((sum, d) => sum + d.amount, 0);
+        
+        console.log(`📊 Today stats: ${todayDonations.length} donations, ฿${todayAmount}`);
         
         const userStats = {
             ...req.userData.stats,
-            todayDonations: todayDonations.length
+            todayDonations: todayDonations.length,
+            todayAmount: todayAmount // เพิ่มจำนวนเงินวันนี้
         };
         
         res.json({
@@ -2161,6 +3129,180 @@ app.get('/api/admin/system-health', (req, res) => {
             success: true,
             health: health
         });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 🔍 API ตรวจสอบ expired users
+app.get('/api/admin/check-expired-users', (req, res) => {
+    try {
+        const result = userManager.checkExpiredUsers();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 🗑️ API ลบ expired users
+app.post('/api/admin/cleanup-expired-users', (req, res) => {
+    try {
+        const result = userManager.cleanupExpiredUsers();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 🆕 API เปลี่ยน user ธรรมดาเป็น rental user
+app.post('/api/admin/convert-to-rental', (req, res) => {
+    try {
+        const { username, rentalDays } = req.body;
+        
+        if (!username || !rentalDays) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username and rentalDays are required'
+            });
+        }
+        
+        if (!userManager.userExists(username)) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        const userData = userManager.loadUserData(username);
+        const days = parseInt(rentalDays);
+        
+        if (isNaN(days) || days < 1 || days > 365) {
+            return res.status(400).json({
+                success: false,
+                message: 'จำนวนวันต้องเป็น 1-365 วัน'
+            });
+        }
+        
+        // คำนวณวันหมดอายุ
+        const expiresAt = Date.now() + (days * 24 * 60 * 60 * 1000);
+        
+        // เปลี่ยนเป็น rental user
+        userData.rental = {
+            isRental: true,
+            rentalDays: days,
+            expiresAt: expiresAt,
+            expiresAtFormatted: new Date(expiresAt).toLocaleString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            isExpired: false,
+            createdAt: Date.now(),
+            convertedAt: Date.now()
+        };
+        
+        userManager.saveUserData(username, userData);
+        
+        console.log(`🔄 Converted user ${username} to rental: ${days} days`);
+        
+        res.json({
+            success: true,
+            message: `แปลง ${username} เป็น rental user สำเร็จ`,
+            username: username,
+            rentalDays: days,
+            expiresAt: expiresAt,
+            expiresAtFormatted: userData.rental.expiresAtFormatted
+        });
+        
+    } catch (error) {
+        console.error('Error converting user to rental:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// 📋 API ดึงรายชื่อ users สำหรับ admin
+app.get('/api/admin/users', (req, res) => {
+    try {
+        const users = userManager.getAllUsers();
+        const detailedUsers = users.map(user => {
+            const userData = userManager.loadUserData(user.username);
+            
+            let rentalInfo = {
+                isRental: false,
+                isExpired: false,
+                daysLeft: 0,
+                expiresAtFormatted: null
+            };
+            
+            if (userData.rental && userData.rental.isRental) {
+                const now = Date.now();
+                const isExpired = now > userData.rental.expiresAt;
+                const daysLeft = Math.ceil((userData.rental.expiresAt - now) / (24 * 60 * 60 * 1000));
+                
+                rentalInfo = {
+                    isRental: true,
+                    isExpired: isExpired,
+                    daysLeft: isExpired ? 0 : daysLeft,
+                    expiresAtFormatted: userData.rental.expiresAtFormatted
+                };
+            }
+            
+            return {
+                ...user,
+                rental: rentalInfo,
+                lastActiveFormatted: new Date(user.lastActiveAt).toLocaleString('th-TH', {
+                    timeZone: 'Asia/Bangkok',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            };
+        });
+        
+        res.json({
+            success: true,
+            users: detailedUsers
+        });
+        
+    } catch (error) {
+        console.error('Error getting users for admin:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+// 📅 API ต่ออายุ user
+app.post('/api/admin/extend-user-rental', (req, res) => {
+    try {
+        const { username, additionalDays } = req.body;
+        
+        if (!username || !additionalDays) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username and additionalDays are required'
+            });
+        }
+        
+        const result = userManager.extendUserRental(username, parseInt(additionalDays));
+        res.json(result);
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -2576,6 +3718,73 @@ app.use((req, res) => {
     `);
 });
 
+
+// ===============================
+// Auto Check Expired Users System
+// ===============================
+
+// ฟังก์ชันตรวจสอบ users หมดอายุ
+function checkExpiredUsersScheduler() {
+    console.log('🔍 Running expired users check...');
+    
+    const checkResult = userManager.checkExpiredUsers();
+    
+    if (checkResult.success) {
+        console.log(`📊 Expired Users Check Result:`);
+        console.log(`   Total Checked: ${checkResult.totalChecked}`);
+        console.log(`   Expired: ${checkResult.expired}`);
+        console.log(`   About to Expire (≤3 days): ${checkResult.aboutToExpire}`);
+        
+        // แสดงรายละเอียด users ที่ใกล้หมดอายุ
+        if (checkResult.aboutToExpire > 0) {
+            console.log('⚠️ Users about to expire:');
+            checkResult.results
+                .filter(r => r.status === 'warning')
+                .forEach(user => {
+                    console.log(`   📅 ${user.username}: ${user.daysLeft} days left`);
+                });
+        }
+        
+        // แสดงรายละเอียด users ที่หมดอายุแล้ว
+        if (checkResult.expired > 0) {
+            console.log('🚫 Expired users:');
+            checkResult.results
+                .filter(r => r.status === 'expired')
+                .forEach(user => {
+                    console.log(`   ❌ ${user.username}: expired ${user.daysOverdue} days ago`);
+                });
+        }
+        
+        // ลบ users ที่หมดอายุออกจากระบบ
+        if (checkResult.expired > 0) {
+            console.log('🗑️ Starting cleanup of expired users...');
+            const cleanupResult = userManager.cleanupExpiredUsers();
+            
+            if (cleanupResult.success) {
+                console.log(`✅ Cleanup completed: ${cleanupResult.deletedCount} users deleted`);
+                cleanupResult.deletedUsers.forEach(user => {
+                    console.log(`   🗂️ ${user.username} backed up to: ${path.basename(user.backupPath)}`);
+                });
+            } else {
+                console.error('❌ Cleanup failed:', cleanupResult.error);
+            }
+        }
+    } else {
+        console.error('❌ Expired users check failed:', checkResult.error);
+    }
+    
+    console.log('🔍 Expired users check completed.\n');
+}
+
+// รันทันทีเมื่อ server เริ่มต้น
+console.log('🚀 Running initial expired users check...');
+setTimeout(checkExpiredUsersScheduler, 5000); // รอ 5 วินาทีให้ server เริ่มต้นเสร็จ
+
+// ตั้งเวลาให้รันทุก 1 ชั่วโมง (3,600,000 ms)
+const expiredUsersCheckInterval = setInterval(checkExpiredUsersScheduler, 60 * 60 * 1000);
+console.log('⏰ Scheduled expired users check every 1 hour');
+
+
 // ===============================
 // Start Server - 🔧 Enhanced with Domain Support
 // ===============================
@@ -2592,6 +3801,12 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`🏠 Homepage: ${protocol}://${DOMAIN}:${PORT}/`);
     console.log(`📊 API Status: ${protocol}://${DOMAIN}:${PORT}/api/status`);
     console.log(`🏥 Health Check: ${protocol}://${DOMAIN}:${PORT}/health`);
+    console.log('🔧 =====================================');
+    console.log('🔧 API Endpoints:');
+    console.log(`   🆕 Create User: POST ${protocol}://${DOMAIN}:${PORT}/api/user/create`);
+    console.log(`   🔍 API Auth Check: GET ${protocol}://${DOMAIN}:${PORT}/api/auth/check`);
+    console.log(`   🔑 API Key: ${API_KEY.substring(0, 8)}...`);
+    console.log('🔧 =====================================');
     console.log(`🔒 HTTPS Enabled: ${USE_HTTPS}`);
     console.log(`💾 Users Directory: ${userManager.USER_DATA_DIR}`);
     console.log('🎉 =====================================');
@@ -2656,6 +3871,31 @@ server.listen(PORT, '0.0.0.0', () => {
 // Graceful Shutdown - 🔧 Enhanced
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully');
+    
+    // หยุด interval timer
+    if (expiredUsersCheckInterval) {
+        clearInterval(expiredUsersCheckInterval);
+        console.log('⏰ Stopped expired users check interval');
+    }
+    
+    // สำรองข้อมูลก่อนปิด
+    console.log('📦 Creating backup before shutdown...');
+    userManager.backupAllUsers();
+    
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    
+    // หยุด interval timer
+    if (expiredUsersCheckInterval) {
+        clearInterval(expiredUsersCheckInterval);
+        console.log('⏰ Stopped expired users check interval');
+    }
     
     // สำรองข้อมูลก่อนปิด
     console.log('📦 Creating backup before shutdown...');

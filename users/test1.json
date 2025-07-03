@@ -1,7 +1,7 @@
 {
   "username": "test1",
   "createdAt": 1751462930011,
-  "lastActiveAt": 1751502878551,
+  "lastActiveAt": 1751546814879,
   "config": {
     "truewalletPhone": "",
     "enableBankTransfer": true,
@@ -37,6 +37,73 @@
   },
   "donations": [
     {
+      "id": 1751526678515,
+      "timestamp": 1751526678214,
+      "bangkokTime": "03/07/2568 14:11:18",
+      "name": "Alexander Hayes",
+      "amount": 300,
+      "message": "test",
+      "paymentMethod": "bank_transfer",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "ธนาคารกสิกรไทย",
+      "bankAccount": "0538749281",
+      "transactionRef": "015184111521ATF03008",
+      "discriminator": "004.015184111521ATF03008",
+      "slipData": {
+        "sender": {
+          "displayName": "น.ส. ภัทราวดี เ",
+          "name": "MS. Partarawadee D",
+          "proxy": {
+            "type": null,
+            "value": null
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "xxx-x-x4139-x"
+          }
+        },
+        "receiver": {
+          "displayName": "นาย เกียรติศักดิ์ ช",
+          "name": "MR. Kieattisak C",
+          "proxy": {
+            "type": "",
+            "value": ""
+          },
+          "account": {
+            "type": "BANKAC",
+            "value": "xxx-x-x4928-x"
+          }
+        },
+        "transDate": "20250703",
+        "transTime": "11:15:21",
+        "sendingBank": "004",
+        "receivingBank": "004"
+      },
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
+      "id": 1751526559249,
+      "timestamp": 1751526558612,
+      "bangkokTime": "03/07/2568 14:09:18",
+      "name": "Alexander Hayes",
+      "amount": 100,
+      "message": "ได้โดเนท",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+      "status": "completed"
+    },
+    {
       "id": 1751462942778,
       "timestamp": 1751462942553,
       "bangkokTime": "02/07/2568 20:29:02",
@@ -57,27 +124,29 @@
     }
   ],
   "stats": {
-    "totalDonations": 1,
-    "totalAmount": 100,
-    "averageAmount": 100,
-    "highestDonation": 100,
-    "uniqueDonors": 1,
-    "thisMonthAmount": 100,
-    "lastDonationAt": 1751462942553,
+    "totalDonations": 3,
+    "totalAmount": 500,
+    "averageAmount": 167,
+    "highestDonation": 300,
+    "uniqueDonors": 2,
+    "thisMonthAmount": 500,
+    "lastDonationAt": 1751526678214,
     "paymentMethods": {
       "truewallet": {
         "count": 0,
         "amount": 0
       },
       "bank_transfer": {
-        "count": 0,
-        "amount": 0
+        "count": 1,
+        "amount": 300
       },
       "manual": {
-        "count": 1,
-        "amount": 100
+        "count": 2,
+        "amount": 200
       }
-    }
+    },
+    "todayDonations": 2,
+    "todayAmount": 400
   },
   "advanced": {
     "webhookUrl": "",
@@ -94,8 +163,8 @@
     }
   },
   "auth": {
-    "hashedPassword": "$2b$10$CeMi8/E/VVEA8LSvnQtHsu4Jhww.eyqgLeu300k605XY07a4XH5Ka",
-    "lastLoginAt": 1751502878551,
+    "hashedPassword": "$2b$10$G4vhaiusHhYmyCjn/PR17u8wfdiSZAvnTsCXYbva.HlmG08HJiuBq",
+    "lastLoginAt": 1751546814879,
     "loginAttempts": 0,
     "lockedUntil": null
   }

@@ -1,0 +1,121 @@
+{
+  "username": "Melosocute",
+  "createdAt": 1751474285899,
+  "lastActiveAt": 1751478143333,
+  "auth": {
+    "hashedPassword": "$2b$10$oOqkcE5uywAZSJRCGJtrfue/9/4haJGuhQaEJKF1vF3OL6jnfqSLi",
+    "lastLoginAt": 1751477939508,
+    "loginAttempts": 0,
+    "lockedUntil": null
+  },
+  "config": {
+    "truewalletPhone": "0810952474",
+    "enableBankTransfer": false,
+    "bankName": "",
+    "bankAccount": "",
+    "bankAccountName": "",
+    "streamTitle": "Melosocute's Stream",
+    "alertDuration": 5000,
+    "enableTTS": false,
+    "enableTTSName": true,
+    "enableTTSMessage": true,
+    "enableSound": true,
+    "alertPosition": "top",
+    "customCSS": "",
+    "welcomeMessage": "ยินดีต้อนรับสู่สตรีมของ Melosocute!",
+    "alertFormat": "สุลต่าน {{user}} ขนม {{amount}} จิ้น",
+    "minTTSAmount": 50,
+    "showBackground": false,
+    "backgroundColor": "rgba(255, 255, 255, 0.95)",
+    "textColor": "#1f2937",
+    "amountColor": "#f59e0b",
+    "donorColor": "#667eea",
+    "messageColor": "#6b7280",
+    "fontSize": 29,
+    "amountSize": 56,
+    "messageSize": 23,
+    "borderRadius": 25,
+    "showIcon": true,
+    "showSparkles": true,
+    "animationSpeed": 1,
+    "customGifUrl": "",
+    "useCustomGif": false
+  },
+  "donations": [
+    {
+      "id": 1751478122002,
+      "timestamp": 1751478121677,
+      "bangkokTime": "03/07/2568 00:42:01",
+      "name": "OP",
+      "amount": 1000,
+      "message": "สนับสนุนค่าอาหารแมวค้าบบ✧ ˖🧺˚ ༘ ꊞ 🧸  ₊˚ ",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+      "status": "completed"
+    },
+    {
+      "id": 1751478069813,
+      "timestamp": 1751478069530,
+      "bangkokTime": "03/07/2568 00:41:09",
+      "name": "OP",
+      "amount": 1000,
+      "message": "",
+      "paymentMethod": "manual",
+      "voucherCode": "",
+      "phoneNumber": "",
+      "bankName": "",
+      "bankAccount": "",
+      "transactionRef": "",
+      "discriminator": "",
+      "slipData": null,
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+      "status": "completed"
+    }
+  ],
+  "stats": {
+    "totalDonations": 2,
+    "totalAmount": 2000,
+    "averageAmount": 1000,
+    "highestDonation": 1000,
+    "uniqueDonors": 1,
+    "thisMonthAmount": 2000,
+    "lastDonationAt": 1751478121677,
+    "paymentMethods": {
+      "truewallet": {
+        "count": 0,
+        "amount": 0
+      },
+      "bank_transfer": {
+        "count": 0,
+        "amount": 0
+      },
+      "manual": {
+        "count": 2,
+        "amount": 2000
+      }
+    }
+  },
+  "advanced": {
+    "webhookUrl": "",
+    "discordWebhook": "",
+    "customAlerts": {
+      "milestone100": true,
+      "milestone500": true,
+      "milestone1000": true
+    },
+    "slipApiSettings": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutMs": 30000
+    }
+  }
+}

@@ -5,11 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History - {{ username }}</title>
+
+
+    <link rel="shortcut icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png"
+        type="image/png">
+    <link rel="icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png" type="image/png">
+
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="shortcut icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png" type="image/png">
-    <link rel="icon" href="https://img5.pic.in.th/file/secure-sv1/Untitled-designd6e3c4dd05e5b3c5.png" type="image/png">
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -755,10 +759,18 @@
             <div class="stat-card">
                 <h3>
                     <i class="fas fa-calendar-day"></i>
-                    วันนี้
+                    รายการวันนี้
                 </h3>
                 <div class="value" id="todayDonations">-</div>
                 <div class="unit">รายการ</div>
+            </div>
+            <div class="stat-card">
+                <h3>
+                    <i class="fas fa-money-bill-wave"></i>
+                    ยอดวันนี้
+                </h3>
+                <div class="value" id="todayAmount">-</div>
+                <div class="unit">บาท</div>
             </div>
         </div>
 
@@ -912,12 +924,13 @@
                     }
 
                     const data = await response.json();
-                    console.log('Received data:', data);
+                    console.log('📦 Received data:', data); // เพิ่มบรรทัดนี้
+                    console.log('📊 UserStats received:', data.userStats); // เพิ่มบรรทัดนี้
 
                     if (data.success) {
                         this.renderTable(data.data);
                         this.renderPagination(data.pagination);
-                        this.renderStats(data.stats || data.userStats);
+                        this.renderStats(data.userStats || data.stats);
                     } else {
                         this.showError('ไม่สามารถโหลดข้อมูลได้: ' + (data.message || 'Unknown error'));
                     }
@@ -940,20 +953,37 @@
             }
 
             renderStats(stats) {
-                // ป้องกัน undefined และใส่ค่าเริ่มต้น
                 const safeStats = {
                     totalDonations: stats?.totalDonations || 0,
                     totalAmount: stats?.totalAmount || 0,
                     averageAmount: stats?.averageAmount || 0,
-                    todayDonations: stats?.todayDonations || 0
+                    todayDonations: stats?.todayDonations || 0,
+                    todayAmount: stats?.todayAmount || 0
                 };
 
-                console.log('Rendering stats:', safeStats);
+                console.log('📊 Rendering stats:', safeStats);
 
-                document.getElementById('totalDonations').textContent = safeStats.totalDonations.toLocaleString();
-                document.getElementById('totalAmount').textContent = safeStats.totalAmount.toLocaleString();
-                document.getElementById('averageAmount').textContent = Math.round(safeStats.averageAmount).toLocaleString();
-                document.getElementById('todayDonations').textContent = safeStats.todayDonations.toLocaleString();
+                // ตรวจสอบ elements
+                const elements = {
+                    totalDonations: document.getElementById('totalDonations'),
+                    totalAmount: document.getElementById('totalAmount'),
+                    averageAmount: document.getElementById('averageAmount'),
+                    todayDonations: document.getElementById('todayDonations'),
+                    todayAmount: document.getElementById('todayAmount')
+                };
+
+                // ตรวจสอบว่า elements มีอยู่หรือไม่
+                Object.keys(elements).forEach(key => {
+                    if (!elements[key]) {
+                        console.error(`❌ Element not found: ${key}`);
+                    }
+                });
+
+                if (elements.totalDonations) elements.totalDonations.textContent = safeStats.totalDonations.toLocaleString();
+                if (elements.totalAmount) elements.totalAmount.textContent = safeStats.totalAmount.toLocaleString();
+                if (elements.averageAmount) elements.averageAmount.textContent = Math.round(safeStats.averageAmount).toLocaleString();
+                if (elements.todayDonations) elements.todayDonations.textContent = safeStats.todayDonations.toLocaleString();
+                if (elements.todayAmount) elements.todayAmount.textContent = safeStats.todayAmount.toLocaleString();
             }
 
             renderTable(donations) {

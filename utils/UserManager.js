@@ -209,6 +209,16 @@ class UserManager {
                 loginAttempts: 0,
                 lockedUntil: null
             },
+
+            // ระบบให้เช่า
+            rental: {
+                isRental: false,
+                rentalDays: 0,
+                expiresAt: null,
+                expiresAtFormatted: null,
+                isExpired: false,
+                createdAt: Date.now()
+            },
             
             // การตั้งค่า
             config: {
@@ -325,6 +335,28 @@ class UserManager {
         const defaultPassword = this.generateDefaultPassword();
         userData.auth.hashedPassword = await this.hashPassword(defaultPassword);
         
+        // ตั้งค่าระบบให้เช่า
+        if (initialConfig.rentalDays) {
+            const rentalDays = parseInt(initialConfig.rentalDays);
+            const expiresAt = Date.now() + (rentalDays * 24 * 60 * 60 * 1000);
+            
+            userData.rental = {
+                isRental: true,
+                rentalDays: rentalDays,
+                expiresAt: expiresAt,
+                expiresAtFormatted: new Date(expiresAt).toLocaleString('th-TH', {
+                    timeZone: 'Asia/Bangkok',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }),
+                isExpired: false,
+                createdAt: Date.now()
+            };
+        }
+        
         // ใส่ config เริ่มต้น
         if (initialConfig.truewalletPhone) {
             userData.config.truewalletPhone = initialConfig.truewalletPhone;
@@ -431,12 +463,27 @@ class UserManager {
         const uniqueDonors = new Set(donations.map(d => d.name.toLowerCase()));
         userData.stats.uniqueDonors = uniqueDonors.size;
         
+        // 🔧 แก้ไขการคำนวณเดือนนี้และวันนี้ให้ใช้ Bangkok timezone
+        const now = new Date();
+        const bangkokTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"}));
+        
         // จำนวนเงินเดือนนี้
-        const thisMonth = new Date();
-        const startOfMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
+        const startOfMonth = new Date(bangkokTime.getFullYear(), bangkokTime.getMonth(), 1);
         userData.stats.thisMonthAmount = donations
             .filter(d => new Date(d.timestamp) >= startOfMonth)
             .reduce((sum, d) => sum + d.amount, 0);
+        
+        // 🔧 เพิ่มการคำนวณวันนี้
+        const todayStart = new Date(bangkokTime.getFullYear(), bangkokTime.getMonth(), bangkokTime.getDate());
+        const todayEnd = new Date(todayStart.getTime() + (24 * 60 * 60 * 1000) - 1);
+        
+        const todayDonations = donations.filter(d => {
+            const donationTime = new Date(d.timestamp);
+            return donationTime >= todayStart && donationTime <= todayEnd;
+        });
+        
+        userData.stats.todayDonations = todayDonations.length;
+        userData.stats.todayAmount = todayDonations.reduce((sum, d) => sum + d.amount, 0);
         
         // การสนับสนุนล่าสุด
         userData.stats.lastDonationAt = donations.length > 0 ? donations[0].timestamp : null;
@@ -456,6 +503,8 @@ class UserManager {
                 amount: donations.filter(d => d.paymentMethod === 'manual').reduce((sum, d) => sum + d.amount, 0)
             }
         };
+        
+        console.log(`📊 Updated stats for ${userData.username}: Today ${userData.stats.todayDonations} donations, ฿${userData.stats.todayAmount}`);
     }
 
     // อัพเดทการตั้งค่า
@@ -1109,6 +1158,192 @@ class UserManager {
             };
         }
     }
+    // ตรวจสอบและอัพเดทสถานะ user ที่หมดอายุ
+    checkExpiredUsers() {
+        try {
+            const users = this.getAllUsers();
+            const now = Date.now();
+            let expiredCount = 0;
+            let aboutToExpireCount = 0;
+            const results = [];
+
+            users.forEach(userInfo => {
+                const userData = this.loadUserData(userInfo.username);
+                
+                // ตรวจสอบเฉพาะ rental users
+                if (userData.rental && userData.rental.isRental) {
+                    const isExpired = now > userData.rental.expiresAt;
+                    const daysLeft = Math.ceil((userData.rental.expiresAt - now) / (24 * 60 * 60 * 1000));
+                    
+                    // อัพเดทสถานะ
+                    if (isExpired && !userData.rental.isExpired) {
+                        userData.rental.isExpired = true;
+                        this.saveUserData(userInfo.username, userData);
+                        expiredCount++;
+                        
+                        results.push({
+                            username: userInfo.username,
+                            status: 'expired',
+                            expiredAt: userData.rental.expiresAt,
+                            daysOverdue: Math.abs(daysLeft)
+                        });
+                    } else if (!isExpired && daysLeft <= 3) {
+                        aboutToExpireCount++;
+                        
+                        results.push({
+                            username: userInfo.username,
+                            status: 'warning',
+                            expiresAt: userData.rental.expiresAt,
+                            daysLeft: daysLeft
+                        });
+                    } else if (!isExpired) {
+                        results.push({
+                            username: userInfo.username,
+                            status: 'active',
+                            expiresAt: userData.rental.expiresAt,
+                            daysLeft: daysLeft
+                        });
+                    }
+                }
+            });
+
+            console.log(`🔍 Checked ${users.length} users: ${expiredCount} expired, ${aboutToExpireCount} about to expire`);
+            
+            return {
+                success: true,
+                totalChecked: users.length,
+                expired: expiredCount,
+                aboutToExpire: aboutToExpireCount,
+                results: results
+            };
+            
+        } catch (error) {
+            console.error('Error checking expired users:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // ลบ users ที่หมดอายุ (พร้อม backup)
+    cleanupExpiredUsers() {
+        try {
+            const users = this.getAllUsers();
+            const now = Date.now();
+            let deletedCount = 0;
+            const deletedUsers = [];
+            
+            // สร้าง backup directory สำหรับ expired users
+            const expiredBackupDir = path.join(this.USER_DATA_DIR, 'expired_backups');
+            if (!fs.existsSync(expiredBackupDir)) {
+                fs.mkdirSync(expiredBackupDir, { recursive: true });
+            }
+
+            users.forEach(userInfo => {
+                const userData = this.loadUserData(userInfo.username);
+                
+                // ตรวจสอบ rental users ที่หมดอายุ
+                if (userData.rental && userData.rental.isRental && userData.rental.isExpired) {
+                    const username = userInfo.username;
+                    
+                    // สำรองข้อมูลก่อนลบ
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    const backupFileName = `${username}_expired_${timestamp}.json`;
+                    const backupPath = path.join(expiredBackupDir, backupFileName);
+                    
+                    // เพิ่มข้อมูลการลบ
+                    userData.deletedAt = now;
+                    userData.deletedReason = 'Rental expired';
+                    userData.backupPath = backupPath;
+                    
+                    // บันทึก backup
+                    fs.writeFileSync(backupPath, JSON.stringify(userData, null, 2));
+                    
+                    // ลบไฟล์ต้นฉบับ
+                    const userPath = this.getUserDataPath(username);
+                    fs.unlinkSync(userPath);
+                    
+                    deletedCount++;
+                    deletedUsers.push({
+                        username: username,
+                        expiredAt: userData.rental.expiresAt,
+                        backupPath: backupPath
+                    });
+                    
+                    console.log(`🗑️ Deleted expired user: ${username} (backup: ${backupFileName})`);
+                }
+            });
+
+            console.log(`🧹 Cleanup completed: ${deletedCount} expired users deleted`);
+            
+            return {
+                success: true,
+                deletedCount: deletedCount,
+                deletedUsers: deletedUsers
+            };
+            
+        } catch (error) {
+            console.error('Error cleaning up expired users:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // ต่ออายุ user
+    extendUserRental(username, additionalDays) {
+        try {
+            const userData = this.loadUserData(username);
+            
+            if (!userData.rental || !userData.rental.isRental) {
+                throw new Error('User is not a rental user');
+            }
+
+            const now = Date.now();
+            const currentExpiry = userData.rental.expiresAt;
+            
+            // คำนวณวันหมดอายุใหม่ (จากวันหมดอายุเดิม หรือวันปัจจุบันถ้าหมดอายุแล้ว)
+            const baseTime = currentExpiry > now ? currentExpiry : now;
+            const newExpiresAt = baseTime + (additionalDays * 24 * 60 * 60 * 1000);
+            
+            userData.rental.expiresAt = newExpiresAt;
+            userData.rental.expiresAtFormatted = new Date(newExpiresAt).toLocaleString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            userData.rental.isExpired = false;
+            userData.rental.rentalDays += additionalDays;
+            userData.rental.lastExtendedAt = now;
+            userData.rental.lastExtendedDays = additionalDays;
+
+            this.saveUserData(username, userData);
+            
+            console.log(`📅 Extended rental for ${username}: +${additionalDays} days, new expiry: ${userData.rental.expiresAtFormatted}`);
+            
+            return {
+                success: true,
+                username: username,
+                additionalDays: additionalDays,
+                newExpiresAt: newExpiresAt,
+                newExpiresAtFormatted: userData.rental.expiresAtFormatted
+            };
+            
+        } catch (error) {
+            console.error(`Error extending rental for ${username}:`, error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }
+
+
 
 module.exports = UserManager;
